@@ -26,9 +26,12 @@ export default function Header() {
   return (
     <header className="bg-white border-b px-6 py-3 flex items-center justify-between sticky top-0 z-50">
       <Link href="/" className="font-bold text-lg text-blue-600">웹툰로그</Link>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
         {nickname ? (
           <>
+            <Link href="/collections" className="text-sm text-gray-500 hover:text-blue-500 transition">
+              컬렉션
+            </Link>
             <Link href="/mypage" className="text-sm text-gray-600 hover:text-blue-500 transition">
               {nickname}
             </Link>

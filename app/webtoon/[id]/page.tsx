@@ -26,18 +26,25 @@ export default function WebtoonPage() {
   const [editContent, setEditContent] = useState('');
   const [auth, setAuth] = useState<{ token: string | null; nickname: string | null; userId: string | null }>({ token: null, nickname: null, userId: null });
   const [loading, setLoading] = useState(false);
+  const [collections, setCollections] = useState<any[]>([]);
+  const [showCollectionMenu, setShowCollectionMenu] = useState(false);
 
   useEffect(() => {
     const a = getAuth();
     setAuth(a);
     fetch(`/api/webtoons/${id}`).then(r => r.json()).then(setWebtoon);
     fetchReviews();
-    if (a.userId) fetchStatus(a.userId);
-
+    if (a.userId) {
+      fetchStatus(a.userId);
+      fetchCollections(a.userId);
+    }
     const onAuth = () => {
       const newAuth = getAuth();
       setAuth(newAuth);
-      if (newAuth.userId) fetchStatus(newAuth.userId);
+      if (newAuth.userId) {
+        fetchStatus(newAuth.userId);
+        fetchCollections(newAuth.userId);
+      }
     };
     window.addEventListener('authChange', onAuth);
     return () => window.removeEventListener('authChange', onAuth);
@@ -50,6 +57,23 @@ export default function WebtoonPage() {
   function fetchStatus(userId: string) {
     fetch(`/api/reading-status?webtoonId=${id}&userId=${userId}`)
       .then(r => r.json()).then(data => setReadStatus(data.status));
+  }
+
+  function fetchCollections(userId: string) {
+    fetch(`/api/collections?userId=${userId}`).then(r => r.json()).then(setCollections);
+  }
+
+  async function addToCollection(collectionId: string) {
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/collections/items', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ collectionId, webtoonId: id }),
+    });
+    const data = await res.json();
+    if (!res.ok) return alert(data.error);
+    alert('컬렉션에 추가됐어요! 🎉');
+    setShowCollectionMenu(false);
   }
 
   async function submitReview() {
@@ -99,9 +123,7 @@ export default function WebtoonPage() {
   }
 
   const statusList = ['읽는중', '완독', '읽고싶다', '보류'];
-
   if (!webtoon) return <div className="p-8 text-center">로딩중...</div>;
-
   const myReview = reviews.find(r => r.userId === auth.userId);
 
   return (
@@ -112,9 +134,37 @@ export default function WebtoonPage() {
         {webtoon.thumbnailUrl && (
           <img src={webtoon.thumbnailUrl} alt={webtoon.title} className="w-full h-60 object-cover rounded-lg mb-4" />
         )}
-        <h1 className="text-2xl font-bold mb-1">{webtoon.title}</h1>
-        <p className="text-gray-500 mb-1">{webtoon.author}</p>
-        <p className="text-blue-500 text-sm">{webtoon.platform}</p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold mb-1">{webtoon.title}</h1>
+            <p className="text-gray-500 mb-1">{webtoon.author}</p>
+            <p className="text-blue-500 text-sm">{webtoon.platform}</p>
+          </div>
+          {auth.token && (
+            <div className="relative">
+              <button onClick={() => setShowCollectionMenu(!showCollectionMenu)}
+                className="text-sm bg-gray-100 px-3 py-2 rounded-lg hover:bg-gray-200 transition">
+                + 컬렉션
+              </button>
+              {showCollectionMenu && (
+                <div className="absolute right-0 top-10 bg-white shadow-lg rounded-xl p-3 w-48 z-10">
+                  {collections.length === 0 ? (
+                    <div className="text-sm text-gray-400 p-2">
+                      <Link href="/collections" className="text-blue-500 hover:underline">컬렉션 만들기</Link>
+                    </div>
+                  ) : (
+                    collections.map(c => (
+                      <button key={c.id} onClick={() => addToCollection(c.id)}
+                        className="w-full text-left text-sm px-3 py-2 hover:bg-gray-50 rounded-lg">
+                        {c.name}
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 읽기 상태 */}
