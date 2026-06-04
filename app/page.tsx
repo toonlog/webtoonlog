@@ -1,10 +1,12 @@
 import Link from 'next/link';
+import base from './lib/airtable';
 
 async function getWebtoons() {
-  const res = await fetch('http://localhost:3000/api/webtoons', {
-    cache: 'no-store',
-  });
-  return res.json();
+  const records = await base('WEBTOON').select({
+    maxRecords: 100,
+    view: 'Grid view',
+  }).all();
+  return records.map(record => ({ id: record.id, ...record.fields }));
 }
 
 export default async function Home() {
