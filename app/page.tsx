@@ -5,6 +5,7 @@ async function getWebtoons(search?: string) {
   const records = await base('WEBTOON').select({
     maxRecords: 100,
     view: 'Grid view',
+    sort: [{ field: 'title', direction: 'asc' }],
   }).all();
   const all = records.map(record => ({ id: record.id, ...record.fields })) as any[];
   if (search) return all.filter(w => w.title?.includes(search) || w.author?.includes(search));
