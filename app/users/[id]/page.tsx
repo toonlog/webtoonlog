@@ -1,0 +1,149 @@
+'use client';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+
+export default function UserPage() {
+  const params = useParams();
+  const router = useRouter();
+  const targetUserId = params.id as string;
+
+  const [targetUser, setTargetUser] = useState<any>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [statuses, setStatuses] = useState<any[]>([]);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [tab, setTab] = useState<'reviews' | 'status'>('reviews');
+  const [loading, setLoading] = useState(true);
+  const [myUserId, setMyUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const userId = localStorage.getItem('userId');
+    setMyUserId(userId);
+    fetchAll(userId);
+  }, [targetUserId]);
+
+  async function fetchAll(myId: string | null) {
+    const token = localStorage.getItem('token');
+
+    const [userData, followData] = await Promise.all([
+      fetch(`/api/users/${targetUserId}`).then(r => r.json()),
+      myId ? fetch(`/api/follow?followerId=${myId}&followingId=${targetUserId}`).then(r => r.json()) : Promise.resolve({ isFollowing: false }),
+    ]);
+
+    setTargetUser(userData.user);
+    setReviews(userData.reviews || []);
+    setStatuses(userData.statuses || []);
+    setFollowerCount(userData.followerCount || 0);
+    setFollowingCount(userData.followingCount || 0);
+    setIsFollowing(followData.isFollowing);
+    setLoading(false);
+  }
+
+  async function toggleFollow() {
+    const token = localStorage.getItem('token');
+    if (!token) return router.push('/login');
+
+    const res = await fetch('/api/follow', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ followingId: targetUserId }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setIsFollowing(data.isFollowing);
+      setFollowerCount(prev => data.isFollowing ? prev + 1 : prev - 1);
+    }
+  }
+
+  if (loading) return <div className="p-8 text-center">로딩중...</div>;
+  if (!targetUser) return <div className="p-8 text-center">유저를 찾을 수 없어요</div>;
+
+  return (
+    <main className="min-h-screen bg-gray-50 p-8 max-w-2xl mx-auto">
+      <div className="bg-white rounded-xl shadow p-6 mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">{targetUser.nickname}</h1>
+            <div className="flex gap-4 mt-2 text-sm text-gray-500">
+              <span>팔로워 <strong className="text-gray-800">{followerCount}</strong></span>
+              <span>팔로잉 <strong className="text-gray-800">{followingCount}</strong></span>
+            </div>
+          </div>
+          {myUserId && myUserId !== targetUserId && (
+            <button onClick={toggleFollow}
+              className={`px-5 py-2 rounded-lg text-sm font-medium transition ${
+                isFollowing
+                  ? 'bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-500'
+                  : 'bg-blue-500 text-white hover:bg-blue-600'
+              }`}>
+              {isFollowing ? '팔로잉' : '팔로우'}
+            </button>
+          )}
+          {myUserId === targetUserId && (
+            <Link href="/mypage" className="text-sm text-blue-500 hover:underline">마이페이지로</Link>
+          )}
+        </div>
+      </div>
+
+      <div className="flex mb-4 bg-white rounded-xl shadow p-1 gap-1">
+        <button onClick={() => setTab('reviews')}
+          className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${tab === 'reviews' ? 'bg-blue-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`}>
+          리뷰 {reviews.length}개
+        </button>
+        <button onClick={() => setTab('status')}
+          className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${tab === 'status' ? 'bg-blue-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`}>
+          읽기 상태 {statuses.length}개
+        </button>
+      </div>
+
+      {tab === 'reviews' && (
+        <div className="bg-white rounded-xl shadow p-6">
+          {reviews.length === 0 && <p className="text-gray-400">아직 작성한 리뷰가 없어요!</p>}
+          {reviews.map(review => (
+            <div key={review.id} className="border-b py-4 last:border-0">
+              {review.webtoon_id ? (
+                <Link href={`/webtoon/${review.webtoon_id}`} className="font-bold text-blue-500 hover:underline text-sm">
+                  {review.webtoon_title || review.webtoon_id}
+                </Link>
+              ) : (
+                <span className="font-bold text-gray-400 text-sm">웹툰 정보 없음</span>
+              )}
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-yellow-400 text-sm">{'★'.repeat(review.rating)}</span>
+                <span className="text-gray-400 text-xs">{review.created_at}</span>
+              </div>
+              <p className="text-gray-700 text-sm mt-1">{review.content}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === 'status' && (
+        <div className="bg-white rounded-xl shadow p-6">
+          {statuses.length === 0 && <p className="text-gray-400">아직 저장한 읽기 상태가 없어요!</p>}
+          {statuses.map(s => (
+            <div key={s.id} className="border-b py-4 last:border-0 flex items-center justify-between">
+              {s.webtoon_id ? (
+                <Link href={`/webtoon/${s.webtoon_id}`} className="font-bold text-blue-500 hover:underline text-sm">
+                  {s.webtoon_title || s.webtoon_id}
+                </Link>
+              ) : (
+                <span className="font-bold text-gray-400 text-sm">웹툰 정보 없음</span>
+              )}
+              <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+                s.status === '완독' ? 'bg-green-100 text-green-600' :
+                s.status === '읽는중' ? 'bg-blue-100 text-blue-600' :
+                s.status === '읽고싶다' ? 'bg-purple-100 text-purple-600' :
+                'bg-gray-100 text-gray-500'
+              }`}>
+                {s.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </main>
+  );
+}

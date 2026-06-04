@@ -1,93 +1,214 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+
+function getAuth() {
+  return {
+    token: localStorage.getItem('token'),
+    nickname: localStorage.getItem('nickname'),
+    userId: localStorage.getItem('userId'),
+  };
+}
 
 export default function WebtoonPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
+
   const [webtoon, setWebtoon] = useState<any>(null);
   const [reviews, setReviews] = useState<any[]>([]);
-  const [nickname, setNickname] = useState('');
+  const [readStatus, setReadStatus] = useState<string | null>(null);
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState('');
-  const [readStatus, setReadStatus] = useState('');
-  const [statusNickname, setStatusNickname] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editRating, setEditRating] = useState(5);
+  const [editContent, setEditContent] = useState('');
+  const [auth, setAuth] = useState<{ token: string | null; nickname: string | null; userId: string | null }>({ token: null, nickname: null, userId: null });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const a = getAuth();
+    setAuth(a);
     fetch(`/api/webtoons/${id}`).then(r => r.json()).then(setWebtoon);
-    fetch(`/api/reviews?webtoonId=${id}`).then(r => r.json()).then(setReviews);
+    fetchReviews();
+    if (a.userId) fetchStatus(a.userId);
+
+    const onAuth = () => {
+      const newAuth = getAuth();
+      setAuth(newAuth);
+      if (newAuth.userId) fetchStatus(newAuth.userId);
+    };
+    window.addEventListener('authChange', onAuth);
+    return () => window.removeEventListener('authChange', onAuth);
   }, [id]);
 
-  async function submitReview() {
-    if (!nickname || !content) return alert('닉네임과 리뷰를 입력해주세요!');
-    await fetch('/api/reviews', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ webtoonId: id, nickname, rating, content }),
-    });
-    setContent('');
-    setNickname('');
+  function fetchReviews() {
     fetch(`/api/reviews?webtoonId=${id}`).then(r => r.json()).then(setReviews);
-    alert('리뷰가 등록되었습니다! 🎉');
+  }
+
+  function fetchStatus(userId: string) {
+    fetch(`/api/reading-status?webtoonId=${id}&userId=${userId}`)
+      .then(r => r.json()).then(data => setReadStatus(data.status));
+  }
+
+  async function submitReview() {
+    if (!auth.token) return router.push('/login');
+    if (!content.trim()) return alert('리뷰 내용을 입력해주세요!');
+    setLoading(true);
+    const res = await fetch('/api/reviews', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
+      body: JSON.stringify({ webtoonId: id, rating, content }),
+    });
+    const data = await res.json();
+    setLoading(false);
+    if (!res.ok) return alert(data.error);
+    setContent('');
+    setRating(5);
+    fetchReviews();
   }
 
   async function submitStatus(status: string) {
-    if (!statusNickname) return alert('닉네임을 입력해주세요!');
-    await fetch('/api/reading-status', {
+    if (!auth.token) return router.push('/login');
+    const res = await fetch('/api/reading-status', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ webtoonId: id, nickname: statusNickname, status }),
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
+      body: JSON.stringify({ webtoonId: id, status }),
     });
-    setReadStatus(status);
-    alert(`"${status}"로 저장됐어요!`);
+    const data = await res.json();
+    setReadStatus(data.status);
   }
 
-  if (!webtoon) return <div className="p-8 text-center">로딩중...</div>;
+  async function deleteReview(reviewId: string) {
+    if (!confirm('리뷰를 삭제할까요?')) return;
+    await fetch(`/api/reviews?reviewId=${reviewId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${auth.token}` },
+    });
+    fetchReviews();
+  }
+
+  async function saveEdit(reviewId: string) {
+    const res = await fetch('/api/reviews', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
+      body: JSON.stringify({ reviewId, rating: editRating, content: editContent }),
+    });
+    if (res.ok) { setEditingId(null); fetchReviews(); }
+  }
 
   const statusList = ['읽는중', '완독', '읽고싶다', '보류'];
 
+  if (!webtoon) return <div className="p-8 text-center">로딩중...</div>;
+
+  const myReview = reviews.find(r => r.userId === auth.userId);
+
   return (
     <main className="min-h-screen bg-gray-50 p-8 max-w-2xl mx-auto">
+
+      {/* 작품 정보 */}
       <div className="bg-white rounded-xl shadow p-6 mb-6">
-        <div className="bg-gray-200 rounded-lg h-60 mb-6" />
+        {webtoon.thumbnailUrl && (
+          <img src={webtoon.thumbnailUrl} alt={webtoon.title} className="w-full h-60 object-cover rounded-lg mb-4" />
+        )}
         <h1 className="text-2xl font-bold mb-1">{webtoon.title}</h1>
         <p className="text-gray-500 mb-1">{webtoon.author}</p>
-        <p className="text-blue-500 text-sm mb-4">{webtoon.platform}</p>
-        <p className="text-gray-700">{webtoon.description}</p>
+        <p className="text-blue-500 text-sm">{webtoon.platform}</p>
       </div>
 
+      {/* 읽기 상태 */}
       <div className="bg-white rounded-xl shadow p-6 mb-6">
         <h2 className="text-lg font-bold mb-3">읽기 상태</h2>
-        <input className="w-full border rounded p-2 mb-3" placeholder="닉네임" value={statusNickname} onChange={e => setStatusNickname(e.target.value)} />
-        <div className="flex gap-2 flex-wrap">
-          {statusList.map(s => (
-            <button key={s} onClick={() => submitStatus(s)}
-              className={`px-4 py-2 rounded-full text-sm border transition ${readStatus === s ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-700 hover:bg-gray-100'}`}>
-              {s}
-            </button>
-          ))}
-        </div>
+        {!auth.token ? (
+          <p className="text-gray-400 text-sm">
+            <button onClick={() => router.push('/login')} className="text-blue-500 underline">로그인</button> 후 상태를 저장할 수 있어요
+          </p>
+        ) : (
+          <div className="flex gap-2 flex-wrap">
+            {statusList.map(s => (
+              <button key={s} onClick={() => submitStatus(s)}
+                className={`px-4 py-2 rounded-full text-sm border transition ${readStatus === s ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-700 hover:bg-gray-100'}`}>
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
+      {/* 리뷰 작성 */}
       <div className="bg-white rounded-xl shadow p-6 mb-6">
         <h2 className="text-lg font-bold mb-4">리뷰 작성</h2>
-        <input className="w-full border rounded p-2 mb-2" placeholder="닉네임" value={nickname} onChange={e => setNickname(e.target.value)} />
-        <div className="flex gap-2 mb-2">
-          {[1,2,3,4,5].map(n => (
-            <button key={n} onClick={() => setRating(n)} className={`text-2xl ${n <= rating ? 'text-yellow-400' : 'text-gray-300'}`}>★</button>
-          ))}
-        </div>
-        <textarea className="w-full border rounded p-2 mb-2" rows={3} placeholder="리뷰를 작성해주세요" value={content} onChange={e => setContent(e.target.value)} />
-        <button onClick={submitReview} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">등록</button>
+        {!auth.token ? (
+          <p className="text-gray-400 text-sm">
+            <button onClick={() => router.push('/login')} className="text-blue-500 underline">로그인</button> 후 리뷰를 작성할 수 있어요
+          </p>
+        ) : myReview ? (
+          <p className="text-gray-400 text-sm">이미 리뷰를 작성했어요. 아래에서 수정할 수 있어요!</p>
+        ) : (
+          <>
+            <p className="text-sm text-gray-500 mb-2">{auth.nickname} 님으로 작성됩니다</p>
+            <div className="flex gap-1 mb-2">
+              {[1,2,3,4,5].map(n => (
+                <button key={n} onClick={() => setRating(n)} className={`text-2xl ${n <= rating ? 'text-yellow-400' : 'text-gray-300'}`}>★</button>
+              ))}
+            </div>
+            <textarea className="w-full border rounded p-2 mb-2 text-sm" rows={3}
+              placeholder="리뷰를 작성해주세요" value={content} onChange={e => setContent(e.target.value)} />
+            <button onClick={submitReview} disabled={loading}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50 text-sm">
+              {loading ? '등록 중...' : '등록'}
+            </button>
+          </>
+        )}
       </div>
 
+      {/* 리뷰 목록 */}
       <div className="bg-white rounded-xl shadow p-6">
         <h2 className="text-lg font-bold mb-4">리뷰 {reviews.length}개</h2>
         {reviews.length === 0 && <p className="text-gray-400">아직 리뷰가 없어요!</p>}
         {reviews.map(review => (
-          <div key={review.id} className="border-b py-3 last:border-0">
-            <span className="font-bold text-sm">{review.rating}점</span>
-            <p className="text-gray-700 text-sm">{review.content}</p>
+          <div key={review.id} className="border-b py-4 last:border-0">
+            {editingId === review.id ? (
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-1">
+                  {[1,2,3,4,5].map(n => (
+                    <button key={n} onClick={() => setEditRating(n)} className={`text-xl ${n <= editRating ? 'text-yellow-400' : 'text-gray-300'}`}>★</button>
+                  ))}
+                </div>
+                <textarea className="border rounded p-2 text-sm w-full" rows={3}
+                  value={editContent} onChange={e => setEditContent(e.target.value)} />
+                <div className="flex gap-2">
+                  <button onClick={() => saveEdit(review.id)} className="bg-blue-500 text-white px-3 py-1 rounded text-sm">저장</button>
+                  <button onClick={() => setEditingId(null)} className="bg-gray-100 px-3 py-1 rounded text-sm">취소</button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    {review.userId ? (
+                      <Link href={`/users/${review.userId}`} className="font-bold text-sm hover:text-blue-500 transition">
+                        {review.nickname}
+                      </Link>
+                    ) : (
+                      <span className="font-bold text-sm">{review.nickname}</span>
+                    )}
+                    <span className="text-yellow-400 text-sm">{'★'.repeat(review.rating)}</span>
+                  </div>
+                  {review.userId === auth.userId && (
+                    <div className="flex gap-2">
+                      <button onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); }}
+                        className="text-xs text-gray-400 hover:text-blue-500">수정</button>
+                      <button onClick={() => deleteReview(review.id)}
+                        className="text-xs text-gray-400 hover:text-red-500">삭제</button>
+                    </div>
+                  )}
+                </div>
+                <p className="text-gray-700 text-sm">{review.content}</p>
+                <p className="text-gray-400 text-xs mt-1">{review.created_at}</p>
+              </>
+            )}
           </div>
         ))}
       </div>
