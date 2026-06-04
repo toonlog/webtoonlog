@@ -9,6 +9,7 @@ export default function AddWebtoon() {
   const [platform, setPlatform] = useState('');
   const [genre, setGenre] = useState('');
   const [status, setStatus] = useState('연재중');
+  const [thumbnailUrl, setThumbnailUrl] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit() {
@@ -17,7 +18,7 @@ export default function AddWebtoon() {
     const res = await fetch('/api/webtoons/add', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, author, platform, genre, status }),
+      body: JSON.stringify({ title, author, platform, genre, status, thumbnailUrl }),
     });
     if (res.ok) {
       alert('등록 완료! 🎉');
@@ -57,6 +58,8 @@ export default function AddWebtoon() {
           <option value="완결">완결</option>
           <option value="휴재">휴재</option>
         </select>
+        <input className="border rounded p-2" placeholder="썸네일 URL (선택)" value={thumbnailUrl} onChange={e => setThumbnailUrl(e.target.value)} />
+        {thumbnailUrl && <img src={thumbnailUrl} alt="썸네일 미리보기" className="w-full h-40 object-cover rounded-lg" />}
         <button onClick={handleSubmit} disabled={loading} className="bg-blue-500 text-white py-2 rounded hover:bg-blue-600 disabled:opacity-50">
           {loading ? '등록 중...' : '등록하기'}
         </button>

@@ -36,7 +36,11 @@ export default async function Home({ searchParams }: any) {
         {webtoons.map((webtoon: any) => (
           <Link href={`/webtoon/${webtoon.id}`} key={webtoon.id}>
             <div className="bg-white rounded-xl shadow p-4 hover:shadow-md transition cursor-pointer">
-              <div className="bg-gray-200 rounded-lg h-40 mb-3" />
+              {webtoon.thumbnail_url ? (
+                <img src={webtoon.thumbnail_url} alt={webtoon.title} className="w-full h-40 object-cover rounded-lg mb-3" />
+              ) : (
+                <div className="bg-gray-200 rounded-lg h-40 mb-3" />
+              )}
               <h2 className="font-bold text-sm">{webtoon.title}</h2>
               <p className="text-xs text-gray-500">{webtoon.author}</p>
               <p className="text-xs text-blue-500">{webtoon.platform}</p>

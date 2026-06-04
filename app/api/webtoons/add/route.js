@@ -4,7 +4,7 @@ import base from '../../../lib/airtable';
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { title, author, platform, genre, status } = body;
+    const { title, author, platform, genre, status, thumbnailUrl } = body;
 
     if (!title) return NextResponse.json({ error: '제목은 필수입니다' }, { status: 400 });
 
@@ -14,6 +14,7 @@ export async function POST(request) {
       platform: platform ? [platform] : [],
       genre: genre ? [genre] : [],
       status: status || '연재중',
+      thumbnail_url: thumbnailUrl || '',
       avg_rating: 0,
       review_count: 0,
     });
