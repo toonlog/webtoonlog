@@ -10,6 +10,8 @@ export default function WebtoonPage() {
   const [nickname, setNickname] = useState('');
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState('');
+  const [readStatus, setReadStatus] = useState('');
+  const [statusNickname, setStatusNickname] = useState('');
 
   useEffect(() => {
     fetch(`/api/webtoons/${id}`).then(r => r.json()).then(setWebtoon);
@@ -29,7 +31,20 @@ export default function WebtoonPage() {
     alert('리뷰가 등록되었습니다! 🎉');
   }
 
+  async function submitStatus(status: string) {
+    if (!statusNickname) return alert('닉네임을 입력해주세요!');
+    await fetch('/api/reading-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ webtoonId: id, nickname: statusNickname, status }),
+    });
+    setReadStatus(status);
+    alert(`"${status}"로 저장됐어요!`);
+  }
+
   if (!webtoon) return <div className="p-8 text-center">로딩중...</div>;
+
+  const statusList = ['읽는중', '완독', '읽고싶다', '보류'];
 
   return (
     <main className="min-h-screen bg-gray-50 p-8 max-w-2xl mx-auto">
@@ -39,6 +54,19 @@ export default function WebtoonPage() {
         <p className="text-gray-500 mb-1">{webtoon.author}</p>
         <p className="text-blue-500 text-sm mb-4">{webtoon.platform}</p>
         <p className="text-gray-700">{webtoon.description}</p>
+      </div>
+
+      <div className="bg-white rounded-xl shadow p-6 mb-6">
+        <h2 className="text-lg font-bold mb-3">읽기 상태</h2>
+        <input className="w-full border rounded p-2 mb-3" placeholder="닉네임" value={statusNickname} onChange={e => setStatusNickname(e.target.value)} />
+        <div className="flex gap-2 flex-wrap">
+          {statusList.map(s => (
+            <button key={s} onClick={() => submitStatus(s)}
+              className={`px-4 py-2 rounded-full text-sm border transition ${readStatus === s ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-700 hover:bg-gray-100'}`}>
+              {s}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow p-6 mb-6">
@@ -58,9 +86,7 @@ export default function WebtoonPage() {
         {reviews.length === 0 && <p className="text-gray-400">아직 리뷰가 없어요!</p>}
         {reviews.map(review => (
           <div key={review.id} className="border-b py-3 last:border-0">
-            <div className="flex justify-between mb-1">
-              <span className="font-bold text-sm">{review.rating}점</span>
-            </div>
+            <span className="font-bold text-sm">{review.rating}점</span>
             <p className="text-gray-700 text-sm">{review.content}</p>
           </div>
         ))}

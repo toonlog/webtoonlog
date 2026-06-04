@@ -17,8 +17,13 @@ export default async function Home({ searchParams }: any) {
 
   return (
     <main className="min-h-screen bg-gray-50 p-8">
-      <h1 className="text-3xl font-bold text-center mb-6">웹툰로그</h1>
-      <form method="GET" className="max-w-md mx-auto mb-8">
+      <div className="flex justify-between items-center max-w-4xl mx-auto mb-6">
+        <h1 className="text-3xl font-bold">웹툰로그</h1>
+        <Link href="/add" className="bg-blue-500 text-white px-4 py-2 rounded-xl text-sm hover:bg-blue-600">
+          + 웹툰 등록
+        </Link>
+      </div>
+      <form method="GET" className="max-w-4xl mx-auto mb-6">
         <input
           name="q"
           defaultValue={search}
