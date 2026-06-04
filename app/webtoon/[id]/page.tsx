@@ -28,12 +28,14 @@ export default function WebtoonPage() {
   const [loading, setLoading] = useState(false);
   const [collections, setCollections] = useState<any[]>([]);
   const [showCollectionMenu, setShowCollectionMenu] = useState(false);
+  const [webtoonCollections, setWebtoonCollections] = useState<any[]>([]);
 
   useEffect(() => {
     const a = getAuth();
     setAuth(a);
     fetch(`/api/webtoons/${id}`).then(r => r.json()).then(setWebtoon);
     fetchReviews();
+    fetchWebtoonCollections();
     if (a.userId) {
       fetchStatus(a.userId);
       fetchCollections(a.userId);
@@ -63,6 +65,10 @@ export default function WebtoonPage() {
     fetch(`/api/collections?userId=${userId}`).then(r => r.json()).then(setCollections);
   }
 
+  function fetchWebtoonCollections() {
+    fetch(`/api/collections?webtoonId=${id}`).then(r => r.json()).then(setWebtoonCollections);
+  }
+
   async function addToCollection(collectionId: string) {
     const token = localStorage.getItem('token');
     const res = await fetch('/api/collections/items', {
@@ -74,6 +80,7 @@ export default function WebtoonPage() {
     if (!res.ok) return alert(data.error);
     alert('컬렉션에 추가됐어요! 🎉');
     setShowCollectionMenu(false);
+    fetchWebtoonCollections();
   }
 
   async function submitReview() {
@@ -185,6 +192,22 @@ export default function WebtoonPage() {
           </div>
         )}
       </div>
+
+      {/* 이 웹툰을 담은 공개 컬렉션 */}
+      {webtoonCollections.length > 0 && (
+        <div className="bg-white rounded-xl shadow p-6 mb-6">
+          <h2 className="text-lg font-bold mb-3">이 작품이 담긴 컬렉션</h2>
+          <div className="flex flex-col gap-2">
+            {webtoonCollections.map(c => (
+              <Link key={c.id} href={`/collections/${c.id}`}
+                className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition border">
+                <span className="font-medium text-sm">{c.name}</span>
+                {c.description && <span className="text-gray-400 text-xs">{c.description}</span>}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 리뷰 작성 */}
       <div className="bg-white rounded-xl shadow p-6 mb-6">

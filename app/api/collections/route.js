@@ -2,11 +2,11 @@ import { NextResponse } from 'next/server';
 import base from '../../lib/airtable';
 import { getUserFromRequest } from '../../lib/auth';
 
-// 내 컬렉션 목록 or 전체 공개 컬렉션
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
+    const webtoonId = searchParams.get('webtoonId');
 
     let filter = `{is_public} = 1`;
     if (userId) filter = `{user_id} = "${userId}"`;
@@ -16,7 +16,7 @@ export async function GET(request) {
       sort: [{ field: 'created_at', direction: 'desc' }],
     }).all();
 
-    const collections = records.map(r => ({
+    let collections = records.map(r => ({
       id: r.id,
       name: r.fields.name || '이름 없음',
       description: r.fields.description || '',
@@ -25,13 +25,36 @@ export async function GET(request) {
       created_at: r.fields.created_at,
     }));
 
+    // 특정 웹툰이 담긴 공개 컬렉션 필터링
+    if (webtoonId) {
+      const itemRecords = await base('COLLECTION_ITEM').select({
+        filterByFormula: `{webtoon_id} = "${webtoonId}"`,
+      }).all();
+
+      const collectionIds = new Set(itemRecords.map(r => r.fields.collection_id));
+
+      const pubRecords = await base('COLLECTION').select({
+        filterByFormula: `{is_public} = 1`,
+      }).all();
+
+      collections = pubRecords
+        .filter(r => collectionIds.has(r.id))
+        .map(r => ({
+          id: r.id,
+          name: r.fields.name || '이름 없음',
+          description: r.fields.description || '',
+          is_public: r.fields.is_public || false,
+          user_id: r.fields.user_id || null,
+          created_at: r.fields.created_at,
+        }));
+    }
+
     return NextResponse.json(collections);
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-// 컬렉션 생성
 export async function POST(request) {
   try {
     const user = getUserFromRequest(request);
@@ -60,7 +83,6 @@ export async function POST(request) {
   }
 }
 
-// 컬렉션 삭제
 export async function DELETE(request) {
   try {
     const user = getUserFromRequest(request);
