@@ -6,6 +6,8 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const q = searchParams.get('q') || '';
 
+    if (!q.trim()) return NextResponse.json([]);
+
     const records = await base('WEBTOON').select({
       maxRecords: 100,
       sort: [{ field: 'title', direction: 'asc' }],
@@ -15,19 +17,17 @@ export async function GET(request) {
       id: r.id,
       title: r.fields.title || '',
       author: r.fields.author || '',
-      platform: r.fields.platform || '',
+      platform: Array.isArray(r.fields.platform) ? r.fields.platform : (r.fields.platform ? [r.fields.platform] : []),
       genre: r.fields.genre || '',
       thumbnail_url: r.fields.thumbnail_url || '',
     }));
 
-    const filtered = q.trim()
-      ? all.filter(w =>
-          w.title.includes(q) ||
-          w.author.includes(q) ||
-          (typeof w.genre === 'string' && w.genre.includes(q)) ||
-          (Array.isArray(w.platform) && w.platform.some(p => p.includes(q)))
-        )
-      : all;
+    const filtered = all.filter(w =>
+      w.title.includes(q) ||
+      w.author.includes(q) ||
+      (typeof w.genre === 'string' && w.genre.includes(q)) ||
+      w.platform.some((p: string) => p.includes(q))
+    );
 
     return NextResponse.json(filtered);
   } catch (error) {
