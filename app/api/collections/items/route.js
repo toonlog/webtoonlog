@@ -18,7 +18,7 @@ export async function GET(request) {
     await Promise.all(webtoonIds.map(async (wId) => {
       try {
         const rec = await base('WEBTOON').find(wId);
-        webtoonMap[wId] = { title: rec.fields.title, author: rec.fields.author, platform: rec.fields.platform, thumbnailUrl: rec.fields.thumbnailUrl };
+        webtoonMap[wId] = { title: rec.fields.title, author: rec.fields.author, platform: rec.fields.platform, thumbnail_url: rec.fields.thumbnail_url };
       } catch { webtoonMap[wId] = { title: wId }; }
     }));
 
