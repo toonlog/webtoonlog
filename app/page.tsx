@@ -10,15 +10,38 @@ async function getWebtoons(search?: string, genre?: string, platform?: string) {
     sort: [{ field: 'title', direction: 'asc' }],
   }).all();
   let all = records.map(record => ({ id: record.id, ...record.fields })) as any[];
-if (search) all = all.filter(w =>
-  w.title?.includes(search) ||
-  w.author?.includes(search) ||
-  (typeof w.genre === 'string' && w.genre.includes(search)) ||
-  (Array.isArray(w.genre) && w.genre.some((g: string) => g.includes(search))) ||
-  (Array.isArray(w.platform) && w.platform.some((p: string) => p.includes(search)))
-);
 
-if (genre) all = all.filter(w => {
+  if (search) {
+    const q = search.replace(/^#/, '');
+
+    // 태그 검색: REVIEW 테이블에서 해당 태그 가진 webtoon_id 수집
+    let tagWebtoonIds = new Set<string>();
+    try {
+      const reviewRecords = await base('REVIEW').select({
+        fields: ['webtoon_id', 'tags'],
+      }).all();
+      reviewRecords.forEach((r: any) => {
+        const tags = (r.fields.tags || '').split(',').map((t: string) => t.trim());
+        if (tags.some((t: string) => t.includes(q))) {
+          tagWebtoonIds.add(r.fields.webtoon_id);
+        }
+      });
+    } catch {}
+
+    all = all.filter(w => {
+      const genres = typeof w.genre === 'string' ? w.genre.split(',').map((g: string) => g.trim()) : [];
+      const platforms = Array.isArray(w.platform) ? w.platform : [];
+      return (
+        w.title?.includes(q) ||
+        w.author?.includes(q) ||
+        genres.some((g: string) => g.includes(q)) ||
+        platforms.some((p: string) => p.includes(q)) ||
+        tagWebtoonIds.has(w.id)
+      );
+    });
+  }
+
+  if (genre) all = all.filter(w => {
     const genres = typeof w.genre === 'string' ? w.genre.split(',').map((g: string) => g.trim()) : (Array.isArray(w.genre) ? w.genre : []);
     return genres.includes(genre);
   });
@@ -26,7 +49,11 @@ if (genre) all = all.filter(w => {
   return all;
 }
 
-async function getBoomWebtoons() {
+if (genre) all = all.filter(w => {
+    const genres = typeof w.genre === 'string' ? w.genre.split(',').map((g: string) => g.trim()) : (Array.isArray(w.genre) ? w.genre : []);
+    return genres.includes(genre);
+  });
+
   try {
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
