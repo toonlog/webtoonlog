@@ -46,16 +46,18 @@ export default function CollectionDetailPage() {
     setLoading(false);
   }
 
-  async function searchWebtoons(q: string) {
-    if (!q.trim()) { setSearchResults([]); return; }
-    setSearching(true);
+async function searchWebtoons(q: string) {
+  if (!q.trim()) { setSearchResults([]); return; }
+  setSearching(true);
+  try {
     const res = await fetch(`/api/webtoons/search?q=${encodeURIComponent(q)}`);
     const data = await res.json();
-    // 이미 추가된 것 + 대기중인 것 제외
+    if (!Array.isArray(data)) { setSearchResults([]); return; }
     const existingIds = new Set([...items.map(i => i.webtoon_id), ...pendingItems.map(i => i.id)]);
     setSearchResults(data.filter((w: any) => !existingIds.has(w.id)));
-    setSearching(false);
-  }
+  } catch { setSearchResults([]); }
+  finally { setSearching(false); }
+}
 
   function addToPending(webtoon: any) {
     setPendingItems(prev => [...prev, webtoon]);
