@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import base from './lib/airtable';
+import FeedbackButton from './components/FeedbackButton';
 
 async function getWebtoons(search?: string, genre?: string, platform?: string) {
   const records = await base('WEBTOON').select({
@@ -34,12 +35,8 @@ export default async function Home({ searchParams }: any) {
       </div>
 
       <form method="GET" className="max-w-4xl mx-auto mb-4">
-        <input
-          name="q"
-          defaultValue={search}
-          placeholder="제목 또는 작가 검색..."
-          className="w-full border rounded-xl px-4 py-2 shadow-sm text-gray-900"
-        />
+        <input name="q" defaultValue={search} placeholder="제목 또는 작가 검색..."
+          className="w-full border rounded-xl px-4 py-2 shadow-sm text-gray-900" />
         <input type="hidden" name="genre" value={genre} />
         <input type="hidden" name="platform" value={platform} />
       </form>
@@ -131,6 +128,11 @@ export default async function Home({ searchParams }: any) {
       </div>
 
       {webtoons.length === 0 && <p className="text-center text-gray-400 mt-8">검색 결과가 없어요!</p>}
+
+      {/* 의견 보내기 */}
+      <div className="max-w-4xl mx-auto mt-12 text-center">
+        <FeedbackButton />
+      </div>
     </main>
   );
 }

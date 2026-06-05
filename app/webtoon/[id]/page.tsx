@@ -159,6 +159,9 @@ export default function WebtoonPage() {
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
 
+  const genres = Array.isArray(webtoon.genre) ? webtoon.genre : (webtoon.genre ? [webtoon.genre] : []);
+  const platformList = Array.isArray(webtoon.platform) ? webtoon.platform : (webtoon.platform ? [webtoon.platform] : []);
+
   return (
     <main className="min-h-screen bg-gray-50 p-8 max-w-2xl mx-auto">
 
@@ -172,22 +175,38 @@ export default function WebtoonPage() {
           )}
           <div className="flex-1">
             <div className="flex items-start justify-between">
-              <div>
+              <div className="flex-1">
                 <h1 className="text-2xl font-bold mb-1">{webtoon.title}</h1>
                 <p className="text-gray-500 mb-1">{webtoon.author}</p>
-                <p className="text-blue-500 text-sm mb-2">{webtoon.platform}</p>
-                {avgRating ? (
-                  <div className="flex items-center gap-1">
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {platformList.map((p: string) => (
+                    <Link key={p} href={`/?platform=${p}`}
+                      className="text-xs bg-blue-50 text-blue-500 px-2 py-0.5 rounded-full hover:bg-blue-100 transition">
+                      {p}
+                    </Link>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {genres.map((g: string) => (
+                    <Link key={g} href={`/?genre=${g}`}
+                      className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full hover:bg-gray-200 transition">
+                      {g}
+                    </Link>
+                  ))}
+                </div>
+                {webtoon.status && (
+                  <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full">{webtoon.status}</span>
+                )}
+                {avgRating && (
+                  <div className="flex items-center gap-1 mt-2">
                     <span className="text-yellow-400">★</span>
                     <span className="font-bold">{avgRating}</span>
                     <span className="text-gray-400 text-sm">({reviews.length}개)</span>
                   </div>
-                ) : (
-                  <p className="text-gray-400 text-sm">아직 리뷰가 없어요</p>
                 )}
               </div>
               {auth.token && (
-                <div className="relative">
+                <div className="relative ml-2">
                   <button onClick={() => setShowCollectionMenu(!showCollectionMenu)}
                     className="text-sm bg-gray-100 px-3 py-2 rounded-lg hover:bg-gray-200 transition">
                     + 컬렉션

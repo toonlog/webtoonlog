@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 const DEFAULT_GENRES = ['BL', 'GL', '로맨스', '판타지', '현대', '드라마', '액션', '무협', '스릴러', '공포', '개그', 'SF', '스포츠', '일상'];
 const PLATFORMS = ['네이버웹툰', '카카오페이지', '레진코믹스', '봄툰', '리디', '피너툰', '탑툰', '코미코', '기타'];
@@ -16,6 +17,8 @@ export default function AddWebtoon() {
   const [status, setStatus] = useState('연재중');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
   const [loading, setLoading] = useState(false);
+  const [similarWebtoons, setSimilarWebtoons] = useState<any[]>([]);
+  const [showSimilar, setShowSimilar] = useState(false);
 
   function togglePlatform(p: string) {
     setPlatforms(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]);
@@ -31,6 +34,18 @@ export default function AddWebtoon() {
     if (!allGenres.includes(trimmed)) setAllGenres(prev => [...prev, trimmed]);
     if (!genres.includes(trimmed)) setGenres(prev => [...prev, trimmed]);
     setCustomGenre('');
+  }
+
+  async function checkSimilar() {
+    if (!title.trim()) return;
+    const res = await fetch(`/api/webtoons/search?q=${encodeURIComponent(title)}`);
+    const data = await res.json();
+    if (data.length > 0) {
+      setSimilarWebtoons(data);
+      setShowSimilar(true);
+    } else {
+      setShowSimilar(false);
+    }
   }
 
   async function handleSubmit() {
@@ -55,7 +70,36 @@ export default function AddWebtoon() {
     <main className="min-h-screen bg-gray-50 p-8 max-w-lg mx-auto">
       <h1 className="text-2xl font-bold mb-6">웹툰 등록</h1>
       <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-4">
-        <input className="border rounded p-2" placeholder="제목 *" value={title} onChange={e => setTitle(e.target.value)} />
+        <input
+          className="border rounded p-2"
+          placeholder="제목 *"
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          onBlur={checkSimilar}
+        />
+
+        {/* 비슷한 작품 경고 */}
+        {showSimilar && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p className="text-sm font-bold text-yellow-700 mb-2">⚠️ 비슷한 작품이 있어요!</p>
+            <div className="flex flex-col gap-2">
+              {similarWebtoons.slice(0, 3).map(w => (
+                <Link key={w.id} href={`/webtoon/${w.id}`} target="_blank"
+                  className="flex items-center gap-2 text-sm text-yellow-800 hover:underline">
+                  {w.thumbnail_url && (
+                    <img src={w.thumbnail_url} alt={w.title} className="w-8 h-10 object-cover rounded" />
+                  )}
+                  <div>
+                    <p className="font-bold">{w.title}</p>
+                    <p className="text-xs text-yellow-600">{w.author}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <p className="text-xs text-yellow-600 mt-2">다른 작품이면 계속 등록해주세요!</p>
+          </div>
+        )}
+
         <input className="border rounded p-2" placeholder="작가" value={author} onChange={e => setAuthor(e.target.value)} />
 
         <div>
