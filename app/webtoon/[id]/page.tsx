@@ -133,44 +133,64 @@ export default function WebtoonPage() {
   if (!webtoon) return <div className="p-8 text-center">로딩중...</div>;
   const myReview = reviews.find(r => r.userId === auth.userId);
 
+  // 평균 별점 계산
+  const avgRating = reviews.length > 0
+    ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
+    : null;
+
   return (
     <main className="min-h-screen bg-gray-50 p-8 max-w-2xl mx-auto">
 
       {/* 작품 정보 */}
       <div className="bg-white rounded-xl shadow p-6 mb-6">
-        {webtoon.thumbnailUrl && (
-          <img src={webtoon.thumbnailUrl} alt={webtoon.title} className="w-full h-60 object-cover rounded-lg mb-4" />
-        )}
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold mb-1">{webtoon.title}</h1>
-            <p className="text-gray-500 mb-1">{webtoon.author}</p>
-            <p className="text-blue-500 text-sm">{webtoon.platform}</p>
-          </div>
-          {auth.token && (
-            <div className="relative">
-              <button onClick={() => setShowCollectionMenu(!showCollectionMenu)}
-                className="text-sm bg-gray-100 px-3 py-2 rounded-lg hover:bg-gray-200 transition">
-                + 컬렉션
-              </button>
-              {showCollectionMenu && (
-                <div className="absolute right-0 top-10 bg-white shadow-lg rounded-xl p-3 w-48 z-10">
-                  {collections.length === 0 ? (
-                    <div className="text-sm text-gray-400 p-2">
-                      <Link href="/collections" className="text-blue-500 hover:underline">컬렉션 만들기</Link>
+        <div className="flex gap-4 mb-4">
+          {webtoon.thumbnail_url ? (
+            <img src={webtoon.thumbnail_url} alt={webtoon.title} className="w-24 h-32 object-cover rounded-lg flex-shrink-0" />
+          ) : (
+            <div className="w-24 h-32 bg-gray-200 rounded-lg flex-shrink-0" />
+          )}
+          <div className="flex-1">
+            <div className="flex items-start justify-between">
+              <div>
+                <h1 className="text-2xl font-bold mb-1">{webtoon.title}</h1>
+                <p className="text-gray-500 mb-1">{webtoon.author}</p>
+                <p className="text-blue-500 text-sm mb-2">{webtoon.platform}</p>
+                {avgRating ? (
+                  <div className="flex items-center gap-1">
+                    <span className="text-yellow-400">★</span>
+                    <span className="font-bold">{avgRating}</span>
+                    <span className="text-gray-400 text-sm">({reviews.length}개)</span>
+                  </div>
+                ) : (
+                  <p className="text-gray-400 text-sm">아직 리뷰가 없어요</p>
+                )}
+              </div>
+              {auth.token && (
+                <div className="relative">
+                  <button onClick={() => setShowCollectionMenu(!showCollectionMenu)}
+                    className="text-sm bg-gray-100 px-3 py-2 rounded-lg hover:bg-gray-200 transition">
+                    + 컬렉션
+                  </button>
+                  {showCollectionMenu && (
+                    <div className="absolute right-0 top-10 bg-white shadow-lg rounded-xl p-3 w-48 z-10">
+                      {collections.length === 0 ? (
+                        <div className="text-sm text-gray-400 p-2">
+                          <Link href="/collections" className="text-blue-500 hover:underline">컬렉션 만들기</Link>
+                        </div>
+                      ) : (
+                        collections.map(c => (
+                          <button key={c.id} onClick={() => addToCollection(c.id)}
+                            className="w-full text-left text-sm px-3 py-2 hover:bg-gray-50 rounded-lg">
+                            {c.name}
+                          </button>
+                        ))
+                      )}
                     </div>
-                  ) : (
-                    collections.map(c => (
-                      <button key={c.id} onClick={() => addToCollection(c.id)}
-                        className="w-full text-left text-sm px-3 py-2 hover:bg-gray-50 rounded-lg">
-                        {c.name}
-                      </button>
-                    ))
                   )}
                 </div>
               )}
             </div>
-          )}
+          </div>
         </div>
       </div>
 
@@ -238,7 +258,7 @@ export default function WebtoonPage() {
 
       {/* 리뷰 목록 */}
       <div className="bg-white rounded-xl shadow p-6">
-        <h2 className="text-lg font-bold mb-4">리뷰 {reviews.length}개</h2>
+        <h2 className="text-lg font-bold mb-4">리뷰 {reviews.length}개{avgRating && ` · 평균 ★${avgRating}`}</h2>
         {reviews.length === 0 && <p className="text-gray-400">아직 리뷰가 없어요!</p>}
         {reviews.map(review => (
           <div key={review.id} className="border-b py-4 last:border-0">
