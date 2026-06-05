@@ -12,7 +12,7 @@ export async function POST(request) {
       title,
       author: author || '',
       platform: Array.isArray(platform) ? platform : (platform ? [platform] : []),
-      genre: Array.isArray(genre) ? genre : (genre ? [genre] : []),
+      genre: Array.isArray(genre) ? genre.join(',') : (genre || ''),
       status: status || '연재중',
       thumbnail_url: thumbnailUrl || '',
     });

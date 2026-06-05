@@ -10,7 +10,10 @@ async function getWebtoons(search?: string, genre?: string, platform?: string) {
   }).all();
   let all = records.map(record => ({ id: record.id, ...record.fields })) as any[];
   if (search) all = all.filter(w => w.title?.includes(search) || w.author?.includes(search));
-  if (genre) all = all.filter(w => Array.isArray(w.genre) ? w.genre.includes(genre) : w.genre === genre);
+  if (genre) all = all.filter(w => {
+  const genres = typeof w.genre === 'string' ? w.genre.split(',').map((g: string) => g.trim()) : (Array.isArray(w.genre) ? w.genre : []);
+  return genres.includes(genre);
+});
   if (platform) all = all.filter(w => Array.isArray(w.platform) ? w.platform.includes(platform) : w.platform === platform);
   return all;
 }
