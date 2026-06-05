@@ -11,6 +11,7 @@ export async function GET(request, context) {
       id: userRecord.id,
       nickname: userRecord.fields.nickname,
       created_at: userRecord.fields.created_at,
+      profile_image: userRecord.fields.profile_image || null,
     };
 
     const reviewRecords = await base('REVIEW').select({
@@ -73,6 +74,23 @@ export async function GET(request, context) {
   }
 }
 
+export async function PATCH(request, context) {
+  try {
+    const user = getUserFromRequest(request);
+    if (!user) return NextResponse.json({ error: '로그인이 필요해요' }, { status: 401 });
+
+    const { id } = await context.params;
+    if (user.userId !== id) return NextResponse.json({ error: '본인만 수정할 수 있어요' }, { status: 403 });
+
+    const { profile_image } = await request.json();
+    await base('USER').update(id, { profile_image: profile_image || '' });
+
+    return NextResponse.json({ success: true, profile_image });
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
 export async function DELETE(request, context) {
   try {
     const user = getUserFromRequest(request);
@@ -81,19 +99,16 @@ export async function DELETE(request, context) {
     const { id } = await context.params;
     if (user.userId !== id) return NextResponse.json({ error: '본인 계정만 탈퇴할 수 있어요' }, { status: 403 });
 
-    // 리뷰 삭제
     const reviews = await base('REVIEW').select({
       filterByFormula: `{user_id} = "${id}"`,
     }).all();
     await Promise.all(reviews.map(r => base('REVIEW').destroy(r.id)));
 
-    // 읽기 상태 삭제
     const statuses = await base('READING_STATUS').select({
       filterByFormula: `{user_id} = "${id}"`,
     }).all();
     await Promise.all(statuses.map(r => base('READING_STATUS').destroy(r.id)));
 
-    // 컬렉션 삭제
     const collections = await base('COLLECTION').select({
       filterByFormula: `{user_id} = "${id}"`,
     }).all();
@@ -105,15 +120,12 @@ export async function DELETE(request, context) {
       await base('COLLECTION').destroy(c.id);
     }));
 
-    // 팔로우 삭제
     const follows = await base('FOLLOW').select({
       filterByFormula: `OR({follower_id} = "${id}", {following_id} = "${id}")`,
     }).all();
     await Promise.all(follows.map(r => base('FOLLOW').destroy(r.id)));
 
-    // 유저 삭제
     await base('USER').destroy(id);
-
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

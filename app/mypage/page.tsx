@@ -24,6 +24,9 @@ export default function MyPage() {
   const [editContent, setEditContent] = useState('');
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [profileImage, setProfileImage] = useState<string>('');
+  const [editingImage, setEditingImage] = useState(false);
+  const [newImageUrl, setNewImageUrl] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -33,7 +36,7 @@ export default function MyPage() {
     setNickname(nick);
     setUserId(uid);
     fetchData(token, uid);
-    fetchFollowCounts(uid);
+    fetchUserInfo(uid);
   }, []);
 
   function fetchData(token: string, uid: string) {
@@ -46,10 +49,11 @@ export default function MyPage() {
     });
   }
 
-  function fetchFollowCounts(uid: string) {
+  function fetchUserInfo(uid: string) {
     fetch(`/api/users/${uid}`).then(r => r.json()).then(data => {
       setFollowerCount(data.followerCount || 0);
       setFollowingCount(data.followingCount || 0);
+      setProfileImage(data.user?.profile_image || '');
     });
   }
 
@@ -57,6 +61,20 @@ export default function MyPage() {
     const token = localStorage.getItem('token')!;
     const uid = localStorage.getItem('userId')!;
     fetchData(token, uid);
+  }
+
+  async function saveProfileImage() {
+    const token = localStorage.getItem('token');
+    const uid = localStorage.getItem('userId');
+    const res = await fetch(`/api/users/${uid}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ profile_image: newImageUrl }),
+    });
+    if (res.ok) {
+      setProfileImage(newImageUrl);
+      setEditingImage(false);
+    }
   }
 
   async function deleteReview(reviewId: string) {
@@ -125,18 +143,49 @@ export default function MyPage() {
   return (
     <main className="min-h-screen bg-gray-50 p-8 max-w-2xl mx-auto">
       <div className="bg-white rounded-xl shadow p-6 mb-6">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-center gap-4">
+          {/* 프로필 사진 */}
+          <div className="relative flex-shrink-0">
+            {profileImage ? (
+              <img src={profileImage} alt="프로필" className="w-16 h-16 rounded-full object-cover" />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-2xl text-gray-400">
+                {nickname?.charAt(0)}
+              </div>
+            )}
+            <button onClick={() => { setEditingImage(!editingImage); setNewImageUrl(profileImage); }}
+              className="absolute -bottom-1 -right-1 bg-white border rounded-full w-6 h-6 text-xs flex items-center justify-center hover:bg-gray-50">
+              ✏️
+            </button>
+          </div>
+
+          <div className="flex-1">
             <h1 className="text-2xl font-bold">{nickname}</h1>
-            <div className="flex gap-4 mt-2 text-sm text-gray-500">
+            <div className="flex gap-4 mt-1 text-sm text-gray-500">
               <span>팔로워 <strong className="text-gray-800">{followerCount}</strong></span>
               <span>팔로잉 <strong className="text-gray-800">{followingCount}</strong></span>
             </div>
           </div>
+
           {userId && (
             <Link href={`/users/${userId}`} className="text-sm text-blue-500 hover:underline">내 프로필</Link>
           )}
         </div>
+
+        {/* 프로필 사진 수정 */}
+        {editingImage && (
+          <div className="mt-4 flex gap-2">
+            <input
+              className="flex-1 border rounded-lg p-2 text-sm"
+              placeholder="이미지 URL 입력..."
+              value={newImageUrl}
+              onChange={e => setNewImageUrl(e.target.value)}
+            />
+            {newImageUrl && <img src={newImageUrl} alt="미리보기" className="w-10 h-10 rounded-full object-cover" />}
+            <button onClick={saveProfileImage} className="bg-blue-500 text-white px-3 py-2 rounded-lg text-sm">저장</button>
+            <button onClick={() => setEditingImage(false)} className="bg-gray-100 px-3 py-2 rounded-lg text-sm">취소</button>
+          </div>
+        )}
       </div>
 
       <div className="flex mb-4 bg-white rounded-xl shadow p-1 gap-1">
@@ -230,7 +279,6 @@ export default function MyPage() {
         </div>
       )}
 
-      {/* 탈퇴 */}
       <div className="mt-8 text-center">
         <button onClick={deleteAccount} className="text-xs text-gray-300 hover:text-red-400 transition">
           회원 탈퇴

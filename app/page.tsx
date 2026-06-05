@@ -15,15 +15,57 @@ async function getWebtoons(search?: string, genre?: string, platform?: string) {
   return all;
 }
 
-const GENRES = ['BL', 'GL', '로맨스', '판타지', '현대', '드라마', '액션', '무협', '스릴러', '공포', '개그', 'SF', '스포츠', '일상'];
-const PLATFORMS = ['네이버웹툰', '카카오페이지', '레진코믹스', '봄툰', '리디', '피너툰', '탑툰', '코미코', '기타'];
+async function getBoomWebtoons() {
+  try {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const dateStr = oneWeekAgo.toISOString().split('T')[0];
+
+    const recentReviews = await base('REVIEW').select({
+      filterByFormula: `{created_at} >= "${dateStr}"`,
+    }).all();
+
+    const countMap: Record<string, number> = {};
+    recentReviews.forEach((r: any) => {
+      const wId = r.fields.webtoon_id as string;
+      if (wId) countMap[wId] = (countMap[wId] || 0) + 1;
+    });
+
+    if (Object.keys(countMap).length === 0) return [];
+
+    const webtoonIds = Object.entries(countMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([id]) => id);
+
+    const webtoons = await Promise.all(webtoonIds.map(async (id) => {
+      try {
+        const r = await base('WEBTOON').find(id);
+        return { id: r.id, ...r.fields, weeklyCount: countMap[id] };
+      } catch { return null; }
+    }));
+
+    return webtoons.filter(Boolean);
+  } catch { return []; }
+}
+
+const ALL_GENRES = ['BL', 'GL', '로맨스', '판타지', '현대', '드라마', '액션', '무협', '스릴러', '공포', '개그', 'SF', '스포츠', '일상'];
+const ALL_PLATFORMS = ['네이버웹툰', '카카오페이지', '레진코믹스', '봄툰', '리디', '피너툰', '탑툰', '코미코', '기타'];
+const TOP_GENRES = ALL_GENRES.slice(0, 5);
+const TOP_PLATFORMS = ALL_PLATFORMS.slice(0, 5);
 
 export default async function Home({ searchParams }: any) {
   const params = await searchParams;
   const search = params?.q || '';
   const genre = params?.genre || '';
   const platform = params?.platform || '';
+  const showAllGenres = params?.allGenres === '1';
+  const showAllPlatforms = params?.allPlatforms === '1';
   const webtoons = await getWebtoons(search, genre, platform);
+  const boomWebtoons = await getBoomWebtoons();
+
+  const visibleGenres = showAllGenres ? ALL_GENRES : TOP_GENRES;
+  const visiblePlatforms = showAllPlatforms ? ALL_PLATFORMS : TOP_PLATFORMS;
 
   return (
     <main className="min-h-screen bg-gray-50 p-4 md:p-8">
@@ -43,35 +85,80 @@ export default async function Home({ searchParams }: any) {
 
       {/* 장르 필터 */}
       <div className="max-w-4xl mx-auto mb-3">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
           <Link href={`/?q=${search}&platform=${platform}`}
             className={`px-3 py-1 rounded-full text-sm border transition ${!genre ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-700 hover:bg-gray-100'}`}>
             전체
           </Link>
-          {GENRES.map(g => (
+          {visibleGenres.map(g => (
             <Link key={g} href={`/?q=${search}&genre=${g}&platform=${platform}`}
               className={`px-3 py-1 rounded-full text-sm border transition ${genre === g ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-700 hover:bg-gray-100'}`}>
               {g}
             </Link>
           ))}
+          {!showAllGenres ? (
+            <Link href={`/?q=${search}&genre=${genre}&platform=${platform}&allGenres=1&allPlatforms=${showAllPlatforms ? '1' : '0'}`}
+              className="px-3 py-1 rounded-full text-sm border bg-white text-gray-400 hover:bg-gray-100">
+              더보기...
+            </Link>
+          ) : (
+            <Link href={`/?q=${search}&genre=${genre}&platform=${platform}`}
+              className="px-3 py-1 rounded-full text-sm border bg-white text-gray-400 hover:bg-gray-100">
+              접기
+            </Link>
+          )}
         </div>
       </div>
 
       {/* 플랫폼 필터 */}
       <div className="max-w-4xl mx-auto mb-6">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
           <Link href={`/?q=${search}&genre=${genre}`}
             className={`px-3 py-1 rounded-full text-sm border transition ${!platform ? 'bg-purple-500 text-white border-purple-500' : 'bg-white text-gray-700 hover:bg-gray-100'}`}>
             전체
           </Link>
-          {PLATFORMS.map(p => (
+          {visiblePlatforms.map(p => (
             <Link key={p} href={`/?q=${search}&genre=${genre}&platform=${p}`}
               className={`px-3 py-1 rounded-full text-sm border transition ${platform === p ? 'bg-purple-500 text-white border-purple-500' : 'bg-white text-gray-700 hover:bg-gray-100'}`}>
               {p}
             </Link>
           ))}
+          {!showAllPlatforms ? (
+            <Link href={`/?q=${search}&genre=${genre}&platform=${platform}&allPlatforms=1&allGenres=${showAllGenres ? '1' : '0'}`}
+              className="px-3 py-1 rounded-full text-sm border bg-white text-gray-400 hover:bg-gray-100">
+              더보기...
+            </Link>
+          ) : (
+            <Link href={`/?q=${search}&genre=${genre}&platform=${platform}`}
+              className="px-3 py-1 rounded-full text-sm border bg-white text-gray-400 hover:bg-gray-100">
+              접기
+            </Link>
+          )}
         </div>
       </div>
+
+      {/* 붐업 섹션 */}
+      {boomWebtoons.length > 0 && !search && !genre && !platform && (
+        <div className="max-w-4xl mx-auto mb-8">
+          <h2 className="text-lg font-bold text-gray-900 mb-3">🔥 이번 주 인기작</h2>
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            {boomWebtoons.map((w: any) => (
+              <Link key={w.id} href={`/webtoon/${w.id}`} className="flex-shrink-0">
+                <div className="bg-white rounded-xl shadow p-3 w-36 hover:shadow-md transition">
+                  {w.thumbnail_url ? (
+                    <img src={w.thumbnail_url} alt={w.title} className="w-full h-44 object-cover rounded-lg mb-2" />
+                  ) : (
+                    <div className="w-full h-44 bg-gray-200 rounded-lg mb-2" />
+                  )}
+                  <p className="font-bold text-xs text-gray-900 truncate">{w.title}</p>
+                  <p className="text-xs text-gray-500 truncate">{w.author}</p>
+                  <p className="text-xs text-orange-500 mt-1">리뷰 {w.weeklyCount}개</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="max-w-4xl mx-auto">
         {/* 모바일 */}
@@ -129,7 +216,6 @@ export default async function Home({ searchParams }: any) {
 
       {webtoons.length === 0 && <p className="text-center text-gray-400 mt-8">검색 결과가 없어요!</p>}
 
-      {/* 의견 보내기 */}
       <div className="max-w-4xl mx-auto mt-12 text-center">
         <FeedbackButton />
       </div>
