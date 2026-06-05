@@ -194,17 +194,31 @@ export default function MyPage() {
             <Link href="/collections" className="text-xs text-blue-500 hover:underline">전체보기</Link>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2">
-            {collections.map(c => (
-              <Link key={c.id} href={`/collections/${c.id}`} className="flex-shrink-0">
-                <div className="bg-white rounded-xl shadow p-4 w-36 hover:shadow-md transition">
-                  <div className="w-full h-20 bg-blue-50 rounded-lg mb-2 flex items-center justify-center">
-                    <span className="text-2xl">📚</span>
-                  </div>
-                  <p className="font-bold text-xs text-gray-900 truncate">{c.name}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{c.is_public ? '공개' : '비공개'}</p>
-                </div>
-              </Link>
-            ))}
+tsx{collections.map(c => (
+  <Link key={c.id} href={`/collections/${c.id}`} className="flex-shrink-0">
+    <div className="bg-white rounded-xl shadow w-36 hover:shadow-md transition overflow-hidden">
+      {c.thumbnails && c.thumbnails.length > 0 ? (
+        <div className="grid grid-cols-2 gap-0.5 h-20">
+          {[0,1,2,3].map(i => (
+            c.thumbnails[i] ? (
+              <img key={i} src={c.thumbnails[i]} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <div key={i} className="w-full h-full bg-gray-100" />
+            )
+          ))}
+        </div>
+      ) : (
+        <div className="w-full h-20 bg-blue-50 flex items-center justify-center">
+          <span className="text-2xl">📚</span>
+        </div>
+      )}
+      <div className="p-2">
+        <p className="font-bold text-xs text-gray-900 truncate">{c.name}</p>
+        <p className="text-xs text-gray-400 mt-0.5">{c.is_public ? '공개' : '비공개'}</p>
+      </div>
+    </div>
+  </Link>
+))}
             <Link href="/collections" className="flex-shrink-0">
               <div className="bg-white rounded-xl shadow p-4 w-36 hover:shadow-md transition flex flex-col items-center justify-center h-full min-h-[120px]">
                 <span className="text-2xl text-blue-300 mb-1">+</span>

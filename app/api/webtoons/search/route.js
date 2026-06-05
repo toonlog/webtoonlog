@@ -13,21 +13,21 @@ export async function GET(request) {
 
     const all = records.map(r => ({
       id: r.id,
-      title: r.fields.title,
-      author: r.fields.author,
-      platform: r.fields.platform,
-      thumbnail_url: r.fields.thumbnail_url,
+      title: r.fields.title || '',
+      author: r.fields.author || '',
+      platform: r.fields.platform || '',
+      genre: r.fields.genre || '',
+      thumbnail_url: r.fields.thumbnail_url || '',
     }));
 
-   const filtered = q
-  ? all.filter(w =>
-      w.title?.includes(q) ||
-      w.author?.includes(q) ||
-      (typeof w.genre === 'string' && w.genre.includes(q)) ||
-      (Array.isArray(w.genre) && w.genre.some((g: string) => g.includes(q))) ||
-      (Array.isArray(w.platform) && w.platform.some((p: string) => p.includes(q)))
-    )
-  : all;
+    const filtered = q.trim()
+      ? all.filter(w =>
+          w.title.includes(q) ||
+          w.author.includes(q) ||
+          (typeof w.genre === 'string' && w.genre.includes(q)) ||
+          (Array.isArray(w.platform) && w.platform.some(p => p.includes(q)))
+        )
+      : all;
 
     return NextResponse.json(filtered);
   } catch (error) {
