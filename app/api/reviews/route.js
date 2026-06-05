@@ -2,16 +2,28 @@ import { NextResponse } from 'next/server';
 import base from '../../lib/airtable';
 import { getUserFromRequest } from '../../lib/auth';
 
+async function updateWebtoonStats(webtoonId) {
+  const records = await base('REVIEW').select({
+    filterByFormula: `{webtoon_id} = "${webtoonId}"`,
+  }).all();
+  const count = records.length;
+  const avg = count > 0
+    ? records.reduce((sum, r) => sum + (r.fields.rating || 0), 0) / count
+    : 0;
+  await base('WEBTOON').update(webtoonId, {
+    avg_rating: Math.round(avg * 10) / 10,
+    review_count: count,
+  });
+}
+
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const webtoonId = searchParams.get('webtoonId');
-
     const records = await base('REVIEW').select({
       filterByFormula: `{webtoon_id} = "${webtoonId}"`,
       sort: [{ field: 'created_at', direction: 'desc' }],
     }).all();
-
     return NextResponse.json(records.map(r => ({
       id: r.id,
       nickname: r.fields.nickname || '익명',
@@ -50,6 +62,8 @@ export async function POST(request) {
       webtoon: [webtoonId],
     });
 
+    await updateWebtoonStats(webtoonId);
+
     return NextResponse.json({
       id: record.id,
       nickname: user.nickname,
@@ -76,6 +90,8 @@ export async function PATCH(request) {
       content: content.trim(),
     });
 
+    await updateWebtoonStats(record.fields.webtoon_id);
+
     return NextResponse.json({
       id: updated.id,
       nickname: updated.fields.nickname,
@@ -97,7 +113,10 @@ export async function DELETE(request) {
     const record = await base('REVIEW').find(reviewId);
     if (record.fields.user_id !== user.userId) return NextResponse.json({ error: '내 리뷰만 삭제할 수 있어요' }, { status: 403 });
 
+    const webtoonId = record.fields.webtoon_id;
     await base('REVIEW').destroy(reviewId);
+    await updateWebtoonStats(webtoonId);
+
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

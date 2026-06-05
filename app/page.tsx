@@ -33,10 +33,8 @@ export default async function Home({ searchParams }: any) {
         />
       </form>
 
-      {/* 모바일: 1열 리스트, PC: 4열 그리드 */}
       <div className="max-w-4xl mx-auto">
-
-        {/* 모바일 레이아웃 */}
+        {/* 모바일 */}
         <div className="flex flex-col gap-3 md:hidden">
           {webtoons.map((webtoon: any) => (
             <Link href={`/webtoon/${webtoon.id}`} key={webtoon.id}>
@@ -46,17 +44,24 @@ export default async function Home({ searchParams }: any) {
                 ) : (
                   <div className="bg-gray-200 rounded-lg w-14 h-20 flex-shrink-0" />
                 )}
-                <div>
+                <div className="flex-1">
                   <h2 className="font-bold text-sm text-gray-900">{webtoon.title}</h2>
                   <p className="text-xs text-gray-500 mt-0.5">{webtoon.author}</p>
                   <p className="text-xs text-blue-500 mt-0.5">{webtoon.platform}</p>
+                  {webtoon.review_count > 0 && (
+                    <div className="flex items-center gap-1 mt-1">
+                      <span className="text-yellow-400 text-xs">★</span>
+                      <span className="text-xs font-bold text-gray-700">{webtoon.avg_rating}</span>
+                      <span className="text-xs text-gray-400">({webtoon.review_count})</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </Link>
           ))}
         </div>
 
-        {/* PC 레이아웃 */}
+        {/* PC */}
         <div className="hidden md:grid md:grid-cols-4 gap-4">
           {webtoons.map((webtoon: any) => (
             <Link href={`/webtoon/${webtoon.id}`} key={webtoon.id}>
@@ -69,11 +74,17 @@ export default async function Home({ searchParams }: any) {
                 <h2 className="font-bold text-sm text-gray-900">{webtoon.title}</h2>
                 <p className="text-xs text-gray-500">{webtoon.author}</p>
                 <p className="text-xs text-blue-500">{webtoon.platform}</p>
+                {webtoon.review_count > 0 && (
+                  <div className="flex items-center gap-1 mt-1">
+                    <span className="text-yellow-400 text-xs">★</span>
+                    <span className="text-xs font-bold text-gray-700">{webtoon.avg_rating}</span>
+                    <span className="text-xs text-gray-400">({webtoon.review_count})</span>
+                  </div>
+                )}
               </div>
             </Link>
           ))}
         </div>
-
       </div>
       {webtoons.length === 0 && <p className="text-center text-gray-400 mt-8">검색 결과가 없어요!</p>}
     </main>
