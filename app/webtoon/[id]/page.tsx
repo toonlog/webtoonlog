@@ -11,6 +11,16 @@ function getAuth() {
   };
 }
 
+function Avatar({ src, nickname, size = 8 }: { src?: string; nickname?: string; size?: number }) {
+  const sizeClass = `w-${size} h-${size}`;
+  if (src) return <img src={src} alt={nickname} className={`${sizeClass} rounded-full object-cover flex-shrink-0`} />;
+  return (
+    <div className={`${sizeClass} rounded-full bg-blue-100 flex items-center justify-center text-xs text-blue-500 font-bold flex-shrink-0`}>
+      {nickname?.charAt(0)}
+    </div>
+  );
+}
+
 export default function WebtoonPage() {
   const params = useParams();
   const router = useRouter();
@@ -18,6 +28,9 @@ export default function WebtoonPage() {
 
   const [webtoon, setWebtoon] = useState<any>(null);
   const [reviews, setReviews] = useState<any[]>([]);
+  const [comments, setComments] = useState<Record<string, any[]>>({});
+  const [openComments, setOpenComments] = useState<Record<string, boolean>>({});
+  const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
   const [readStatus, setReadStatus] = useState<string | null>(null);
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState('');
@@ -68,6 +81,52 @@ export default function WebtoonPage() {
 
   function fetchWebtoonCollections() {
     fetch(`/api/collections?webtoonId=${id}`).then(r => r.json()).then(setWebtoonCollections);
+  }
+
+  async function fetchComments(reviewId: string) {
+    const res = await fetch(`/api/comments?reviewId=${reviewId}`);
+    const data = await res.json();
+    setComments(prev => ({ ...prev, [reviewId]: data }));
+  }
+
+  function toggleComments(reviewId: string) {
+    const isOpen = openComments[reviewId];
+    setOpenComments(prev => ({ ...prev, [reviewId]: !isOpen }));
+    if (!isOpen && !comments[reviewId]) fetchComments(reviewId);
+  }
+
+  async function submitComment(reviewId: string) {
+    if (!auth.token) return router.push('/login');
+    const content = commentInputs[reviewId];
+    if (!content?.trim()) return;
+    const res = await fetch('/api/comments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
+      body: JSON.stringify({ reviewId, content }),
+    });
+    if (res.ok) {
+      setCommentInputs(prev => ({ ...prev, [reviewId]: '' }));
+      fetchComments(reviewId);
+    }
+  }
+
+  async function deleteComment(reviewId: string, commentId: string) {
+    if (!confirm('댓글을 삭제할까요?')) return;
+    await fetch(`/api/comments?commentId=${commentId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${auth.token}` },
+    });
+    fetchComments(reviewId);
+  }
+
+  async function toggleCommentLike(reviewId: string, commentId: string) {
+    if (!auth.token) return router.push('/login');
+    const res = await fetch('/api/comments/like', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
+      body: JSON.stringify({ commentId }),
+    });
+    if (res.ok) fetchComments(reviewId);
   }
 
   async function addToCollection(collectionId: string) {
@@ -314,6 +373,8 @@ export default function WebtoonPage() {
         {reviews.length === 0 && <p className="text-gray-400">아직 리뷰가 없어요!</p>}
         {sortedReviews.map(review => {
           const isLiked = auth.userId && review.liked_by?.split(',').includes(auth.userId);
+          const reviewComments = comments[review.id] || [];
+          const isCommentsOpen = openComments[review.id];
           return (
             <div key={review.id} className="border-b py-4 last:border-0">
               {editingId === review.id ? (
@@ -332,39 +393,98 @@ export default function WebtoonPage() {
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      {review.userId ? (
-                        <Link href={`/users/${review.userId}`} className="font-bold text-sm hover:text-blue-500 transition">
-                          {review.nickname}
-                        </Link>
+                  <div className="flex items-start gap-3 mb-2">
+                    <Avatar src={review.profile_image} nickname={review.nickname} size={8} />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {review.userId ? (
+                            <Link href={`/users/${review.userId}`} className="font-bold text-sm hover:text-blue-500 transition">
+                              {review.nickname}
+                            </Link>
+                          ) : (
+                            <span className="font-bold text-sm">{review.nickname}</span>
+                          )}
+                          <span className="text-yellow-400 text-sm">{'★'.repeat(review.rating)}</span>
+                          {review.readStatus && (
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[review.readStatus] || 'bg-gray-100 text-gray-500'}`}>
+                              {review.readStatus}
+                            </span>
+                          )}
+                        </div>
+                        {review.userId === auth.userId && (
+                          <div className="flex gap-2">
+                            <button onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); }}
+                              className="text-xs text-gray-400 hover:text-blue-500">수정</button>
+                            <button onClick={() => deleteReview(review.id)}
+                              className="text-xs text-gray-400 hover:text-red-500">삭제</button>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-gray-700 text-sm mt-1">{review.content}</p>
+                      <div className="flex items-center gap-3 mt-2">
+                        <p className="text-gray-400 text-xs">{review.created_at}</p>
+                        <button onClick={() => toggleLike(review.id)}
+                          className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition ${isLiked ? 'bg-red-50 text-red-500 border-red-200' : 'text-gray-400 hover:bg-gray-50'}`}>
+                          {isLiked ? '♥' : '♡'} {review.like_count || 0}
+                        </button>
+                        <button onClick={() => toggleComments(review.id)}
+                          className="text-xs text-gray-400 hover:text-blue-500 transition">
+                          💬 댓글 {reviewComments.length > 0 ? reviewComments.length : ''}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 댓글 섹션 */}
+                  {isCommentsOpen && (
+                    <div className="ml-11 mt-2">
+                      {reviewComments.map(comment => {
+                        const isCommentLiked = auth.userId && comment.liked_by?.split(',').includes(auth.userId);
+                        return (
+                          <div key={comment.id} className="flex items-start gap-2 py-2 border-t first:border-t-0">
+                            <Avatar src={comment.profile_image} nickname={comment.nickname} size={6} />
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-xs">{comment.nickname}</span>
+                                <div className="flex items-center gap-2">
+                                  <button onClick={() => toggleCommentLike(review.id, comment.id)}
+                                    className={`flex items-center gap-0.5 text-xs ${isCommentLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-400'}`}>
+                                    {isCommentLiked ? '♥' : '♡'} {comment.like_count || 0}
+                                  </button>
+                                  {comment.user_id === auth.userId && (
+                                    <button onClick={() => deleteComment(review.id, comment.id)}
+                                      className="text-xs text-gray-300 hover:text-red-500">삭제</button>
+                                  )}
+                                </div>
+                              </div>
+                              <p className="text-xs text-gray-600 mt-0.5">{comment.content}</p>
+                              <p className="text-xs text-gray-400 mt-0.5">{comment.created_at}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {auth.token ? (
+                        <div className="flex gap-2 mt-2 pt-2 border-t">
+                          <input
+                            className="flex-1 border rounded-lg px-3 py-1.5 text-xs"
+                            placeholder="댓글을 입력해주세요..."
+                            value={commentInputs[review.id] || ''}
+                            onChange={e => setCommentInputs(prev => ({ ...prev, [review.id]: e.target.value }))}
+                            onKeyDown={e => e.key === 'Enter' && submitComment(review.id)}
+                          />
+                          <button onClick={() => submitComment(review.id)}
+                            className="bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs hover:bg-blue-600">
+                            등록
+                          </button>
+                        </div>
                       ) : (
-                        <span className="font-bold text-sm">{review.nickname}</span>
-                      )}
-                      <span className="text-yellow-400 text-sm">{'★'.repeat(review.rating)}</span>
-                      {review.readStatus && (
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[review.readStatus] || 'bg-gray-100 text-gray-500'}`}>
-                          {review.readStatus}
-                        </span>
+                        <p className="text-xs text-gray-400 mt-2 pt-2 border-t">
+                          <button onClick={() => router.push('/login')} className="text-blue-500 underline">로그인</button> 후 댓글을 작성할 수 있어요
+                        </p>
                       )}
                     </div>
-                    {review.userId === auth.userId && (
-                      <div className="flex gap-2">
-                        <button onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); }}
-                          className="text-xs text-gray-400 hover:text-blue-500">수정</button>
-                        <button onClick={() => deleteReview(review.id)}
-                          className="text-xs text-gray-400 hover:text-red-500">삭제</button>
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-gray-700 text-sm">{review.content}</p>
-                  <div className="flex items-center justify-between mt-2">
-                    <p className="text-gray-400 text-xs">{review.created_at}</p>
-                    <button onClick={() => toggleLike(review.id)}
-                      className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition ${isLiked ? 'bg-red-50 text-red-500 border-red-200' : 'text-gray-400 hover:bg-gray-50'}`}>
-                      {isLiked ? '♥' : '♡'} {review.like_count || 0}
-                    </button>
-                  </div>
+                  )}
                 </>
               )}
             </div>

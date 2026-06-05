@@ -16,6 +16,16 @@ async function updateWebtoonStats(webtoonId) {
   });
 }
 
+async function getUserProfileImage(userId) {
+  try {
+    const records = await base('USER').select({
+      filterByFormula: `RECORD_ID() = "${userId}"`,
+      maxRecords: 1,
+    }).firstPage();
+    return records[0]?.fields.profile_image || '';
+  } catch { return ''; }
+}
+
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -33,6 +43,7 @@ export async function GET(request) {
       created_at: r.fields.created_at,
       like_count: r.fields.like_count || 0,
       liked_by: r.fields.liked_by || '',
+      profile_image: r.fields.profile_image || '',
     })));
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -53,6 +64,8 @@ export async function POST(request) {
     }).firstPage();
     if (existing.length > 0) return NextResponse.json({ error: '이미 리뷰를 작성했어요. 수정해주세요!' }, { status: 409 });
 
+    const profileImage = await getUserProfileImage(user.userId);
+
     const record = await base('REVIEW').create({
       nickname: user.nickname,
       user_id: user.userId,
@@ -64,6 +77,7 @@ export async function POST(request) {
       webtoon: [webtoonId],
       like_count: 0,
       liked_by: '',
+      profile_image: profileImage,
     });
 
     await updateWebtoonStats(webtoonId);
@@ -76,6 +90,7 @@ export async function POST(request) {
       content: record.fields.content,
       like_count: 0,
       liked_by: '',
+      profile_image: profileImage,
     });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
