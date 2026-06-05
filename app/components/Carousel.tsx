@@ -46,20 +46,20 @@ const slides = [
     ),
   },
   {
-    bg: '#60A5FA',
-    textColor: '#1e3a8a',
-    descColor: '#1e40af',
+    bg: '#1D4ED8',
+    textColor: '#ffffff',
+    descColor: 'rgba(255,255,255,0.85)',
     title: '취향이 비슷한 유저를 팔로우해보세요',
     desc: '리뷰어 닉네임을 클릭하면 그 유저의 프로필과 리뷰 목록을 볼 수 있어요',
     visual: (
       <svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-        <rect x="10" y="10" width="140" height="100" rx="10" fill="rgba(255,255,255,0.2)"/>
-        <circle cx="55" cy="45" r="20" fill="rgba(255,255,255,0.9)"/>
-        <text x="55" y="52" textAnchor="middle" fontSize="18">🦊</text>
-        <text x="55" y="76" textAnchor="middle" fontSize="11" fill="white" fontWeight="500">웹툰러1</text>
-        <text x="55" y="88" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.9)">팔로워 12  팔로잉 8</text>
-        <rect x="96" y="32" width="48" height="20" rx="10" fill="white"/>
-        <text x="120" y="46" textAnchor="middle" fontSize="10" fill="#2563EB" fontWeight="500">팔로우</text>
+        <rect x="15" y="8" width="130" height="104" rx="12" fill="rgba(255,255,255,0.15)"/>
+        <circle cx="80" cy="38" r="20" fill="rgba(255,255,255,0.9)"/>
+        <text x="80" y="45" textAnchor="middle" fontSize="18">🦊</text>
+        <text x="80" y="70" textAnchor="middle" fontSize="12" fill="white" fontWeight="500">웹툰러1</text>
+        <text x="80" y="83" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">팔로워 12   팔로잉 8</text>
+        <rect x="46" y="92" width="68" height="16" rx="8" fill="white"/>
+        <text x="80" y="104" textAnchor="middle" fontSize="10" fill="#1D4ED8" fontWeight="500">팔로우</text>
       </svg>
     ),
   },
@@ -107,6 +107,14 @@ const slides = [
 
 export default function Carousel() {
   const [cur, setCur] = useState(0);
+  const [isMobile, setIsMobile] = useState(true);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -118,26 +126,24 @@ export default function Carousel() {
   const slide = slides[cur];
 
   return (
-    <div className="relative rounded-2xl overflow-hidden shadow-sm">
-      <div
-        style={{
-          backgroundColor: slide.bg,
-          transition: 'background-color 0.5s ease',
-          minHeight: '160px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          padding: '20px 16px',
-        }}
-      >
+    <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden' }}>
+      <div style={{
+        backgroundColor: slide.bg,
+        transition: 'background-color 0.5s ease',
+        minHeight: isMobile ? '160px' : '260px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: isMobile ? '12px' : '32px',
+        padding: isMobile ? '20px 16px 32px' : '40px 48px 52px',
+      }}>
         {/* 텍스트 */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{
             color: slide.textColor,
             fontWeight: 700,
-            fontSize: '15px',
-            lineHeight: '1.45',
-            marginBottom: '8px',
+            fontSize: isMobile ? '15px' : '28px',
+            lineHeight: '1.4',
+            marginBottom: isMobile ? '6px' : '14px',
             wordBreak: 'keep-all',
             overflowWrap: 'break-word',
           }}>
@@ -145,7 +151,7 @@ export default function Carousel() {
           </p>
           <p style={{
             color: slide.descColor,
-            fontSize: '12px',
+            fontSize: isMobile ? '12px' : '16px',
             lineHeight: '1.6',
             wordBreak: 'keep-all',
             overflowWrap: 'break-word',
@@ -154,7 +160,11 @@ export default function Carousel() {
           </p>
         </div>
         {/* SVG */}
-        <div style={{ width: '110px', height: '90px', flexShrink: 0 }}>
+        <div style={{
+          width: isMobile ? '110px' : '220px',
+          height: isMobile ? '90px' : '180px',
+          flexShrink: 0,
+        }}>
           {slide.visual}
         </div>
       </div>
@@ -162,27 +172,23 @@ export default function Carousel() {
       {/* 도트 */}
       <div style={{
         position: 'absolute',
-        bottom: '10px',
+        bottom: '12px',
         left: '50%',
         transform: 'translateX(-50%)',
         display: 'flex',
         gap: '6px',
       }}>
         {slides.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setCur(i)}
-            style={{
-              width: i === cur ? '12px' : '6px',
-              height: '6px',
-              borderRadius: '3px',
-              background: 'rgba(255,255,255,0.8)',
-              border: 'none',
-              padding: 0,
-              cursor: 'pointer',
-              transition: 'width 0.3s',
-            }}
-          />
+          <button key={i} onClick={() => setCur(i)} style={{
+            width: i === cur ? '12px' : '6px',
+            height: '6px',
+            borderRadius: '3px',
+            background: 'rgba(255,255,255,0.8)',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+            transition: 'width 0.3s',
+          }} />
         ))}
       </div>
     </div>
