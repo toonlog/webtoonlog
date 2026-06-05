@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import base from '../../../lib/airtable';
-import { getUserFromRequest } from '../../../lib/auth';
+import base from '../../lib/airtable';
+import { getUserFromRequest } from '../../lib/auth';
 
 // 컬렉션 아이템 목록
 export async function GET(request) {
