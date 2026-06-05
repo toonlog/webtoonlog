@@ -22,12 +22,11 @@ export async function GET(request) {
       thumbnail_url: r.fields.thumbnail_url || '',
     }));
 
-    const filtered = all.filter(w =>
-      w.title.includes(q) ||
-      w.author.includes(q) ||
-      (typeof w.genre === 'string' && w.genre.includes(q)) ||
-      w.platform.some(p => p.includes(q))
-    );
+const filtered = all.filter(w =>
+  w.title.includes(q) ||
+  w.author.includes(q) ||
+  w.platform.some(p => p.includes(q))
+);
 
     return NextResponse.json(filtered);
   } catch (error) {
