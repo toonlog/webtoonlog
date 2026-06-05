@@ -34,15 +34,20 @@ export default function WebtoonPage() {
   const [readStatus, setReadStatus] = useState<string | null>(null);
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editRating, setEditRating] = useState(5);
   const [editContent, setEditContent] = useState('');
+  const [editTags, setEditTags] = useState<string[]>([]);
+  const [editTagInput, setEditTagInput] = useState('');
   const [auth, setAuth] = useState<{ token: string | null; nickname: string | null; userId: string | null }>({ token: null, nickname: null, userId: null });
   const [loading, setLoading] = useState(false);
   const [collections, setCollections] = useState<any[]>([]);
   const [showCollectionMenu, setShowCollectionMenu] = useState(false);
   const [webtoonCollections, setWebtoonCollections] = useState<any[]>([]);
   const [sortBy, setSortBy] = useState<'latest' | 'likes'>('latest');
+  const [showAllTags, setShowAllTags] = useState(false);
 
   useEffect(() => {
     const a = getAuth();
@@ -129,6 +134,28 @@ export default function WebtoonPage() {
     if (res.ok) fetchComments(reviewId);
   }
 
+  function addTag() {
+    const t = tagInput.trim().replace(/^#/, '');
+    if (!t || tags.includes(t)) return;
+    setTags(prev => [...prev, t]);
+    setTagInput('');
+  }
+
+  function removeTag(t: string) {
+    setTags(prev => prev.filter(tag => tag !== t));
+  }
+
+  function addEditTag() {
+    const t = editTagInput.trim().replace(/^#/, '');
+    if (!t || editTags.includes(t)) return;
+    setEditTags(prev => [...prev, t]);
+    setEditTagInput('');
+  }
+
+  function removeEditTag(t: string) {
+    setEditTags(prev => prev.filter(tag => tag !== t));
+  }
+
   async function addToCollection(collectionId: string) {
     const token = localStorage.getItem('token');
     const res = await fetch('/api/collections/items', {
@@ -150,13 +177,14 @@ export default function WebtoonPage() {
     const res = await fetch('/api/reviews', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
-      body: JSON.stringify({ webtoonId: id, rating, content }),
+      body: JSON.stringify({ webtoonId: id, rating, content, tags }),
     });
     const data = await res.json();
     setLoading(false);
     if (!res.ok) return alert(data.error);
     setContent('');
     setRating(5);
+    setTags([]);
     fetchReviews();
   }
 
@@ -184,7 +212,7 @@ export default function WebtoonPage() {
     const res = await fetch('/api/reviews', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
-      body: JSON.stringify({ reviewId, rating: editRating, content: editContent }),
+      body: JSON.stringify({ reviewId, rating: editRating, content: editContent, tags: editTags }),
     });
     if (res.ok) { setEditingId(null); fetchReviews(); }
   }
@@ -197,6 +225,17 @@ export default function WebtoonPage() {
       body: JSON.stringify({ reviewId }),
     });
     if (res.ok) fetchReviews();
+  }
+
+  // 태그 집계
+  function getTagStats() {
+    const map: Record<string, number> = {};
+    reviews.forEach(r => {
+      (r.tags || []).forEach((t: string) => {
+        map[t] = (map[t] || 0) + 1;
+      });
+    });
+    return Object.entries(map).sort((a, b) => b[1] - a[1]);
   }
 
   const statusList = ['읽는중', '완독', '읽고싶다', '보류'];
@@ -220,6 +259,8 @@ export default function WebtoonPage() {
 
   const genres = Array.isArray(webtoon.genre) ? webtoon.genre : (webtoon.genre ? [webtoon.genre] : []);
   const platformList = Array.isArray(webtoon.platform) ? webtoon.platform : (webtoon.platform ? [webtoon.platform] : []);
+  const tagStats = getTagStats();
+  const visibleTags = showAllTags ? tagStats : tagStats.slice(0, 10);
 
   return (
     <main className="min-h-screen bg-gray-50 p-8 max-w-2xl mx-auto">
@@ -291,6 +332,26 @@ export default function WebtoonPage() {
             </div>
           </div>
         </div>
+
+        {/* 유저 태그 섹션 */}
+        {tagStats.length > 0 && (
+          <div className="mt-4 pt-4 border-t">
+            <p className="text-xs text-gray-400 mb-2">유저 태그</p>
+            <div className="flex flex-wrap gap-2">
+              {visibleTags.map(([tag, count]) => (
+                <span key={tag} className="text-xs border border-blue-200 bg-blue-50 text-blue-600 px-2 py-1 rounded-lg">
+                  #{tag} <span className="text-blue-400">{count}</span>
+                </span>
+              ))}
+              {tagStats.length > 10 && (
+                <button onClick={() => setShowAllTags(!showAllTags)}
+                  className="text-xs text-gray-400 hover:text-blue-500 px-2 py-1 border rounded-lg">
+                  {showAllTags ? '접기' : `+${tagStats.length - 10}개 더보기`}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 읽기 상태 */}
@@ -347,6 +408,27 @@ export default function WebtoonPage() {
             </div>
             <textarea className="w-full border rounded p-2 mb-2 text-sm" rows={3}
               placeholder="리뷰를 작성해주세요" value={content} onChange={e => setContent(e.target.value)} />
+
+            {/* 태그 입력 */}
+            <div className="mb-3">
+              <div className="flex flex-wrap gap-1 mb-2">
+                {tags.map(t => (
+                  <span key={t} className="text-xs bg-blue-50 border border-blue-200 text-blue-600 px-2 py-1 rounded-lg flex items-center gap-1">
+                    #{t}
+                    <button onClick={() => removeTag(t)} className="text-blue-400 hover:text-red-500">×</button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input className="flex-1 border rounded px-3 py-1.5 text-sm"
+                  placeholder="#태그 입력 후 Enter (예: 강추, 눈물주의)"
+                  value={tagInput}
+                  onChange={e => setTagInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())} />
+                <button onClick={addTag} className="bg-gray-100 px-3 py-1.5 rounded text-sm hover:bg-gray-200">추가</button>
+              </div>
+            </div>
+
             <button onClick={submitReview} disabled={loading}
               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50 text-sm">
               {loading ? '등록 중...' : '등록'}
@@ -386,6 +468,22 @@ export default function WebtoonPage() {
                   </div>
                   <textarea className="border rounded p-2 text-sm w-full" rows={3}
                     value={editContent} onChange={e => setEditContent(e.target.value)} />
+                  <div className="flex flex-wrap gap-1 mb-1">
+                    {editTags.map(t => (
+                      <span key={t} className="text-xs bg-blue-50 border border-blue-200 text-blue-600 px-2 py-1 rounded-lg flex items-center gap-1">
+                        #{t}
+                        <button onClick={() => removeEditTag(t)} className="text-blue-400 hover:text-red-500">×</button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input className="flex-1 border rounded px-3 py-1.5 text-sm"
+                      placeholder="#태그 추가..."
+                      value={editTagInput}
+                      onChange={e => setEditTagInput(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addEditTag())} />
+                    <button onClick={addEditTag} className="bg-gray-100 px-3 py-1.5 rounded text-sm">추가</button>
+                  </div>
                   <div className="flex gap-2">
                     <button onClick={() => saveEdit(review.id)} className="bg-blue-500 text-white px-3 py-1 rounded text-sm">저장</button>
                     <button onClick={() => setEditingId(null)} className="bg-gray-100 px-3 py-1 rounded text-sm">취소</button>
@@ -406,15 +504,10 @@ export default function WebtoonPage() {
                             <span className="font-bold text-sm">{review.nickname}</span>
                           )}
                           <span className="text-yellow-400 text-sm">{'★'.repeat(review.rating)}</span>
-                          {review.readStatus && (
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[review.readStatus] || 'bg-gray-100 text-gray-500'}`}>
-                              {review.readStatus}
-                            </span>
-                          )}
                         </div>
                         {review.userId === auth.userId && (
                           <div className="flex gap-2">
-                            <button onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); }}
+                            <button onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); setEditTags(review.tags || []); }}
                               className="text-xs text-gray-400 hover:text-blue-500">수정</button>
                             <button onClick={() => deleteReview(review.id)}
                               className="text-xs text-gray-400 hover:text-red-500">삭제</button>
@@ -422,6 +515,13 @@ export default function WebtoonPage() {
                         )}
                       </div>
                       <p className="text-gray-700 text-sm mt-1">{review.content}</p>
+                      {review.tags && review.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {review.tags.map((t: string) => (
+                            <span key={t} className="text-xs border border-blue-200 bg-blue-50 text-blue-500 px-2 py-0.5 rounded-lg">#{t}</span>
+                          ))}
+                        </div>
+                      )}
                       <div className="flex items-center gap-3 mt-2">
                         <p className="text-gray-400 text-xs">{review.created_at}</p>
                         <button onClick={() => toggleLike(review.id)}

@@ -44,6 +44,7 @@ export async function GET(request) {
       like_count: r.fields.like_count || 0,
       liked_by: r.fields.liked_by || '',
       profile_image: r.fields.profile_image || '',
+      tags: r.fields.tags ? r.fields.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
     })));
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -55,7 +56,7 @@ export async function POST(request) {
     const user = getUserFromRequest(request);
     if (!user) return NextResponse.json({ error: '로그인이 필요해요' }, { status: 401 });
 
-    const { webtoonId, rating, content } = await request.json();
+    const { webtoonId, rating, content, tags } = await request.json();
     if (!content?.trim()) return NextResponse.json({ error: '리뷰 내용을 입력해주세요' }, { status: 400 });
 
     const existing = await base('REVIEW').select({
@@ -65,6 +66,7 @@ export async function POST(request) {
     if (existing.length > 0) return NextResponse.json({ error: '이미 리뷰를 작성했어요. 수정해주세요!' }, { status: 409 });
 
     const profileImage = await getUserProfileImage(user.userId);
+    const tagsStr = Array.isArray(tags) ? tags.join(',') : '';
 
     const record = await base('REVIEW').create({
       nickname: user.nickname,
@@ -78,6 +80,7 @@ export async function POST(request) {
       like_count: 0,
       liked_by: '',
       profile_image: profileImage,
+      tags: tagsStr,
     });
 
     await updateWebtoonStats(webtoonId);
@@ -91,6 +94,7 @@ export async function POST(request) {
       like_count: 0,
       liked_by: '',
       profile_image: profileImage,
+      tags: tags || [],
     });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -102,13 +106,16 @@ export async function PATCH(request) {
     const user = getUserFromRequest(request);
     if (!user) return NextResponse.json({ error: '로그인이 필요해요' }, { status: 401 });
 
-    const { reviewId, rating, content } = await request.json();
+    const { reviewId, rating, content, tags } = await request.json();
     const record = await base('REVIEW').find(reviewId);
     if (record.fields.user_id !== user.userId) return NextResponse.json({ error: '내 리뷰만 수정할 수 있어요' }, { status: 403 });
+
+    const tagsStr = Array.isArray(tags) ? tags.join(',') : '';
 
     const updated = await base('REVIEW').update(reviewId, {
       rating: Number(rating),
       content: content.trim(),
+      tags: tagsStr,
     });
 
     await updateWebtoonStats(record.fields.webtoon_id);
@@ -118,6 +125,7 @@ export async function PATCH(request) {
       nickname: updated.fields.nickname,
       rating: updated.fields.rating,
       content: updated.fields.content,
+      tags: updated.fields.tags ? updated.fields.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
     });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
