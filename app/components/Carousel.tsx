@@ -6,7 +6,7 @@ const slides = [
     bg: '#3B82F6',
     textColor: '#ffffff',
     descColor: 'rgba(255,255,255,0.85)',
-    title: '감상을 나누고 싶은 작품을 직접 추가할 수 있어요',
+    title: '감상을 나누는 작품을\n직접 추가할 수 있어요',
     desc: '+ 웹툰 등록 버튼을 눌러 제목, 작가, 장르 등을 설정해 등록해보세요',
     visual: (
       <svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
@@ -147,7 +147,8 @@ export default function Carousel() {
             wordBreak: 'keep-all',
             overflowWrap: 'break-word',
           }}>
-            {slide.title}
+            {slide.title.split('\n').map((line, i) => (
+  <span key={i}>{line}{i === 0 && <br />}</span>
           </p>
           <p style={{
             color: slide.descColor,
