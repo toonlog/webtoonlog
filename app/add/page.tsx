@@ -9,13 +9,17 @@ export default function AddWebtoon() {
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
-  const [platform, setPlatform] = useState('');
+  const [platforms, setPlatforms] = useState<string[]>([]);
   const [genres, setGenres] = useState<string[]>([]);
   const [allGenres, setAllGenres] = useState<string[]>(DEFAULT_GENRES);
   const [customGenre, setCustomGenre] = useState('');
   const [status, setStatus] = useState('연재중');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
   const [loading, setLoading] = useState(false);
+
+  function togglePlatform(p: string) {
+    setPlatforms(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]);
+  }
 
   function toggleGenre(genre: string) {
     setGenres(prev => prev.includes(genre) ? prev.filter(g => g !== genre) : [...prev, genre]);
@@ -35,13 +39,14 @@ export default function AddWebtoon() {
     const res = await fetch('/api/webtoons/add', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, author, platform, genre: genres, status, thumbnailUrl }),
+      body: JSON.stringify({ title, author, platform: platforms, genre: genres, status, thumbnailUrl }),
     });
     if (res.ok) {
       alert('등록 완료! 🎉');
       router.push('/');
     } else {
-      alert('오류가 발생했어요');
+      const data = await res.json();
+      alert(data.error || '오류가 발생했어요');
     }
     setLoading(false);
   }
@@ -52,10 +57,19 @@ export default function AddWebtoon() {
       <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-4">
         <input className="border rounded p-2" placeholder="제목 *" value={title} onChange={e => setTitle(e.target.value)} />
         <input className="border rounded p-2" placeholder="작가" value={author} onChange={e => setAuthor(e.target.value)} />
-        <select className="border rounded p-2" value={platform} onChange={e => setPlatform(e.target.value)}>
-          <option value="">플랫폼 선택</option>
-          {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
-        </select>
+
+        <div>
+          <p className="text-sm text-gray-600 mb-2">플랫폼 (복수 선택 가능)</p>
+          <div className="flex flex-wrap gap-2">
+            {PLATFORMS.map(p => (
+              <button key={p} type="button" onClick={() => togglePlatform(p)}
+                className={`px-3 py-1 rounded-full text-sm border transition ${platforms.includes(p) ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-700 hover:bg-gray-100'}`}>
+                {p}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div>
           <p className="text-sm text-gray-600 mb-2">장르 (복수 선택 가능)</p>
           <div className="flex flex-wrap gap-2 mb-3">
@@ -73,6 +87,7 @@ export default function AddWebtoon() {
             <button type="button" onClick={addCustomGenre} className="bg-gray-100 px-3 py-2 rounded text-sm hover:bg-gray-200">+ 추가</button>
           </div>
         </div>
+
         <select className="border rounded p-2" value={status} onChange={e => setStatus(e.target.value)}>
           <option value="연재중">연재중</option>
           <option value="완결">완결</option>
