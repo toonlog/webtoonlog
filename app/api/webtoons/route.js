@@ -23,7 +23,6 @@ export async function GET(request) {
     }));
 
     if (boom) {
-      // 최근 일주일 리뷰 많은 작품
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
       const dateStr = oneWeekAgo.toISOString().split('T')[0];
@@ -32,9 +31,9 @@ export async function GET(request) {
         filterByFormula: `{created_at} >= "${dateStr}"`,
       }).all();
 
-      const countMap: Record<string, number> = {};
+      const countMap = {};
       recentReviews.forEach(r => {
-        const wId = r.fields.webtoon_id as string;
+        const wId = r.fields.webtoon_id;
         if (wId) countMap[wId] = (countMap[wId] || 0) + 1;
       });
 
