@@ -6,7 +6,8 @@ const slides = [
     bg: '#3B82F6',
     textColor: '#ffffff',
     descColor: 'rgba(255,255,255,0.85)',
-    title: '감상을 나누는 작품을\n직접 추가할 수 있어요',
+    title: '감상을 나누는 작품을 직접 추가할 수 있어요',
+    titleBreak: true,
     desc: '+ 웹툰 등록 버튼을 눌러 제목, 작가, 장르 등을 설정해 등록해보세요',
     visual: (
       <svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
@@ -29,6 +30,7 @@ const slides = [
     textColor: '#ffffff',
     descColor: 'rgba(255,255,255,0.85)',
     title: '원하는 작품을 검색하고 리뷰를 참고해보세요',
+    titleBreak: false,
     desc: '검색창에 제목이나 작가명을 입력해 등록된 작품을 찾아보세요',
     visual: (
       <svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
@@ -50,6 +52,7 @@ const slides = [
     textColor: '#ffffff',
     descColor: 'rgba(255,255,255,0.85)',
     title: '취향이 비슷한 유저를 팔로우해보세요',
+    titleBreak: false,
     desc: '리뷰어 닉네임을 클릭하면 그 유저의 프로필과 리뷰 목록을 볼 수 있어요',
     visual: (
       <svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
@@ -68,6 +71,7 @@ const slides = [
     textColor: '#1e3a8a',
     descColor: '#475569',
     title: '마음에 드는 작품들을 컬렉션으로 모아보세요',
+    titleBreak: false,
     desc: '컬렉션 메뉴에서 나만의 리스트를 만들고 다른 유저와 공유해보세요',
     visual: (
       <svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
@@ -89,6 +93,7 @@ const slides = [
     textColor: '#ffffff',
     descColor: 'rgba(255,255,255,0.85)',
     title: '읽기 상태로 작품을 체계적으로 관리해보세요',
+    titleBreak: false,
     desc: '마이페이지에서 읽기 상태별로 작품을 한눈에 모아볼 수 있어요',
     visual: (
       <svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
@@ -125,6 +130,13 @@ export default function Carousel() {
 
   const slide = slides[cur];
 
+  const renderTitle = (title: string, titleBreak: boolean) => {
+    if (!titleBreak) return title;
+    const parts = title.split(' ').slice(0, 4).join(' ');
+    const rest = title.split(' ').slice(4).join(' ');
+    return <>{parts}<br />{rest}</>;
+  };
+
   return (
     <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden' }}>
       <div style={{
@@ -136,7 +148,6 @@ export default function Carousel() {
         gap: isMobile ? '12px' : '32px',
         padding: isMobile ? '20px 16px 32px' : '40px 48px 52px',
       }}>
-        {/* 텍스트 */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{
             color: slide.textColor,
@@ -147,8 +158,7 @@ export default function Carousel() {
             wordBreak: 'keep-all',
             overflowWrap: 'break-word',
           }}>
-            {slide.title.split('\\n').map((line, i) => (
-  <span key={i}>{line}{i === 0 && <br />}</span>
+            {renderTitle(slide.title, slide.titleBreak)}
           </p>
           <p style={{
             color: slide.descColor,
@@ -156,11 +166,11 @@ export default function Carousel() {
             lineHeight: '1.6',
             wordBreak: 'keep-all',
             overflowWrap: 'break-word',
+            margin: 0,
           }}>
             {slide.desc}
           </p>
         </div>
-        {/* SVG */}
         <div style={{
           width: isMobile ? '110px' : '220px',
           height: isMobile ? '90px' : '180px',
@@ -170,7 +180,6 @@ export default function Carousel() {
         </div>
       </div>
 
-      {/* 도트 */}
       <div style={{
         position: 'absolute',
         bottom: '12px',
