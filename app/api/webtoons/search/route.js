@@ -19,9 +19,15 @@ export async function GET(request) {
       thumbnail_url: r.fields.thumbnail_url,
     }));
 
-    const filtered = q
-      ? all.filter(w => w.title?.includes(q) || w.author?.includes(q))
-      : all;
+   const filtered = q
+  ? all.filter(w =>
+      w.title?.includes(q) ||
+      w.author?.includes(q) ||
+      (typeof w.genre === 'string' && w.genre.includes(q)) ||
+      (Array.isArray(w.genre) && w.genre.some((g: string) => g.includes(q))) ||
+      (Array.isArray(w.platform) && w.platform.some((p: string) => p.includes(q)))
+    )
+  : all;
 
     return NextResponse.json(filtered);
   } catch (error) {
