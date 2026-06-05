@@ -147,7 +147,7 @@ export default function Carousel() {
             wordBreak: 'keep-all',
             overflowWrap: 'break-word',
           }}>
-            {slide.title.split('\n').map((line, i) => (
+            {slide.title.split('\\n').map((line, i) => (
   <span key={i}>{line}{i === 0 && <br />}</span>
           </p>
           <p style={{
