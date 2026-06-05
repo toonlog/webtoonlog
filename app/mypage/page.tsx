@@ -17,6 +17,7 @@ export default function MyPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [reviews, setReviews] = useState<any[]>([]);
   const [statuses, setStatuses] = useState<any[]>([]);
+  const [collections, setCollections] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'reviews' | 'status'>('reviews');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -37,6 +38,7 @@ export default function MyPage() {
     setUserId(uid);
     fetchData(token, uid);
     fetchUserInfo(uid);
+    fetchCollections(uid);
   }, []);
 
   function fetchData(token: string, uid: string) {
@@ -55,6 +57,10 @@ export default function MyPage() {
       setFollowingCount(data.followingCount || 0);
       setProfileImage(data.user?.profile_image || '');
     });
+  }
+
+  function fetchCollections(uid: string) {
+    fetch(`/api/collections?userId=${uid}`).then(r => r.json()).then(setCollections);
   }
 
   function refetch() {
@@ -142,14 +148,14 @@ export default function MyPage() {
 
   return (
     <main className="min-h-screen bg-gray-50 p-8 max-w-2xl mx-auto">
+      {/* 프로필 */}
       <div className="bg-white rounded-xl shadow p-6 mb-6">
         <div className="flex items-center gap-4">
-          {/* 프로필 사진 */}
           <div className="relative flex-shrink-0">
             {profileImage ? (
               <img src={profileImage} alt="프로필" className="w-16 h-16 rounded-full object-cover" />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-2xl text-gray-400">
+              <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-2xl text-blue-400">
                 {nickname?.charAt(0)}
               </div>
             )}
@@ -158,7 +164,6 @@ export default function MyPage() {
               ✏️
             </button>
           </div>
-
           <div className="flex-1">
             <h1 className="text-2xl font-bold">{nickname}</h1>
             <div className="flex gap-4 mt-1 text-sm text-gray-500">
@@ -166,21 +171,14 @@ export default function MyPage() {
               <span>팔로잉 <strong className="text-gray-800">{followingCount}</strong></span>
             </div>
           </div>
-
           {userId && (
             <Link href={`/users/${userId}`} className="text-sm text-blue-500 hover:underline">내 프로필</Link>
           )}
         </div>
-
-        {/* 프로필 사진 수정 */}
         {editingImage && (
           <div className="mt-4 flex gap-2">
-            <input
-              className="flex-1 border rounded-lg p-2 text-sm"
-              placeholder="이미지 URL 입력..."
-              value={newImageUrl}
-              onChange={e => setNewImageUrl(e.target.value)}
-            />
+            <input className="flex-1 border rounded-lg p-2 text-sm" placeholder="이미지 URL 입력..."
+              value={newImageUrl} onChange={e => setNewImageUrl(e.target.value)} />
             {newImageUrl && <img src={newImageUrl} alt="미리보기" className="w-10 h-10 rounded-full object-cover" />}
             <button onClick={saveProfileImage} className="bg-blue-500 text-white px-3 py-2 rounded-lg text-sm">저장</button>
             <button onClick={() => setEditingImage(false)} className="bg-gray-100 px-3 py-2 rounded-lg text-sm">취소</button>
@@ -188,6 +186,36 @@ export default function MyPage() {
         )}
       </div>
 
+      {/* 내 컬렉션 */}
+      {collections.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-bold text-gray-900">내 컬렉션</h2>
+            <Link href="/collections" className="text-xs text-blue-500 hover:underline">전체보기</Link>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            {collections.map(c => (
+              <Link key={c.id} href={`/collections/${c.id}`} className="flex-shrink-0">
+                <div className="bg-white rounded-xl shadow p-4 w-36 hover:shadow-md transition">
+                  <div className="w-full h-20 bg-blue-50 rounded-lg mb-2 flex items-center justify-center">
+                    <span className="text-2xl">📚</span>
+                  </div>
+                  <p className="font-bold text-xs text-gray-900 truncate">{c.name}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{c.is_public ? '공개' : '비공개'}</p>
+                </div>
+              </Link>
+            ))}
+            <Link href="/collections" className="flex-shrink-0">
+              <div className="bg-white rounded-xl shadow p-4 w-36 hover:shadow-md transition flex flex-col items-center justify-center h-full min-h-[120px]">
+                <span className="text-2xl text-blue-300 mb-1">+</span>
+                <p className="text-xs text-gray-400">새 컬렉션</p>
+              </div>
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* 탭 */}
       <div className="flex mb-4 bg-white rounded-xl shadow p-1 gap-1">
         <button onClick={() => setTab('reviews')}
           className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${tab === 'reviews' ? 'bg-blue-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`}>
