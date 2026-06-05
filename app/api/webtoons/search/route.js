@@ -26,7 +26,7 @@ export async function GET(request) {
       w.title.includes(q) ||
       w.author.includes(q) ||
       (typeof w.genre === 'string' && w.genre.includes(q)) ||
-      w.platform.some((p: string) => p.includes(q))
+      w.platform.some(p => p.includes(q))
     );
 
     return NextResponse.json(filtered);
