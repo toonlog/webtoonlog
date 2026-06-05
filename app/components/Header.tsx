@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -7,6 +7,9 @@ export default function Header() {
   const router = useRouter();
   const [nickname, setNickname] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const uid = localStorage.getItem('userId');
@@ -24,6 +27,10 @@ export default function Header() {
     return () => window.removeEventListener('authChange', onAuth);
   }, []);
 
+  useEffect(() => {
+    if (showSearch) inputRef.current?.focus();
+  }, [showSearch]);
+
   function fetchProfileImage(uid: string) {
     fetch(`/api/users/${uid}`).then(r => r.json()).then(data => {
       setProfileImage(data.user?.profile_image || null);
@@ -40,10 +47,53 @@ export default function Header() {
     router.push('/');
   }
 
+  function handleSearch(e: React.KeyboardEvent) {
+    if (e.key === 'Enter' && searchQuery.trim()) {
+      router.push(`/?q=${encodeURIComponent(searchQuery)}`);
+      setShowSearch(false);
+      setSearchQuery('');
+    }
+    if (e.key === 'Escape') {
+      setShowSearch(false);
+      setSearchQuery('');
+    }
+  }
+
   return (
     <header className="bg-white border-b px-6 py-3 flex items-center justify-between sticky top-0 z-50">
       <Link href="/" className="font-bold text-lg text-blue-600">웹툰로그</Link>
       <div className="flex items-center gap-4">
+        {/* 검색 */}
+        <div className="flex items-center gap-2">
+          <div className={`flex items-center overflow-hidden transition-all duration-300 border rounded-full ${showSearch ? 'w-40 px-3 border-gray-300' : 'w-0 border-transparent'}`}>
+            <input
+              ref={inputRef}
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearch}
+              placeholder="검색..."
+              className="w-full text-sm outline-none bg-transparent py-1 text-gray-700"
+            />
+          </div>
+          <button
+            onClick={() => {
+              if (showSearch && searchQuery.trim()) {
+                router.push(`/?q=${encodeURIComponent(searchQuery)}`);
+                setShowSearch(false);
+                setSearchQuery('');
+              } else {
+                setShowSearch(!showSearch);
+              }
+            }}
+            className={`transition-transform duration-300 text-gray-500 hover:text-gray-700 ${showSearch ? 'scale-75' : 'scale-100'}`}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </button>
+        </div>
+
         {nickname ? (
           <>
             <Link href="/collections" className="text-sm text-gray-500 hover:text-blue-500 transition">컬렉션</Link>
