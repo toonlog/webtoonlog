@@ -31,6 +31,8 @@ export async function GET(request) {
       rating: r.fields.rating,
       content: r.fields.content,
       created_at: r.fields.created_at,
+      like_count: r.fields.like_count || 0,
+      liked_by: r.fields.liked_by || '',
     })));
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -60,6 +62,8 @@ export async function POST(request) {
       is_spoiler: false,
       created_at: new Date().toISOString().split('T')[0],
       webtoon: [webtoonId],
+      like_count: 0,
+      liked_by: '',
     });
 
     await updateWebtoonStats(webtoonId);
@@ -70,6 +74,8 @@ export async function POST(request) {
       userId: user.userId,
       rating: record.fields.rating,
       content: record.fields.content,
+      like_count: 0,
+      liked_by: '',
     });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

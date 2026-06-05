@@ -29,7 +29,7 @@ export default function WebtoonPage() {
   const [collections, setCollections] = useState<any[]>([]);
   const [showCollectionMenu, setShowCollectionMenu] = useState(false);
   const [webtoonCollections, setWebtoonCollections] = useState<any[]>([]);
-  const [sortBy, setSortBy] = useState<'latest' | 'rating'>('latest');
+  const [sortBy, setSortBy] = useState<'latest' | 'likes'>('latest');
 
   useEffect(() => {
     const a = getAuth();
@@ -130,6 +130,16 @@ export default function WebtoonPage() {
     if (res.ok) { setEditingId(null); fetchReviews(); }
   }
 
+  async function toggleLike(reviewId: string) {
+    if (!auth.token) return router.push('/login');
+    const res = await fetch('/api/reviews/like', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
+      body: JSON.stringify({ reviewId }),
+    });
+    if (res.ok) fetchReviews();
+  }
+
   const statusList = ['읽는중', '완독', '읽고싶다', '보류'];
   const statusColors: Record<string, string> = {
     '읽는중': 'bg-blue-100 text-blue-600',
@@ -145,7 +155,7 @@ export default function WebtoonPage() {
     : null;
 
   const sortedReviews = [...reviews].sort((a, b) => {
-    if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
+    if (sortBy === 'likes') return (b.like_count || 0) - (a.like_count || 0);
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
 
@@ -154,7 +164,7 @@ export default function WebtoonPage() {
 
       {/* 작품 정보 */}
       <div className="bg-white rounded-xl shadow p-6 mb-6">
-        <div className="flex gap-4 mb-4">
+        <div className="flex gap-4">
           {webtoon.thumbnail_url ? (
             <img src={webtoon.thumbnail_url} alt={webtoon.title} className="w-24 h-32 object-cover rounded-lg flex-shrink-0" />
           ) : (
@@ -276,62 +286,71 @@ export default function WebtoonPage() {
               className={`text-xs px-3 py-1 rounded-full border transition ${sortBy === 'latest' ? 'bg-blue-500 text-white border-blue-500' : 'text-gray-500 hover:bg-gray-100'}`}>
               최신순
             </button>
-            <button onClick={() => setSortBy('rating')}
-              className={`text-xs px-3 py-1 rounded-full border transition ${sortBy === 'rating' ? 'bg-blue-500 text-white border-blue-500' : 'text-gray-500 hover:bg-gray-100'}`}>
-              별점순
+            <button onClick={() => setSortBy('likes')}
+              className={`text-xs px-3 py-1 rounded-full border transition ${sortBy === 'likes' ? 'bg-blue-500 text-white border-blue-500' : 'text-gray-500 hover:bg-gray-100'}`}>
+              좋아요순
             </button>
           </div>
         </div>
         {reviews.length === 0 && <p className="text-gray-400">아직 리뷰가 없어요!</p>}
-        {sortedReviews.map(review => (
-          <div key={review.id} className="border-b py-4 last:border-0">
-            {editingId === review.id ? (
-              <div className="flex flex-col gap-2">
-                <div className="flex gap-1">
-                  {[1,2,3,4,5].map(n => (
-                    <button key={n} onClick={() => setEditRating(n)} className={`text-xl ${n <= editRating ? 'text-yellow-400' : 'text-gray-300'}`}>★</button>
-                  ))}
+        {sortedReviews.map(review => {
+          const isLiked = auth.userId && review.liked_by?.split(',').includes(auth.userId);
+          return (
+            <div key={review.id} className="border-b py-4 last:border-0">
+              {editingId === review.id ? (
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-1">
+                    {[1,2,3,4,5].map(n => (
+                      <button key={n} onClick={() => setEditRating(n)} className={`text-xl ${n <= editRating ? 'text-yellow-400' : 'text-gray-300'}`}>★</button>
+                    ))}
+                  </div>
+                  <textarea className="border rounded p-2 text-sm w-full" rows={3}
+                    value={editContent} onChange={e => setEditContent(e.target.value)} />
+                  <div className="flex gap-2">
+                    <button onClick={() => saveEdit(review.id)} className="bg-blue-500 text-white px-3 py-1 rounded text-sm">저장</button>
+                    <button onClick={() => setEditingId(null)} className="bg-gray-100 px-3 py-1 rounded text-sm">취소</button>
+                  </div>
                 </div>
-                <textarea className="border rounded p-2 text-sm w-full" rows={3}
-                  value={editContent} onChange={e => setEditContent(e.target.value)} />
-                <div className="flex gap-2">
-                  <button onClick={() => saveEdit(review.id)} className="bg-blue-500 text-white px-3 py-1 rounded text-sm">저장</button>
-                  <button onClick={() => setEditingId(null)} className="bg-gray-100 px-3 py-1 rounded text-sm">취소</button>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-2">
-                    {review.userId ? (
-                      <Link href={`/users/${review.userId}`} className="font-bold text-sm hover:text-blue-500 transition">
-                        {review.nickname}
-                      </Link>
-                    ) : (
-                      <span className="font-bold text-sm">{review.nickname}</span>
-                    )}
-                    <span className="text-yellow-400 text-sm">{'★'.repeat(review.rating)}</span>
-                    {review.readStatus && (
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[review.readStatus] || 'bg-gray-100 text-gray-500'}`}>
-                        {review.readStatus}
-                      </span>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      {review.userId ? (
+                        <Link href={`/users/${review.userId}`} className="font-bold text-sm hover:text-blue-500 transition">
+                          {review.nickname}
+                        </Link>
+                      ) : (
+                        <span className="font-bold text-sm">{review.nickname}</span>
+                      )}
+                      <span className="text-yellow-400 text-sm">{'★'.repeat(review.rating)}</span>
+                      {review.readStatus && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[review.readStatus] || 'bg-gray-100 text-gray-500'}`}>
+                          {review.readStatus}
+                        </span>
+                      )}
+                    </div>
+                    {review.userId === auth.userId && (
+                      <div className="flex gap-2">
+                        <button onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); }}
+                          className="text-xs text-gray-400 hover:text-blue-500">수정</button>
+                        <button onClick={() => deleteReview(review.id)}
+                          className="text-xs text-gray-400 hover:text-red-500">삭제</button>
+                      </div>
                     )}
                   </div>
-                  {review.userId === auth.userId && (
-                    <div className="flex gap-2">
-                      <button onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); }}
-                        className="text-xs text-gray-400 hover:text-blue-500">수정</button>
-                      <button onClick={() => deleteReview(review.id)}
-                        className="text-xs text-gray-400 hover:text-red-500">삭제</button>
-                    </div>
-                  )}
-                </div>
-                <p className="text-gray-700 text-sm">{review.content}</p>
-                <p className="text-gray-400 text-xs mt-1">{review.created_at}</p>
-              </>
-            )}
-          </div>
-        ))}
+                  <p className="text-gray-700 text-sm">{review.content}</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-gray-400 text-xs">{review.created_at}</p>
+                    <button onClick={() => toggleLike(review.id)}
+                      className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition ${isLiked ? 'bg-red-50 text-red-500 border-red-200' : 'text-gray-400 hover:bg-gray-50'}`}>
+                      {isLiked ? '♥' : '♡'} {review.like_count || 0}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })}
       </div>
     </main>
   );
