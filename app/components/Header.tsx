@@ -60,12 +60,16 @@ export default function Header() {
   }
 
   return (
-    <header className="bg-white border-b px-6 py-3 flex items-center justify-between sticky top-0 z-50">
-      <Link href="/" className="font-bold text-lg text-blue-600">웹툰로그</Link>
-      <div className="flex items-center gap-4">
+    <header className="bg-white border-b px-4 md:px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+      {/* 로고 - 파란 정사각형 */}
+      <Link href="/" className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-lg text-white font-bold text-sm hover:bg-blue-600 transition">
+        웹
+      </Link>
+
+      <div className="flex items-center gap-3">
         {/* 검색 */}
         <div className="flex items-center gap-2">
-          <div className={`flex items-center overflow-hidden transition-all duration-300 border rounded-full ${showSearch ? 'w-40 px-3 border-gray-300' : 'w-0 border-transparent'}`}>
+          <div className={`flex items-center overflow-hidden transition-all duration-300 border rounded-full ${showSearch ? 'w-32 md:w-40 px-3 border-gray-300' : 'w-0 border-transparent'}`}>
             <input
               ref={inputRef}
               type="text"
@@ -96,7 +100,6 @@ export default function Header() {
 
         {nickname ? (
           <>
-            <Link href="/collections" className="text-sm text-gray-500 hover:text-blue-500 transition">컬렉션</Link>
             <Link href="/mypage">
               {profileImage ? (
                 <img src={profileImage} alt="프로필" className="w-8 h-8 rounded-full object-cover hover:opacity-80 transition" />
@@ -106,10 +109,10 @@ export default function Header() {
                 </div>
               )}
             </Link>
-            <button onClick={logout} className="text-sm text-gray-400 hover:text-red-500 transition">로그아웃</button>
+            <button onClick={logout} className="text-sm text-gray-400 hover:text-red-500 transition hidden md:block">로그아웃</button>
           </>
         ) : (
-          <Link href="/login" className="text-sm bg-blue-500 text-white px-4 py-1.5 rounded-lg hover:bg-blue-600 transition">
+          <Link href="/login" className="text-sm bg-blue-500 text-white px-3 md:px-4 py-1.5 rounded-lg hover:bg-blue-600 transition">
             로그인
           </Link>
         )}

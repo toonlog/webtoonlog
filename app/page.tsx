@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import base from './lib/airtable';
 import FeedbackButton from './components/FeedbackButton';
+import Carousel from './components/Carousel';
 
 async function getWebtoons(search?: string, genre?: string, platform?: string) {
   const records = await base('WEBTOON').select({
@@ -23,31 +24,22 @@ async function getBoomWebtoons() {
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
     const dateStr = oneWeekAgo.toISOString().split('T')[0];
-
     const recentReviews = await base('REVIEW').select({
       filterByFormula: `{created_at} >= "${dateStr}"`,
     }).all();
-
     const countMap: Record<string, number> = {};
     recentReviews.forEach((r: any) => {
       const wId = r.fields.webtoon_id as string;
       if (wId) countMap[wId] = (countMap[wId] || 0) + 1;
     });
-
     if (Object.keys(countMap).length === 0) return [];
-
-    const webtoonIds = Object.entries(countMap)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([id]) => id);
-
+    const webtoonIds = Object.entries(countMap).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([id]) => id);
     const webtoons = await Promise.all(webtoonIds.map(async (id) => {
       try {
         const r = await base('WEBTOON').find(id);
         return { id: r.id, ...r.fields, weeklyCount: countMap[id] };
       } catch { return null; }
     }));
-
     return webtoons.filter(Boolean);
   } catch { return []; }
 }
@@ -66,17 +58,21 @@ export default async function Home({ searchParams }: any) {
   const showAllPlatforms = params?.allPlatforms === '1';
   const webtoons = await getWebtoons(search, genre, platform);
   const boomWebtoons = await getBoomWebtoons();
-
   const visibleGenres = showAllGenres ? ALL_GENRES : TOP_GENRES;
   const visiblePlatforms = showAllPlatforms ? ALL_PLATFORMS : TOP_PLATFORMS;
 
   return (
     <main className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="flex justify-between items-center max-w-4xl mx-auto mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">웹툰로그</h1>
-        <Link href="/add" className="bg-blue-500 text-white px-4 py-2 rounded-xl text-sm hover:bg-blue-600">
+      <div className="flex justify-between items-center max-w-4xl mx-auto mb-4">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">웹툰로그</h1>
+        <Link href="/add" className="bg-blue-500 text-white px-3 md:px-4 py-2 rounded-xl text-sm hover:bg-blue-600">
           + 웹툰 등록
         </Link>
+      </div>
+
+      {/* 캐러셀 */}
+      <div className="max-w-4xl mx-auto mb-6">
+        <Carousel />
       </div>
 
       <form method="GET" className="max-w-4xl mx-auto mb-4">
@@ -147,11 +143,11 @@ export default async function Home({ searchParams }: any) {
           <div className="flex gap-3 overflow-x-auto pb-2">
             {boomWebtoons.map((w: any) => (
               <Link key={w.id} href={`/webtoon/${w.id}`} className="flex-shrink-0">
-                <div className="bg-white rounded-xl shadow p-3 w-36 hover:shadow-md transition">
+                <div className="bg-white rounded-xl shadow p-3 w-32 md:w-36 hover:shadow-md transition">
                   {w.thumbnail_url ? (
-                    <img src={w.thumbnail_url} alt={w.title} className="w-full h-44 object-cover rounded-lg mb-2" />
+                    <img src={w.thumbnail_url} alt={w.title} className="w-full h-36 md:h-44 object-cover rounded-lg mb-2" />
                   ) : (
-                    <div className="w-full h-44 bg-gray-200 rounded-lg mb-2" />
+                    <div className="w-full h-36 md:h-44 bg-gray-200 rounded-lg mb-2" />
                   )}
                   <p className="font-bold text-xs text-gray-900 truncate">{w.title}</p>
                   <p className="text-xs text-gray-500 truncate">{w.author}</p>
@@ -174,10 +170,10 @@ export default async function Home({ searchParams }: any) {
                 ) : (
                   <div className="bg-gray-200 rounded-lg w-14 h-20 flex-shrink-0" />
                 )}
-                <div className="flex-1">
-                  <h2 className="font-bold text-sm text-gray-900">{webtoon.title}</h2>
-                  <p className="text-xs text-gray-500 mt-0.5">{webtoon.author}</p>
-                  <p className="text-xs text-blue-500 mt-0.5">{Array.isArray(webtoon.platform) ? webtoon.platform.join(', ') : webtoon.platform}</p>
+                <div className="flex-1 min-w-0">
+                  <h2 className="font-bold text-sm text-gray-900 truncate">{webtoon.title}</h2>
+                  <p className="text-xs text-gray-500 mt-0.5 truncate">{webtoon.author}</p>
+                  <p className="text-xs text-blue-500 mt-0.5 truncate">{Array.isArray(webtoon.platform) ? webtoon.platform.join(', ') : webtoon.platform}</p>
                   {webtoon.review_count > 0 && (
                     <div className="flex items-center gap-1 mt-1">
                       <span className="text-yellow-400 text-xs">★</span>
