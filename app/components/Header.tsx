@@ -47,15 +47,14 @@ export default function Header() {
         {nickname ? (
           <>
             <Link href="/collections" className="text-sm text-gray-500 hover:text-blue-500 transition">컬렉션</Link>
-            <Link href="/mypage" className="flex items-center gap-2 hover:opacity-80 transition">
+            <Link href="/mypage">
               {profileImage ? (
-                <img src={profileImage} alt="프로필" className="w-7 h-7 rounded-full object-cover" />
+                <img src={profileImage} alt="프로필" className="w-8 h-8 rounded-full object-cover hover:opacity-80 transition" />
               ) : (
-                <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-xs text-blue-500 font-bold">
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm text-blue-500 font-bold hover:opacity-80 transition">
                   {nickname.charAt(0)}
                 </div>
               )}
-              <span className="text-sm text-gray-600">{nickname}</span>
             </Link>
             <button onClick={logout} className="text-sm text-gray-400 hover:text-red-500 transition">로그아웃</button>
           </>
