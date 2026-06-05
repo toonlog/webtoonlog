@@ -16,6 +16,7 @@ export default function CollectionDetailPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
+  const [pendingItems, setPendingItems] = useState<any[]>([]);
 
   useEffect(() => {
     const userId = localStorage.getItem('userId');
@@ -48,26 +49,37 @@ export default function CollectionDetailPage() {
   async function searchWebtoons(q: string) {
     if (!q.trim()) { setSearchResults([]); return; }
     setSearching(true);
-    const res = await fetch(`/?q=${encodeURIComponent(q)}`);
-    // API로 검색
-    const apiRes = await fetch(`/api/webtoons?q=${encodeURIComponent(q)}`);
-    const data = await apiRes.json();
-    setSearchResults(data);
+    const res = await fetch(`/api/webtoons/search?q=${encodeURIComponent(q)}`);
+    const data = await res.json();
+    // 이미 추가된 것 + 대기중인 것 제외
+    const existingIds = new Set([...items.map(i => i.webtoon_id), ...pendingItems.map(i => i.id)]);
+    setSearchResults(data.filter((w: any) => !existingIds.has(w.id)));
     setSearching(false);
   }
 
-  async function addWebtoon(webtoonId: string) {
+  function addToPending(webtoon: any) {
+    setPendingItems(prev => [...prev, webtoon]);
+    setSearchResults(prev => prev.filter(w => w.id !== webtoon.id));
+  }
+
+  function removeFromPending(webtoonId: string) {
+    setPendingItems(prev => prev.filter(w => w.id !== webtoonId));
+  }
+
+  async function savePending() {
     const token = localStorage.getItem('token');
-    const res = await fetch('/api/collections/items', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ collectionId, webtoonId }),
-    });
-    const data = await res.json();
-    if (!res.ok) return alert(data.error);
-    fetchItems();
+    for (const w of pendingItems) {
+      await fetch('/api/collections/items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ collectionId, webtoonId: w.id }),
+      });
+    }
+    setPendingItems([]);
     setSearchQuery('');
     setSearchResults([]);
+    setShowSearch(false);
+    fetchItems();
   }
 
   async function removeItem(itemId: string) {
@@ -97,7 +109,6 @@ export default function CollectionDetailPage() {
         </div>
         {collection?.description && <p className="text-gray-500 text-sm mt-1">{collection.description}</p>}
         <p className="text-gray-400 text-xs mt-2">웹툰 {items.length}개</p>
-
         {isOwner && (
           <button onClick={() => setShowSearch(!showSearch)}
             className="mt-3 text-sm bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
@@ -106,10 +117,38 @@ export default function CollectionDetailPage() {
         )}
       </div>
 
-      {/* 웹툰 검색 추가 */}
+      {/* 웹툰 추가 패널 */}
       {isOwner && showSearch && (
         <div className="bg-white rounded-xl shadow p-6 mb-6">
-          <h2 className="font-bold mb-3 text-sm">웹툰 검색해서 추가</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-bold text-sm">웹툰 검색해서 추가</h2>
+            <button onClick={savePending}
+              disabled={pendingItems.length === 0}
+              className="text-sm bg-blue-500 text-white px-4 py-1.5 rounded-lg hover:bg-blue-600 disabled:opacity-40 transition">
+              저장 ({pendingItems.length})
+            </button>
+          </div>
+
+          {/* 추가 대기 목록 */}
+          {pendingItems.length > 0 && (
+            <div className="flex flex-col gap-2 mb-3">
+              {pendingItems.map(w => (
+                <div key={w.id} className="flex items-center justify-between p-2 bg-blue-50 border border-blue-100 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    {w.thumbnail_url ? (
+                      <img src={w.thumbnail_url} alt={w.title} className="w-8 h-10 object-cover rounded" />
+                    ) : (
+                      <div className="w-8 h-10 bg-gray-200 rounded" />
+                    )}
+                    <p className="font-bold text-sm text-blue-800">{w.title}</p>
+                  </div>
+                  <button onClick={() => removeFromPending(w.id)}
+                    className="text-xs text-gray-400 hover:text-red-500">✕</button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <input
             className="w-full border rounded-lg p-3 text-sm mb-3"
             placeholder="제목 또는 작가 검색..."
@@ -122,7 +161,7 @@ export default function CollectionDetailPage() {
           {searching && <p className="text-gray-400 text-sm">검색 중...</p>}
           <div className="flex flex-col gap-2">
             {searchResults.map((w: any) => (
-              <div key={w.id} className="flex items-center justify-between p-3 border rounded-lg">
+              <div key={w.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
                 <div className="flex items-center gap-3">
                   {w.thumbnail_url ? (
                     <img src={w.thumbnail_url} alt={w.title} className="w-8 h-10 object-cover rounded flex-shrink-0" />
@@ -134,7 +173,7 @@ export default function CollectionDetailPage() {
                     <p className="text-xs text-gray-500">{w.author}</p>
                   </div>
                 </div>
-                <button onClick={() => addWebtoon(w.id)}
+                <button onClick={() => addToPending(w)}
                   className="text-xs bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600">
                   추가
                 </button>
@@ -144,6 +183,7 @@ export default function CollectionDetailPage() {
         </div>
       )}
 
+      {/* 웹툰 목록 */}
       <div className="flex flex-col gap-4">
         {items.length === 0 && (
           <div className="bg-white rounded-xl shadow p-8 text-center text-gray-400">
