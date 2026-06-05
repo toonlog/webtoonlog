@@ -11,8 +11,8 @@ export async function POST(request) {
     const record = await base('WEBTOON').create({
       title,
       author: author || '',
-      platform: platform ? [platform] : [],
-      genre: genre ? [genre] : [],
+      platform: platform || '',
+      genre: Array.isArray(genre) ? genre : (genre ? [genre] : []),
       status: status || '연재중',
       thumbnail_url: thumbnailUrl || '',
       avg_rating: 0,
