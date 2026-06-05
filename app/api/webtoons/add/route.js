@@ -15,8 +15,6 @@ export async function POST(request) {
       genre: Array.isArray(genre) ? genre : (genre ? [genre] : []),
       status: status || '연재중',
       thumbnail_url: thumbnailUrl || '',
-      avg_rating: 0,
-      review_count: 0,
     });
 
     return NextResponse.json({ id: record.id, ...record.fields });
