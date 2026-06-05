@@ -10,8 +10,15 @@ async function getWebtoons(search?: string, genre?: string, platform?: string) {
     sort: [{ field: 'title', direction: 'asc' }],
   }).all();
   let all = records.map(record => ({ id: record.id, ...record.fields })) as any[];
-  if (search) all = all.filter(w => w.title?.includes(search) || w.author?.includes(search));
-  if (genre) all = all.filter(w => {
+if (search) all = all.filter(w =>
+  w.title?.includes(search) ||
+  w.author?.includes(search) ||
+  (typeof w.genre === 'string' && w.genre.includes(search)) ||
+  (Array.isArray(w.genre) && w.genre.some((g: string) => g.includes(search))) ||
+  (Array.isArray(w.platform) && w.platform.some((p: string) => p.includes(search)))
+);
+저장 후:
+bashcd C:\Users\User\webtoonlog; git add .; git commit -m "메인 검색 태그/장르 추가"; git push  if (genre) all = all.filter(w => {
     const genres = typeof w.genre === 'string' ? w.genre.split(',').map((g: string) => g.trim()) : (Array.isArray(w.genre) ? w.genre : []);
     return genres.includes(genre);
   });
