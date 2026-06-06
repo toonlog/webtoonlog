@@ -112,7 +112,7 @@ const slides = [
 
 export default function Carousel() {
   const [cur, setCur] = useState(0);
-  const [isMobile, setIsMobile] = useState(true);
+ const [isMobile, setIsMobile] = useState<boolean | null>(null);
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
 

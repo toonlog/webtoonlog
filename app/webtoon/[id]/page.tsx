@@ -242,12 +242,7 @@ async function saveEdit(reviewId: string) {
 }
 
   async function toggleReviewPublic(reviewId: string, current: boolean) {
-    await fetch('/api/reviews', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
-      body: JSON.stringify({ reviewId, is_public: !current }),
-    });
-    fetchReviews();
+    setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, is_public: !current } : r));
   }
 
   const statusList = ['읽는중', '완독', '읽고싶다', '보류'];
@@ -489,7 +484,7 @@ async function saveEdit(reviewId: string) {
  <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   <StarPicker rating={editRating} onChange={setEditRating} />
-                  <div onClick={() => { const next = !(review.is_public??true); toggleReviewPublic(review.id, review.is_public??true); setReviews(prev => prev.map(r => r.id===review.id ? {...r, is_public:next} : r)); }}
+                 <div onClick={() => toggleReviewPublic(review.id, review.is_public??true)}
                     style={{ width:28, height:16, borderRadius:8, background:(review.is_public??true)?'#3B82F6':'#B4B2A9', cursor:'pointer', display:'flex', alignItems:'center', padding:'2px', transition:'background 0.2s', flexShrink:0 }}>
                     <div style={{ width:12, height:12, borderRadius:'50%', background:'#fff', transform:(review.is_public??true)?'translateX(12px)':'translateX(0)', transition:'transform 0.2s' }} />
                   </div>
