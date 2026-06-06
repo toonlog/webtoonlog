@@ -558,7 +558,7 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
         {reviews.length === 0 && <p className="text-gray-400 text-sm">아직 리뷰가 없어요!</p>}
 
         {displayedReviews.map((review, idx) => (
-<div key={review.id} className={idx > 0 ? 'border-t border-gray-100 pt-9 mt-9' : ''}>           {editingId === review.id ? (
+<div key={review.id} className={idx > 0 ? 'border-t border-gray-100 pt-3 mt-3' : ''}>           {editingId === review.id ? (
  <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   <StarPicker rating={editRating} onChange={setEditRating} />
@@ -626,7 +626,7 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
                     </div>
                   )}
                 </div>
-                <p className="text-sm text-gray-700 mb-1">{review.content}</p>
+                <p className="text-sm text-gray-700 mb-1">{review.content}</p><p className="text-sm text-gray-700 mb-1 mt-3">{review.content}</p>
                 {review.tags && (
                   <div className="flex flex-wrap gap-1 mb-1">
                     {review.tags.split(',').map((t: string) => t.trim()).filter(Boolean).map((t: string) => (
