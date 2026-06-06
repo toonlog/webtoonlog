@@ -333,11 +333,11 @@ export default function WebtoonPage() {
             {/* 플랫폼 */}
             <div className="flex flex-wrap gap-1">
               {platforms.map((p: string) => (
-                <Link key={p} href={`/?platform=${encodeURIComponent(p)}`}
+                <span key={p}
                   className="text-xs px-2 py-0.5 rounded-full"
                   style={{ background: '#EBF5FF', color: '#185FA5' }}>
                   {p}
-                </Link>
+                </span>
               ))}
             </div>
             {/* 장르 */}
@@ -537,18 +537,21 @@ export default function WebtoonPage() {
                     ) : (
                       <span className="font-bold text-sm">{review.nickname}</span>
                     )}
-                    <StarDisplay rating={review.rating} size={13} />
+                <StarDisplay rating={review.rating} size={13} />
+                    {review.userId === auth.userId && (
+                      <div className="flex items-center gap-1">
+                        <div onClick={() => toggleReviewPublic(review.id, review.is_public ?? true)}
+                          style={{ width:28, height:16, borderRadius:8, background:(review.is_public??true)?'#3B82F6':'#B4B2A9', cursor:'pointer', display:'flex', alignItems:'center', padding:'2px', transition:'background 0.2s', flexShrink:0 }}>
+                          <div style={{ width:12, height:12, borderRadius:'50%', background:'#fff', transform:(review.is_public??true)?'translateX(12px)':'translateX(0)', transition:'transform 0.2s' }} />
+                        </div>
+                        <span className="text-xs" style={{ color:(review.is_public??true)?'#3B82F6':'#888780' }}>
+                          {(review.is_public??true)?'공개':'나만보기'}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   {review.userId === auth.userId && (
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => toggleReviewPublic(review.id, review.is_public ?? true)}
-                        className="text-xs px-2 py-0.5 rounded-full border transition"
-                        style={review.is_public ?? true
-                          ? { color: '#3B82F6', borderColor: '#93C5FD', background: '#EFF6FF' }
-                          : { color: '#888', borderColor: '#D3D1C7', background: '#F5F5F5' }}>
-                        {review.is_public ?? true ? '공개' : '비공개'}
-                      </button>
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       <button onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); setEditTags(review.tags || ''); }}
                         className="text-xs text-gray-400 hover:text-blue-500">수정</button>
                       <button onClick={() => deleteReview(review.id)}

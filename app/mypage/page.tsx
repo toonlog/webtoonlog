@@ -281,13 +281,15 @@ async function saveProfileImage() {
             </div>
           </div>
         </div>
-        {editingImage && (
-          <div className="flex gap-2">
-            <input className="border rounded-lg px-3 py-1 text-sm flex-1"
+{editingImage && (
+          <div className="flex flex-col gap-2">
+            <input className="border rounded-lg px-3 py-1 text-sm w-full"
               placeholder="이미지 URL 입력"
               value={newImage} onChange={e => setNewImage(e.target.value)} />
-            <button onClick={saveProfileImage} className="text-sm bg-blue-500 text-white px-3 py-1 rounded-lg">저장</button>
-            <button onClick={() => setEditingImage(false)} className="text-sm text-gray-400">취소</button>
+            <div className="flex gap-2">
+              <button onClick={saveProfileImage} className="text-sm bg-blue-500 text-white px-3 py-1 rounded-lg">저장</button>
+              <button onClick={() => setEditingImage(false)} className="text-sm text-gray-400">취소</button>
+            </div>
           </div>
         )}
       </div>
