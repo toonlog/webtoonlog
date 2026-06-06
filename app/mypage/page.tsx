@@ -3,6 +3,34 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+function StarPicker({ rating, onChange }: { rating: number; onChange: (v: number) => void }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', cursor: 'pointer' }}>
+        {[1, 2, 3, 4, 5].map(i => (
+          <div key={i} style={{ display: 'flex' }}>
+            <svg width={26} height={26} viewBox="0 0 24 24" onClick={() => onChange(i - 0.5)} style={{ cursor: 'pointer' }}>
+              <defs>
+                <linearGradient id={`mp-half-${i}`}>
+                  <stop offset="50%" stopColor={rating >= i - 0.5 ? '#E9A800' : '#D3D1C7'} />
+                  <stop offset="50%" stopColor="#D3D1C7" />
+                </linearGradient>
+              </defs>
+              <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
+                fill={rating >= i ? '#E9A800' : rating >= i - 0.5 ? `url(#mp-half-${i})` : '#D3D1C7'} />
+            </svg>
+            <svg width={26} height={26} viewBox="0 0 24 24" onClick={() => onChange(i)} style={{ cursor: 'pointer', marginLeft: -26 }}>
+              <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="transparent" />
+            </svg>
+          </div>
+        ))}
+      </div>
+      <span className="text-sm text-gray-600">{rating.toFixed(1)}</span>
+    </div>
+  );
+}
+
+
 function MiniCollectionCard({ c }: any) {
   const [previews, setPreviews] = useState<any[]>([]);
 
@@ -47,6 +75,7 @@ export default function MyPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editRating, setEditRating] = useState(5);
   const [editContent, setEditContent] = useState('');
+  const [editTags, setEditTags] = useState('');
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>('전체');
@@ -140,14 +169,14 @@ async function saveProfileImage() {
   }
 
   async function saveEdit(reviewId: string) {
-    const token = localStorage.getItem('token');
-    const res = await fetch('/api/reviews', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ reviewId, rating: editRating, content: editContent }),
-    });
-    if (res.ok) { setEditingId(null); refetch(); }
-  }
+  const token = localStorage.getItem('token');
+  const res = await fetch('/api/reviews', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ reviewId, rating: editRating, content: editContent, tags: editTags }),
+  });
+  if (res.ok) { setEditingId(null); refetch(); }
+}
 
   async function togglePublic(reviewId: string, currentPublic: boolean) {
     const token = localStorage.getItem('token');
@@ -320,7 +349,7 @@ async function saveProfileImage() {
                         }`}>
                         {review.is_public ?? true ? '공개' : '비공개'}
                       </button>
-                      <button onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); }}
+<button onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); setEditTags(review.tags || ''); }}
                         className="text-xs text-gray-400 hover:text-blue-500">수정</button>
                       <button onClick={() => deleteReview(review.id)}
                         className="text-xs text-gray-400 hover:text-red-500">삭제</button>
@@ -423,17 +452,13 @@ async function saveProfileImage() {
       )}
 
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex flex-col gap-1">
-          <button onClick={logout}
-            className="w-full text-center text-sm text-red-400 hover:text-red-600 py-1">
-            로그아웃
-          </button>
-          <button onClick={deleteAccount}
-            className="w-full text-center text-xs text-gray-300 hover:text-red-400 py-1">
-            회원 탈퇴
-          </button>
-        </div>
-      </div>
+  <div className="max-w-2xl mx-auto px-4 py-2">
+    <button onClick={deleteAccount}
+      className="w-full text-center text-xs text-gray-300 hover:text-red-400 py-1">
+      회원 탈퇴
+    </button>
+  </div>
+</div>
     </main>
   );
 }
