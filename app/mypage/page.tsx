@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import TagInput from '@/app/components/TagInput';
+
 
 function StarPicker({ rating, onChange }: { rating: number; onChange: (v: number) => void }) {
   return (
@@ -343,22 +345,23 @@ async function saveProfileImage() {
                       <span className="font-bold text-gray-400 text-sm">웹툰 정보 없음</span>
                     )}
                     <div className="flex gap-1 flex-shrink-0">
-                      <button onClick={() => togglePublic(review.id, review.is_public ?? true)}
-                        className={`text-xs px-1.5 py-0.5 rounded-full border transition ${
-                          review.is_public ?? true
-                            ? 'text-green-600 border-green-300'
-                            : 'text-gray-400 border-gray-300'
-                        }`}>
-                        {review.is_public ?? true ? '공개' : '비공개'}
-                      </button>
+                     
 <button onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); setEditTags(review.tags || ''); }}
                         className="text-xs text-gray-400 hover:text-blue-500">수정</button>
                       <button onClick={() => deleteReview(review.id)}
                         className="text-xs text-gray-400 hover:text-red-500">삭제</button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-yellow-400 text-sm">{'★'.repeat(review.rating)}</span>
+                 <div className="flex items-center gap-2 mt-1">
+                    <span className="text-yellow-400 text-sm">{'★'.repeat(Math.floor(review.rating))}{review.rating % 1 ? '½' : ''}</span>
+                    <span className="text-xs text-gray-600 font-medium">{review.rating.toFixed(1)}</span>
+                    <div onClick={() => togglePublic(review.id, review.is_public ?? true)}
+                      style={{ width:28, height:16, borderRadius:8, background:(review.is_public??true)?'#3B82F6':'#B4B2A9', cursor:'pointer', display:'flex', alignItems:'center', padding:'2px', transition:'background 0.2s', flexShrink:0 }}>
+                      <div style={{ width:12, height:12, borderRadius:'50%', background:'#fff', transform:(review.is_public??true)?'translateX(12px)':'translateX(0)', transition:'transform 0.2s' }} />
+                    </div>
+                    <span className="text-xs" style={{ color:(review.is_public??true)?'#3B82F6':'#888780' }}>
+                      {(review.is_public??true)?'공개':'나만보기'}
+                    </span>
                     <span className="text-gray-400 text-xs">{review.created_at}</span>
                   </div>
                 </div>
@@ -368,9 +371,7 @@ async function saveProfileImage() {
                   <StarPicker rating={editRating} onChange={setEditRating} />
                   <textarea className="border rounded p-2 text-sm w-full" rows={3}
                     value={editContent} onChange={e => setEditContent(e.target.value)} />
-                  <input className="border rounded p-2 text-sm w-full"
-                    placeholder="태그 (쉼표로 구분 - 예. 순애, 계략남주, 조폭)"
-                    value={editTags} onChange={e => setEditTags(e.target.value)} />
+                  <TagInput value={editTags} onChange={setEditTags} />
                   <div className="flex items-center gap-2">
                     <span className="text-xs" style={{ color: (review.is_public ?? true) ? '#3B82F6' : '#888780' }}>
                       {(review.is_public ?? true) ? '공개' : '나만보기'}
@@ -399,7 +400,19 @@ async function saveProfileImage() {
                   </div>
                 </div>
               ) : (
-                <p className="text-gray-700 text-sm mt-1">{review.content}</p>
+                <>
+                  <p className="text-gray-700 text-sm mt-1">{review.content}</p>
+                  {review.tags && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {review.tags.split(',').map((t: string) => t.trim()).filter(Boolean).map((t: string) => (
+                        <span key={t} className="text-xs px-2 py-0.5 rounded-full"
+                          style={{ background: '#EEEDFE', color: '#534AB7' }}>
+                          #{t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           ))}

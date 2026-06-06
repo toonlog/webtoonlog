@@ -45,6 +45,7 @@ const reviews = reviewRecords.map(r => ({
   content: r.fields.content,
   created_at: r.fields.created_at,
   is_public: r.fields.is_public ?? true,
+  tags: r.fields.tags || '',
 }));
 
     const statuses = statusRecords.map(r => ({

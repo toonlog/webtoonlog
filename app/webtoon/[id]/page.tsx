@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import TagInput from '@/app/components/TagInput';
 
 function WebtoonCollectionSection({ collections }: { collections: any[] }) {
   const [previews, setPreviews] = useState<Record<string, any[]>>({});
@@ -488,9 +489,7 @@ export default function WebtoonPage() {
                 <StarPicker rating={editRating} onChange={setEditRating} />
                 <textarea className="border rounded-lg p-2 text-sm w-full" rows={3}
                   value={editContent} onChange={e => setEditContent(e.target.value)} />
-                <input className="border rounded-lg p-2 text-sm w-full"
-                  placeholder="태그 (쉼표로 구분 - 예. 순애, 계략남주, 조폭)"
-                  value={editTags} onChange={e => setEditTags(e.target.value)} />
+              <TagInput value={editTags} onChange={setEditTags} />
                 <div className="flex items-center gap-2">
                   <span className="text-xs" style={{ color: (review.is_public ?? true) ? '#3B82F6' : '#888780' }}>
                     {(review.is_public ?? true) ? '공개' : '나만보기'}
