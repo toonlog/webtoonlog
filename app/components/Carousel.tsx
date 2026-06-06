@@ -9,21 +9,22 @@ const slides = [
     title: '감상을 나누는 작품을 직접 추가할 수 있어요',
     titleBreak: true,
     desc: '+ 웹툰 등록 버튼을 눌러 제목, 작가, 장르 등을 설정해 등록해보세요',
-    visual: (
+   visual: (
       <svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-        <rect x="10" y="10" width="140" height="100" rx="10" fill="rgba(255,255,255,0.15)"/>
-        <rect x="22" y="20" width="116" height="26" rx="6" fill="rgba(255,255,255,0.9)"/>
-        <text x="80" y="37" textAnchor="middle" fontSize="12" fill="#1D4ED8" fontWeight="500">+ 웹툰 등록</text>
-        <rect x="22" y="52" width="116" height="14" rx="4" fill="rgba(255,255,255,0.6)"/>
-        <text x="80" y="63" textAnchor="middle" fontSize="9" fill="#1e3a8a">제목 *</text>
-        <rect x="22" y="72" width="116" height="14" rx="4" fill="rgba(255,255,255,0.6)"/>
-        <text x="80" y="83" textAnchor="middle" fontSize="9" fill="#1e3a8a">작가</text>
-       <rect x="22" y="90" width="34" height="13" rx="6" fill="rgba(255,255,255,0.4)"/>
-        <text x="39" y="100" textAnchor="middle" fontSize="8" fill="white">BL</text>
-        <rect x="60" y="90" width="34" height="13" rx="6" fill="rgba(255,255,255,0.4)"/>
-        <text x="77" y="100" textAnchor="middle" fontSize="8" fill="white">로맨스</text>
-        <rect x="98" y="90" width="34" height="13" rx="6" fill="rgba(255,255,255,0.4)"/>
-       <text x="115" y="100" textAnchor="middle" fontSize="8" fill="white">무협</text>
+        <rect x="6" y="6" width="148" height="108" rx="12" fill="white" stroke="#d1d5db" strokeWidth="1"/>
+        <text x="80" y="22" textAnchor="middle" fontSize="11" fill="#111827" fontWeight="700">웹툰 등록</text>
+        <rect x="14" y="28" width="132" height="16" rx="4" fill="white" stroke="#d1d5db" strokeWidth="1"/>
+        <text x="22" y="40" fontSize="9" fill="#9ca3af">제목 *</text>
+        <rect x="14" y="48" width="132" height="16" rx="4" fill="white" stroke="#d1d5db" strokeWidth="1"/>
+        <text x="22" y="60" fontSize="9" fill="#9ca3af">작가</text>
+        <rect x="14" y="68" width="132" height="16" rx="4" fill="white" stroke="#d1d5db" strokeWidth="1"/>
+        <text x="22" y="80" fontSize="9" fill="#9ca3af">플랫폼 선택</text>
+        <rect x="14" y="90" width="30" height="13" rx="6" fill="white" stroke="#d1d5db" strokeWidth="1"/>
+        <text x="29" y="100" textAnchor="middle" fontSize="8" fill="#374151">BL</text>
+        <rect x="48" y="90" width="30" height="13" rx="6" fill="white" stroke="#d1d5db" strokeWidth="1"/>
+        <text x="63" y="100" textAnchor="middle" fontSize="8" fill="#374151">로맨스</text>
+        <rect x="82" y="90" width="30" height="13" rx="6" fill="white" stroke="#d1d5db" strokeWidth="1"/>
+        <text x="97" y="100" textAnchor="middle" fontSize="8" fill="#374151">무협</text>
       </svg>
     ),
   },
@@ -58,36 +59,13 @@ const slides = [
     desc: '리뷰어 닉네임을 클릭하면 그 유저의 프로필과 리뷰 목록을 볼 수 있어요',
   visual: (
       <svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-
-        <rect x="60" y="10" width="90" height="100" rx="10" fill="#FFF7ED" stroke="#FED7AA" strokeWidth="1"/>
-        <rect x="64" y="14" width="42" height="42" rx="4" fill="#e5e7eb"/>
-        <rect x="64" y="14" width="21" height="21" rx="2" fill="#d97706" opacity="0.6"/>
-        <rect x="85" y="14" width="21" height="21" rx="2" fill="#f59e0b" opacity="0.5"/>
-        <rect x="64" y="35" width="21" height="21" rx="2" fill="#fbbf24" opacity="0.4"/>
-        <rect x="85" y="35" width="21" height="21" rx="2" fill="#d97706" opacity="0.3"/>
-        <text x="109" y="40" textAnchor="middle" fontSize="7" fill="#9a3412" fontWeight="500">레진 BL</text>
-        <text x="109" y="50" textAnchor="middle" fontSize="7" fill="#9a3412">완결 모음</text>
-        <text x="109" y="102" textAnchor="middle" fontSize="6" fill="#f97316">웹툰 14개</text>
-
-        <rect x="35" y="10" width="90" height="100" rx="10" fill="#DCFCE7" stroke="#86EFAC" strokeWidth="1"/>
-        <rect x="39" y="14" width="42" height="42" rx="4" fill="#e5e7eb"/>
-        <rect x="39" y="14" width="21" height="21" rx="2" fill="#16a34a" opacity="0.6"/>
-        <rect x="60" y="14" width="21" height="21" rx="2" fill="#22c55e" opacity="0.5"/>
-        <rect x="39" y="35" width="21" height="21" rx="2" fill="#4ade80" opacity="0.4"/>
-        <rect x="60" y="35" width="21" height="21" rx="2" fill="#16a34a" opacity="0.3"/>
-        <text x="95" y="40" textAnchor="middle" fontSize="8" fill="#166534" fontWeight="500">순애</text>
-        <text x="95" y="51" textAnchor="middle" fontSize="8" fill="#166534">모음</text>
-        <text x="95" y="102" textAnchor="middle" fontSize="6" fill="#22c55e">웹툰 5개</text>
-
-        <rect x="10" y="10" width="90" height="100" rx="10" fill="#DBEAFE" stroke="#93C5FD" strokeWidth="1"/>
-        <rect x="14" y="14" width="42" height="42" rx="4" fill="#e5e7eb"/>
-        <rect x="14" y="14" width="21" height="21" rx="2" fill="#1d4ed8" opacity="0.6"/>
-        <rect x="35" y="14" width="21" height="21" rx="2" fill="#3b82f6" opacity="0.5"/>
-        <rect x="14" y="35" width="21" height="21" rx="2" fill="#60a5fa" opacity="0.4"/>
-        <rect x="35" y="35" width="21" height="21" rx="2" fill="#1d4ed8" opacity="0.3"/>
-        <text x="70" y="40" textAnchor="middle" fontSize="8" fill="#1e40af" fontWeight="500">무협</text>
-        <text x="70" y="51" textAnchor="middle" fontSize="8" fill="#1e40af">판타지</text>
-        <text x="70" y="102" textAnchor="middle" fontSize="6" fill="#3b82f6">웹툰 8개</text>
+        <rect x="15" y="8" width="130" height="104" rx="12" fill="rgba(255,255,255,0.15)"/>
+        <circle cx="80" cy="38" r="20" fill="rgba(255,255,255,0.9)"/>
+        <text x="80" y="45" textAnchor="middle" fontSize="18">🦊</text>
+        <text x="80" y="70" textAnchor="middle" fontSize="12" fill="white" fontWeight="500">웹툰러1</text>
+        <text x="80" y="83" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">팔로워 12   팔로잉 8</text>
+        <rect x="46" y="92" width="68" height="16" rx="8" fill="white"/>
+        <text x="80" y="104" textAnchor="middle" fontSize="10" fill="#1D4ED8" fontWeight="500">팔로우</text>
       </svg>
     ),
   },
@@ -98,18 +76,23 @@ const slides = [
     title: '마음에 드는 작품들을 컬렉션으로 모아보세요',
     titleBreak: false,
     desc: '컬렉션 메뉴에서 나만의 리스트를 만들고 다른 유저와 공유해보세요',
-    visual: (
+     visual: (
       <svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-        <rect x="8" y="8" width="68" height="48" rx="8" fill="#DBEAFE" stroke="#93C5FD" strokeWidth="1"/>
-        <text x="42" y="30" textAnchor="middle" fontSize="9" fill="#1e40af" fontWeight="500">무협 판타지</text>
-        <text x="42" y="42" textAnchor="middle" fontSize="9" fill="#1e40af" fontWeight="500">모음</text>
-        <text x="42" y="52" textAnchor="middle" fontSize="7" fill="#3b82f6">웹툰 8개</text>
-        <rect x="84" y="8" width="68" height="48" rx="8" fill="#DCFCE7" stroke="#86EFAC" strokeWidth="1"/>
-        <text x="118" y="30" textAnchor="middle" fontSize="9" fill="#166534" fontWeight="500">순애 모음</text>
-        <text x="118" y="44" textAnchor="middle" fontSize="7" fill="#22c55e">웹툰 5개</text>
-        <rect x="8" y="64" width="144" height="48" rx="8" fill="#FFF7ED" stroke="#FED7AA" strokeWidth="1"/>
-        <text x="80" y="85" textAnchor="middle" fontSize="9" fill="#9a3412" fontWeight="500">레진 BL 완결 모음</text>
-        <text x="80" y="100" textAnchor="middle" fontSize="7" fill="#f97316">웹툰 14개  공개</text>
+        <rect x="55" y="8" width="88" height="104" rx="10" fill="white" stroke="#e5e7eb" strokeWidth="1"/>
+        <rect x="59" y="12" width="80" height="50" rx="6" fill="#FEE2E2"/>
+        <text x="99" y="42" textAnchor="middle" fontSize="22">⚔️</text>
+        <text x="99" y="76" textAnchor="middle" fontSize="8" fill="#111827" fontWeight="600">무협 판타지</text>
+        <text x="99" y="87" textAnchor="middle" fontSize="7" fill="#6b7280">공개</text>
+        <rect x="28" y="8" width="88" height="104" rx="10" fill="white" stroke="#e5e7eb" strokeWidth="1"/>
+        <rect x="32" y="12" width="80" height="50" rx="6" fill="#FCE7F3"/>
+        <text x="72" y="42" textAnchor="middle" fontSize="22">🌸</text>
+        <text x="72" y="76" textAnchor="middle" fontSize="8" fill="#111827" fontWeight="600">순애 모음</text>
+        <text x="72" y="87" textAnchor="middle" fontSize="7" fill="#6b7280">공개</text>
+        <rect x="2" y="8" width="88" height="104" rx="10" fill="white" stroke="#e5e7eb" strokeWidth="1"/>
+        <rect x="6" y="12" width="80" height="50" rx="6" fill="#DBEAFE"/>
+        <text x="46" y="42" textAnchor="middle" fontSize="22">🧛</text>
+        <text x="46" y="76" textAnchor="middle" fontSize="8" fill="#111827" fontWeight="600">다크 판타지</text>
+        <text x="46" y="87" textAnchor="middle" fontSize="7" fill="#6b7280">공개</text>
       </svg>
     ),
   },
