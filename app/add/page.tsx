@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import ImageUpload from '@/app/components/ImageUpload';
 
 const DEFAULT_GENRES = ['BL', 'GL', '로맨스', '판타지', '현대', '드라마', '액션', '무협', '스릴러', '공포', '개그', 'SF', '스포츠', '일상'];
 const PLATFORMS = ['네이버웹툰', '카카오페이지', '레진코믹스', '봄툰', '리디', '피너툰', '탑툰', '코미코', '기타'];
@@ -136,8 +137,10 @@ export default function AddWebtoon() {
           <option value="완결">완결</option>
           <option value="휴재">휴재</option>
         </select>
-        <input className="border rounded p-2 text-gray-900" placeholder="썸네일 URL (선택)" value={thumbnailUrl} onChange={e => setThumbnailUrl(e.target.value)} />
-        {thumbnailUrl && <img src={thumbnailUrl} alt="썸네일 미리보기" className="w-full h-40 object-cover rounded-lg" />}
+<div className="flex flex-col gap-2">
+          <ImageUpload onUpload={(url) => setThumbnailUrl(url)} />
+          {thumbnailUrl && <img src={thumbnailUrl} alt="썸네일 미리보기" className="w-full h-40 object-cover rounded-lg" />}
+        </div>
         <button onClick={handleSubmit} disabled={loading} className="bg-blue-500 text-white py-2 rounded hover:bg-blue-600 disabled:opacity-50">
           {loading ? '등록 중...' : '등록하기'}
         </button>
