@@ -85,34 +85,32 @@ function StarDisplay({ rating, size = 13 }: { rating: number; size?: number }) {
 
 function StarPicker({ rating, onChange }: { rating: number; onChange: (v: number) => void }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-<div style={{ display: 'flex', gap: '6px', cursor: 'pointer' }}>
-        {[1, 2, 3, 4, 5].map(i => (
-          <div key={i} style={{ display: 'flex' }}>
-            <svg
-              width={26} height={26} viewBox="0 0 24 24"
-              onClick={() => onChange(i - 0.5)}
-              style={{ cursor: 'pointer' }}
-            >
-              <defs>
-                <linearGradient id={`pick-half-${i}`}>
-                  <stop offset="50%" stopColor={rating >= i - 0.5 ? '#E9A800' : '#D3D1C7'} />
-                  <stop offset="50%" stopColor="#D3D1C7" />
-                </linearGradient>
-              </defs>
-              <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
-                fill={rating >= i ? '#E9A800' : rating >= i - 0.5 ? `url(#pick-half-${i})` : '#D3D1C7'} />
-            </svg>
-<svg
-              width={13} height={26} viewBox="12 0 12 24"
-              onClick={() => onChange(i)}
-              style={{ cursor: 'pointer', marginLeft: -26 }}
-            >
-              <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
-                fill="transparent" />
-            </svg>
-          </div>
-        ))}
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ display: 'flex', gap: '6px', cursor: 'pointer' }}>
+        {[1, 2, 3, 4, 5].map(i => {
+          const filled = rating >= i ? '#E9A800' : '#D3D1C7';
+          const half = rating >= i - 0.5 && rating < i;
+          return (
+            <div key={i} style={{ position: 'relative', width: 26, height: 26 }}
+              onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                onChange(x < rect.width / 2 ? i - 0.5 : i);
+              }}>
+              <svg width={26} height={26} viewBox="0 0 24 24">
+                <defs>
+                  <linearGradient id={`half-${i}`}>
+                    <stop offset="50%" stopColor="#E9A800" />
+                    <stop offset="50%" stopColor="#D3D1C7" />
+                  </linearGradient>
+                </defs>
+                <polygon
+                  points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
+                  fill={rating >= i ? '#E9A800' : half ? `url(#half-${i})` : '#D3D1C7'} />
+              </svg>
+            </div>
+          );
+        })}
       </div>
       <span className="text-sm font-medium text-gray-700">{rating.toFixed(1)}</span>
     </div>
