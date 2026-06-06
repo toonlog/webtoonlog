@@ -142,7 +142,7 @@ export default function WebtoonPage() {
   const [showAllTags, setShowAllTags] = useState(false);
   const [showMoreReviews, setShowMoreReviews] = useState(false);
 const [reviewPage, setReviewPage] = useState(1);
-  const [reviewLikes, setReviewLikes] = useState<Record<string, { count: number; liked: boolean }>>({});
+const [reviewLikes, setReviewLikes] = useState<Record<string, { count: number; liked: boolean; loading?: boolean }>>({});
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const [comments, setComments] = useState<Record<string, any[]>>({});
   const [commentInput, setCommentInput] = useState<Record<string, string>>({});
