@@ -106,7 +106,7 @@ function StarPicker({ rating, onChange }: { rating: number; onChange: (v: number
                 </defs>
                 <polygon
                   points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
-                 fill={rating >= i ? '#F59E0B' : half ? `url(#half-${i})` : '#D3D1C7'} />
+                 fill={rating >= i ? '#FBBF24' : half ? `url(#half-${i})` : '#D3D1C7'} />
               </svg>
             </div>
           );
