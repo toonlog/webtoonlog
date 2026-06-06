@@ -537,8 +537,6 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
               style={{ background: '#3B82F6' }}>
               {loading ? '등록 중...' : '등록'}
             </button>
-              {loading ? '등록 중...' : '등록'}
-            </button>
           </>
         )}
       </div>
