@@ -73,7 +73,7 @@ export async function PATCH(request) {
     const record = await base('REVIEW').find(reviewId);
     if (record.fields.user_id !== user.userId) return NextResponse.json({ error: '내 리뷰만 수정할 수 있어요' }, { status: 403 });
 
-    const updateFields: any = {};
+  const updateFields = {};
     if (rating !== undefined) updateFields.rating = Number(rating);
     if (content !== undefined) updateFields.content = content.trim();
     if (is_public !== undefined) updateFields.is_public = is_public;

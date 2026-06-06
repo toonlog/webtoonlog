@@ -270,8 +270,7 @@ export default function WebtoonPage() {
                   value={editContent} onChange={e => setEditContent(e.target.value)} />
                 <div className="flex gap-2">
                   <button onClick={() => saveEdit(review.id)} className="bg-blue-500 text-white px-3 py-1 rounded text-sm">저장</button>
-                  <button onClick={() => setEditingId(null)} className="bg-gray-100 px-3 py-1 rounded text-sm">취소</�>
-                </div>
+<button onClick={() => setEditingId(null)} className="bg-gray-100 px-3 py-1 rounded text-sm">취소</button>                </div>
               </div>
             ) : (
               <>

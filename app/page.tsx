@@ -13,21 +13,6 @@ async function getWebtoons(search?: string, genre?: string, platform?: string) {
 
   if (search) {
     const q = search.replace(/^#/, '');
-
-    // 태그 검색: REVIEW 테이블에서 해당 태그 가진 webtoon_id 수집
-    let tagWebtoonIds = new Set<string>();
-    try {
-      const reviewRecords = await base('REVIEW').select({
-        fields: ['webtoon_id', 'tags'],
-      }).all();
-      reviewRecords.forEach((r: any) => {
-        const tags = (r.fields.tags || '').split(',').map((t: string) => t.trim());
-        if (tags.some((t: string) => t.includes(q))) {
-          tagWebtoonIds.add(r.fields.webtoon_id);
-        }
-      });
-    } catch {}
-
     all = all.filter(w => {
       const genres = typeof w.genre === 'string' ? w.genre.split(',').map((g: string) => g.trim()) : [];
       const platforms = Array.isArray(w.platform) ? w.platform : [];
@@ -35,8 +20,7 @@ async function getWebtoons(search?: string, genre?: string, platform?: string) {
         w.title?.includes(q) ||
         w.author?.includes(q) ||
         genres.some((g: string) => g.includes(q)) ||
-        platforms.some((p: string) => p.includes(q)) ||
-        tagWebtoonIds.has(w.id)
+        platforms.some((p: string) => p.includes(q))
       );
     });
   }
@@ -45,15 +29,12 @@ async function getWebtoons(search?: string, genre?: string, platform?: string) {
     const genres = typeof w.genre === 'string' ? w.genre.split(',').map((g: string) => g.trim()) : (Array.isArray(w.genre) ? w.genre : []);
     return genres.includes(genre);
   });
+
   if (platform) all = all.filter(w => Array.isArray(w.platform) ? w.platform.includes(platform) : w.platform === platform);
   return all;
 }
 
-if (genre) all = all.filter(w => {
-    const genres = typeof w.genre === 'string' ? w.genre.split(',').map((g: string) => g.trim()) : (Array.isArray(w.genre) ? w.genre : []);
-    return genres.includes(genre);
-  });
-
+async function getBoomWebtoons() {
   try {
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -78,7 +59,7 @@ if (genre) all = all.filter(w => {
   } catch { return []; }
 }
 
-const ALL_GENRES = ['BL', 'GL', '로맨스', '판타지', '현대', '드라마', '액션', '무협', '스릴러', '공포', '개그', 'SF', '스포츠', '일상'];
+const ALL_GENRES = ['BL', 'GL', '로맨스', '판타지', '현대', '드라마', '액션', '무협', '스릴러', '공호', '개그', 'SF', '스포츠', '일상'];
 const ALL_PLATFORMS = ['네이버웹툰', '카카오페이지', '레진코믹스', '봄툰', '리디', '피너툰', '탑툰', '코미코', '기타'];
 const TOP_GENRES = ALL_GENRES.slice(0, 5);
 const TOP_PLATFORMS = ALL_PLATFORMS.slice(0, 5);
@@ -104,7 +85,6 @@ export default async function Home({ searchParams }: any) {
         </Link>
       </div>
 
-      {/* 캐러셀 */}
       <div className="max-w-4xl mx-auto mb-6">
         <Carousel />
       </div>
@@ -170,7 +150,7 @@ export default async function Home({ searchParams }: any) {
         </div>
       </div>
 
-      {/* 붐업 섹션 */}
+      {/* 이번 주 인기작 */}
       {boomWebtoons.length > 0 && !search && !genre && !platform && (
         <div className="max-w-4xl mx-auto mb-8">
           <h2 className="text-lg font-bold text-gray-900 mb-3">🔥 이번 주 인기작</h2>
