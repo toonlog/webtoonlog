@@ -23,7 +23,8 @@ const slides = [
         <rect x="60" y="90" width="34" height="13" rx="6" fill="rgba(255,255,255,0.4)"/>
         <text x="77" y="100" textAnchor="middle" fontSize="8" fill="white">로맨스</text>
         <rect x="98" y="90" width="34" height="13" rx="6" fill="rgba(255,255,255,0.4)"/>
-        <text x="115" y="100" textAnchor="middle" fontSize="8" fill="white">무협</text>
+       <text x="115" y="100" textAnchor="middle" fontSize="8" fill="white">무협</text>
+      </svg>
     ),
   },
  {
