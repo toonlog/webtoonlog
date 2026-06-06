@@ -3,6 +3,52 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+function CollectionCard({ c, onEdit, onDelete }: any) {
+  const [previews, setPreviews] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch(`/api/collections/items?collectionId=${c.id}&preview=true`)
+      .then(r => r.json())
+      .then(data => setPreviews(Array.isArray(data) ? data : []));
+  }, [c.id]);
+
+  return (
+    <div className="bg-white rounded-xl shadow overflow-hidden">
+      {/* 썸네일 2x2 그리드 */}
+      <div className="grid grid-cols-2 w-full aspect-square">
+        {[0,1,2,3].map(i => (
+          <div key={i} className="bg-gray-100">
+            {previews[i]?.thumbnail_url ? (
+              <img src={previews[i].thumbnail_url} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gray-200" />
+            )}
+          </div>
+        ))}
+      </div>
+      {/* 컬렉션 정보 */}
+      <div className="p-3">
+        <div className="flex items-start justify-between">
+          <Link href={`/collections/${c.id}`} className="flex-1">
+            <p className="font-bold text-sm text-gray-900 truncate">{c.name}</p>
+            {c.description && <p className="text-xs text-gray-500 mt-0.5 truncate">{c.description}</p>}
+            <div className="flex items-center gap-2 mt-1">
+              <span className={`text-xs px-2 py-0.5 rounded-full ${c.is_public ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
+                {c.is_public ? '공개' : '비공개'}
+              </span>
+              <span className="text-xs text-gray-400">{c.created_at}</span>
+            </div>
+          </Link>
+          <div className="flex gap-2 ml-2 flex-shrink-0">
+            <button onClick={() => onEdit(c)} className="text-xs text-gray-400 hover:text-blue-500">수정</button>
+            <button onClick={() => onDelete(c.id)} className="text-xs text-gray-400 hover:text-red-500">삭제</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CollectionsPage() {
   const router = useRouter();
   const [collections, setCollections] = useState<any[]>([]);
@@ -42,9 +88,7 @@ export default function CollectionsPage() {
     setSubmitting(false);
     if (!res.ok) return alert(data.error);
     setCollections(prev => [data, ...prev]);
-    setName('');
-    setDescription('');
-    setShowForm(false);
+    setName(''); setDescription(''); setShowForm(false);
   }
 
   async function updateCollection(collectionId: string) {
@@ -72,10 +116,17 @@ export default function CollectionsPage() {
     setCollections(prev => prev.filter(c => c.id !== collectionId));
   }
 
+  function startEdit(c: any) {
+    setEditingId(c.id);
+    setEditName(c.name);
+    setEditDescription(c.description);
+    setEditIsPublic(c.is_public);
+  }
+
   if (loading) return <div className="p-8 text-center">로딩중...</div>;
 
   return (
-    <main className="min-h-screen bg-gray-50 p-8 max-w-2xl mx-auto">
+    <main className="min-h-screen bg-gray-50 p-4 md:p-8 max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">내 컬렉션</h1>
         <button onClick={() => setShowForm(!showForm)}
@@ -110,52 +161,37 @@ export default function CollectionsPage() {
         </div>
       )}
 
-      <div className="flex flex-col gap-4">
+      {/* 수정 폼 */}
+      {editingId && (
+        <div className="bg-white rounded-xl shadow p-6 mb-6">
+          <h2 className="font-bold mb-4 text-gray-900">컬렉션 수정</h2>
+          <div className="flex flex-col gap-3">
+            <input className="border rounded-lg p-3 text-sm text-gray-900"
+              value={editName} onChange={e => setEditName(e.target.value)} />
+            <textarea className="border rounded-lg p-3 text-sm text-gray-900" rows={2}
+              value={editDescription} onChange={e => setEditDescription(e.target.value)} />
+            <label className="flex items-center gap-2 text-sm text-gray-600">
+              <input type="checkbox" checked={editIsPublic} onChange={e => setEditIsPublic(e.target.checked)} />
+              공개 컬렉션
+            </label>
+            <div className="flex gap-2">
+              <button onClick={() => updateCollection(editingId)}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm">저장</button>
+              <button onClick={() => setEditingId(null)}
+                className="bg-gray-100 px-4 py-2 rounded-lg text-sm">취소</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-4">
         {collections.length === 0 && (
-          <div className="bg-white rounded-xl shadow p-8 text-center text-gray-400">
+          <div className="col-span-2 bg-white rounded-xl shadow p-8 text-center text-gray-400">
             아직 컬렉션이 없어요! 만들어보세요 🎉
           </div>
         )}
         {collections.map(c => (
-          <div key={c.id} className="bg-white rounded-xl shadow p-6">
-            {editingId === c.id ? (
-              <div className="flex flex-col gap-3">
-                <input className="border rounded-lg p-2 text-sm text-gray-900"
-                  value={editName} onChange={e => setEditName(e.target.value)} />
-                <textarea className="border rounded-lg p-2 text-sm text-gray-900" rows={2}
-                  value={editDescription} onChange={e => setEditDescription(e.target.value)} />
-                <label className="flex items-center gap-2 text-sm text-gray-600">
-                  <input type="checkbox" checked={editIsPublic} onChange={e => setEditIsPublic(e.target.checked)} />
-                  공개 컬렉션
-                </label>
-                <div className="flex gap-2">
-                  <button onClick={() => updateCollection(c.id)}
-                    className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm">저장</button>
-                  <button onClick={() => setEditingId(null)}
-                    className="bg-gray-100 px-3 py-1 rounded-lg text-sm">취소</button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-start justify-between">
-                <Link href={`/collections/${c.id}`} className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h2 className="font-bold text-lg text-gray-900 hover:text-blue-500 transition">{c.name}</h2>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${c.is_public ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
-                      {c.is_public ? '공개' : '비공개'}
-                    </span>
-                  </div>
-                  {c.description && <p className="text-gray-500 text-sm">{c.description}</p>}
-                  <p className="text-gray-400 text-xs mt-2">{c.created_at}</p>
-                </Link>
-                <div className="flex gap-2 ml-4">
-                  <button onClick={() => { setEditingId(c.id); setEditName(c.name); setEditDescription(c.description); setEditIsPublic(c.is_public); }}
-                    className="text-xs text-gray-400 hover:text-blue-500">수정</button>
-                  <button onClick={() => deleteCollection(c.id)}
-                    className="text-xs text-gray-400 hover:text-red-500">삭제</button>
-                </div>
-              </div>
-            )}
-          </div>
+          <CollectionCard key={c.id} c={c} onEdit={startEdit} onDelete={deleteCollection} />
         ))}
       </div>
     </main>

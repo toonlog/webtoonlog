@@ -18,6 +18,7 @@ export async function GET(request) {
       userId: r.fields.user_id || null,
       rating: r.fields.rating,
       content: r.fields.content,
+      tags: r.fields.tags || '',
       created_at: r.fields.created_at,
       is_public: r.fields.is_public ?? true,
     })));
@@ -31,7 +32,7 @@ export async function POST(request) {
     const user = getUserFromRequest(request);
     if (!user) return NextResponse.json({ error: '로그인이 필요해요' }, { status: 401 });
 
-    const { webtoonId, rating, content } = await request.json();
+    const { webtoonId, rating, content, tags } = await request.json();
     if (!content?.trim()) return NextResponse.json({ error: '리뷰 내용을 입력해주세요' }, { status: 400 });
 
     const existing = await base('REVIEW').select({
@@ -46,6 +47,7 @@ export async function POST(request) {
       webtoon_id: webtoonId,
       rating: Number(rating),
       content: content.trim(),
+      tags: tags ? tags.trim() : '',
       is_public: true,
       created_at: new Date().toISOString().split('T')[0],
       webtoon: [webtoonId],
@@ -57,6 +59,7 @@ export async function POST(request) {
       userId: user.userId,
       rating: record.fields.rating,
       content: record.fields.content,
+      tags: record.fields.tags || '',
       is_public: record.fields.is_public ?? true,
     });
   } catch (error) {
@@ -69,14 +72,15 @@ export async function PATCH(request) {
     const user = getUserFromRequest(request);
     if (!user) return NextResponse.json({ error: '로그인이 필요해요' }, { status: 401 });
 
-    const { reviewId, rating, content, is_public } = await request.json();
+    const { reviewId, rating, content, is_public, tags } = await request.json();
     const record = await base('REVIEW').find(reviewId);
     if (record.fields.user_id !== user.userId) return NextResponse.json({ error: '내 리뷰만 수정할 수 있어요' }, { status: 403 });
 
-  const updateFields = {};
+    const updateFields = {};
     if (rating !== undefined) updateFields.rating = Number(rating);
     if (content !== undefined) updateFields.content = content.trim();
     if (is_public !== undefined) updateFields.is_public = is_public;
+    if (tags !== undefined) updateFields.tags = tags.trim();
 
     const updated = await base('REVIEW').update(reviewId, updateFields);
 
@@ -85,6 +89,7 @@ export async function PATCH(request) {
       nickname: updated.fields.nickname,
       rating: updated.fields.rating,
       content: updated.fields.content,
+      tags: updated.fields.tags || '',
       is_public: updated.fields.is_public ?? true,
     });
   } catch (error) {

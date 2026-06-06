@@ -3,6 +3,38 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+function MiniCollectionCard({ c }: any) {
+  const [previews, setPreviews] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch(`/api/collections/items?collectionId=${c.id}&preview=true`)
+      .then(r => r.json())
+      .then(data => setPreviews(Array.isArray(data) ? data : []));
+  }, [c.id]);
+
+  return (
+    <Link href={`/collections/${c.id}`}>
+      <div className="border rounded-xl overflow-hidden hover:bg-gray-50 transition">
+        <div className="grid grid-cols-2 w-full aspect-square">
+          {[0,1,2,3].map(i => (
+            <div key={i} className="bg-gray-100">
+              {previews[i]?.thumbnail_url ? (
+                <img src={previews[i].thumbnail_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gray-200" />
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="p-2">
+          <p className="font-bold text-xs text-gray-900 truncate">{c.name}</p>
+          <p className="text-xs text-gray-400 mt-0.5">{c.is_public ? '공개' : '비공개'}</p>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 export default function MyPage() {
   const router = useRouter();
   const [nickname, setNickname] = useState<string | null>(null);
@@ -229,19 +261,14 @@ export default function MyPage() {
 
       {/* 컬렉션 */}
       {collections.length > 0 && (
-        <div className="bg-white rounded-xl shadow p-6 mb-4">
+        <div className="bg-white rounded-xl shadow p-4 mb-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-bold text-gray-900">내 컬렉션</h2>
             <Link href="/collections" className="text-xs text-blue-500 hover:underline">전체보기</Link>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {collections.map(c => (
-              <Link key={c.id} href={`/collections/${c.id}`}>
-                <div className="border rounded-xl p-3 hover:bg-gray-50 transition">
-                  <p className="font-bold text-sm text-gray-900 truncate">{c.name}</p>
-                  <p className="text-xs text-gray-400 mt-1">{c.is_public ? '공개' : '비공개'}</p>
-                </div>
-              </Link>
+              <MiniCollectionCard key={c.id} c={c} />
             ))}
           </div>
         </div>
