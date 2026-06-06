@@ -14,12 +14,12 @@ function StarPicker({ rating, onChange }: { rating: number; onChange: (v: number
             <svg width={26} height={26} viewBox="0 0 24 24" onClick={() => onChange(i - 0.5)} style={{ cursor: 'pointer' }}>
               <defs>
                 <linearGradient id={`mp-half-${i}`}>
-                 <stop offset="50%" stopColor={rating >= i - 0.5 ? '#F59E0B' : '#D3D1C7'} />
+                 <stop offset="50%" stopColor={rating >= i - 0.5 ? '#FBBF24' : '#D3D1C7'} />
                   <stop offset="50%" stopColor="#D3D1C7" />
                 </linearGradient>
               </defs>
               <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
-                fill={rating >= i ? '#E9A800' : rating >= i - 0.5 ? `url(#mp-half-${i})` : '#D3D1C7'} />
+              fill={rating >= i ? '#FBBF24' : rating >= i - 0.5 ? `url(#mp-half-${i})` : '#D3D1C7'} />
             </svg>
             <svg width={26} height={26} viewBox="0 0 24 24" onClick={() => onChange(i)} style={{ cursor: 'pointer', marginLeft: -26 }}>
               <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="transparent" />
