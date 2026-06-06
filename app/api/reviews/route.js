@@ -12,10 +12,20 @@ export async function GET(request) {
       sort: [{ field: 'created_at', direction: 'desc' }],
     }).all();
 
+    const userIds = [...new Set(records.map(r => r.fields.user_id).filter(Boolean))];
+    const userMap = {};
+    await Promise.all(userIds.map(async (uid) => {
+      try {
+        const u = await base('USER').find(uid);
+        userMap[uid] = u.fields.profile_image || null;
+      } catch { userMap[uid] = null; }
+    }));
+
     return NextResponse.json(records.map(r => ({
       id: r.id,
       nickname: r.fields.nickname || '익명',
       userId: r.fields.user_id || null,
+      profileImage: userMap[r.fields.user_id] || null,
       rating: r.fields.rating,
       content: r.fields.content,
       tags: r.fields.tags || '',

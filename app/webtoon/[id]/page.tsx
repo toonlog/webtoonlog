@@ -3,6 +3,61 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+function WebtoonCollectionSection({ collections }: { collections: any[] }) {
+  const [previews, setPreviews] = useState<Record<string, any[]>>({});
+  const SHOW = 5;
+  const visible = collections.slice(0, SHOW);
+
+  useEffect(() => {
+    visible.forEach(c => {
+      fetch(`/api/collections/items?collectionId=${c.id}&preview=true`)
+        .then(r => r.json())
+        .then(data => setPreviews(prev => ({ ...prev, [c.id]: Array.isArray(data) ? data : [] })));
+    });
+  }, []);
+
+  return (
+    <div className="bg-white rounded-xl shadow p-4">
+      <h2 className="text-sm font-bold mb-3">이 작품이 담긴 컬렉션</h2>
+      <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
+        {visible.map(c => (
+          <Link key={c.id} href={`/collections/${c.id}`} className="flex-shrink-0 w-28">
+            <div className="border border-gray-200 rounded-xl overflow-hidden hover:shadow-sm transition">
+              <div className="grid grid-cols-2 w-full" style={{ aspectRatio: '1' }}>
+                {[0,1,2,3].map(i => (
+                  <div key={i} style={{ aspectRatio: '1', overflow: 'hidden' }}>
+                    {previews[c.id]?.[i]?.thumbnail_url ? (
+                      <img src={previews[c.id][i].thumbnail_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gray-100" />
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="p-2">
+                <p className="font-bold text-xs text-gray-900 truncate">{c.name}</p>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+      {collections.length > SHOW && (
+        <button className="block w-full text-center text-xs text-blue-500 mt-3 hover:underline">
+          더보기 ({collections.length - SHOW}개 더) ▾
+        </button>
+      )}
+    </div>
+  );
+}
+
+function getAuth() {
+  // ... 기존 코드 그대로
+
+'use client';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+
 function getAuth() {
   return {
     token: localStorage.getItem('token'),
@@ -436,14 +491,33 @@ export default function WebtoonPage() {
 
         {displayedReviews.map((review, idx) => (
           <div key={review.id} className={idx > 0 ? 'border-t border-gray-100 pt-3 mt-3' : ''}>
-            {editingId === review.id ? (
+           {editingId === review.id ? (
               <div className="flex flex-col gap-2">
                 <StarPicker rating={editRating} onChange={setEditRating} />
                 <textarea className="border rounded-lg p-2 text-sm w-full" rows={3}
                   value={editContent} onChange={e => setEditContent(e.target.value)} />
                 <input className="border rounded-lg p-2 text-sm w-full"
-                  placeholder="태그 (쉼표로 구분)"
+                  placeholder="태그 (쉼표로 구분 - 예. 순애, 계략남주, 조폭)"
                   value={editTags} onChange={e => setEditTags(e.target.value)} />
+                <div className="flex items-center gap-2">
+                  <span className="text-xs" style={{ color: (review.is_public ?? true) ? '#3B82F6' : '#888780' }}>
+                    {(review.is_public ?? true) ? '공개' : '나만보기'}
+                  </span>
+                  <div
+                    onClick={() => toggleReviewPublic(review.id, review.is_public ?? true)}
+                    style={{
+                      width: 36, height: 20, borderRadius: 10,
+                      background: (review.is_public ?? true) ? '#3B82F6' : '#B4B2A9',
+                      cursor: 'pointer', position: 'relative',
+                      transition: 'background 0.2s', display: 'flex', alignItems: 'center', padding: '2px'
+                    }}>
+                    <div style={{
+                      width: 16, height: 16, borderRadius: '50%', background: '#fff',
+                      transform: (review.is_public ?? true) ? 'translateX(16px)' : 'translateX(0)',
+                      transition: 'transform 0.2s'
+                    }} />
+                  </div>
+                </div>
                 <div className="flex gap-2">
                   <button onClick={() => saveEdit(review.id)}
                     className="px-3 py-1 rounded-lg text-sm text-white border-none"
@@ -452,10 +526,18 @@ export default function WebtoonPage() {
                     className="bg-gray-100 px-3 py-1 rounded-lg text-sm">취소</button>
                 </div>
               </div>
-            ) : (
+) : (
               <>
                 <div className="flex items-start justify-between mb-1">
                   <div className="flex items-center gap-2">
+                    {review.profileImage ? (
+                      <img src={review.profileImage} alt={review.nickname}
+                        className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-500 flex-shrink-0">
+                        {review.nickname?.[0]?.toUpperCase()}
+                      </div>
+                    )}
                     {review.userId ? (
                       <Link href={`/users/${review.userId}`} className="font-bold text-sm hover:text-blue-500">
                         {review.nickname}
@@ -529,19 +611,7 @@ export default function WebtoonPage() {
 
       {/* 이 작품이 담긴 컬렉션 */}
       {webtoonCollections.length > 0 && (
-        <div className="bg-white rounded-xl shadow p-4">
-          <h2 className="text-sm font-bold mb-3">이 작품이 담긴 컬렉션</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {webtoonCollections.map(c => (
-              <Link key={c.id} href={`/collections/${c.id}`}>
-                <div className="border border-gray-100 rounded-xl p-3 hover:bg-gray-50 transition">
-                  <p className="font-medium text-sm text-gray-900 truncate">{c.name}</p>
-                  {c.description && <p className="text-gray-400 text-xs mt-0.5 truncate">{c.description}</p>}
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
+        <WebtoonCollectionSection collections={webtoonCollections} />
       )}
     </main>
   );

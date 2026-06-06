@@ -115,18 +115,19 @@ export default function MyPage() {
     window.dispatchEvent(new Event('authChange'));
   }
 
-  async function saveProfileImage() {
-    const token = localStorage.getItem('token');
-    const res = await fetch('/api/auth/update', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ profile_image: newImage }),
-    });
-    const data = await res.json();
-    if (!res.ok) return alert(data.error);
-    setProfileImage(newImage);
-    setEditingImage(false);
-  }
+async function saveProfileImage() {
+  const token = localStorage.getItem('token');
+  const res = await fetch('/api/auth/update', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ profile_image: newImage }),
+  });
+  const data = await res.json();
+  if (!res.ok) return alert(data.error);
+  setProfileImage(newImage);
+  setEditingImage(false);
+  window.dispatchEvent(new Event('authChange'));
+}
 
   async function deleteReview(reviewId: string) {
     if (!confirm('리뷰를 삭제할까요?')) return;
@@ -333,17 +334,35 @@ export default function MyPage() {
               </div>
               {editingId === review.id ? (
                 <div className="flex flex-col gap-2 mt-2">
-                  <div className="flex gap-1">
-                    {[1,2,3,4,5].map(n => (
-                      <button key={n} onClick={() => setEditRating(n)}
-                        className={`text-xl ${n <= editRating ? 'text-yellow-400' : 'text-gray-300'}`}>★</button>
-                    ))}
-                  </div>
+                  <StarPicker rating={editRating} onChange={setEditRating} />
                   <textarea className="border rounded p-2 text-sm w-full" rows={3}
                     value={editContent} onChange={e => setEditContent(e.target.value)} />
+                  <input className="border rounded p-2 text-sm w-full"
+                    placeholder="태그 (쉼표로 구분 - 예. 순애, 계략남주, 조폭)"
+                    value={editTags} onChange={e => setEditTags(e.target.value)} />
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs" style={{ color: (review.is_public ?? true) ? '#3B82F6' : '#888780' }}>
+                      {(review.is_public ?? true) ? '공개' : '나만보기'}
+                    </span>
+                    <div
+                      onClick={() => togglePublic(review.id, review.is_public ?? true)}
+                      style={{
+                        width: 36, height: 20, borderRadius: 10,
+                        background: (review.is_public ?? true) ? '#3B82F6' : '#B4B2A9',
+                        cursor: 'pointer', position: 'relative',
+                        transition: 'background 0.2s', display: 'flex', alignItems: 'center', padding: '2px'
+                      }}>
+                      <div style={{
+                        width: 16, height: 16, borderRadius: '50%', background: '#fff',
+                        transform: (review.is_public ?? true) ? 'translateX(16px)' : 'translateX(0)',
+                        transition: 'transform 0.2s'
+                      }} />
+                    </div>
+                  </div>
                   <div className="flex gap-2">
                     <button onClick={() => saveEdit(review.id)}
-                      className="bg-blue-500 text-white px-3 py-1 rounded text-sm">저장</button>
+                      className="text-white px-3 py-1 rounded text-sm border-none"
+                      style={{ background: '#3B82F6' }}>저장</button>
                     <button onClick={() => setEditingId(null)}
                       className="bg-gray-100 px-3 py-1 rounded text-sm">취소</button>
                   </div>
