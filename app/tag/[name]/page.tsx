@@ -10,7 +10,9 @@ async function getWebtoonsByTag(tag: string) {
   const webtoonIds = [...new Set(
     records
       .filter(r => {
-        const tags = (r.fields.tags || '').split(',').map((t: string) => t.trim());
+        const rawTags = r.fields.tags;
+        if (!rawTags || typeof rawTags !== 'string') return false;
+        const tags = rawTags.split(',').map((t: string) => t.trim());
         return tags.includes(decoded);
       })
       .map(r => r.fields.webtoon_id)
