@@ -62,7 +62,7 @@ export default function Header() {
   return (
     <header className="bg-white border-b px-4 md:px-6 py-3 flex items-center justify-between sticky top-0 z-50">
       {/* 로고 - 파란 정사각형 */}
-      <Link href="/" className="block w-8 h-8 bg-blue-500 rounded-lg hover:bg-blue-600 transition" />
+      <Link href="/" className="block w-8 h-8 bg-blue-500 rounded-lg hover:bg-blue-600 active:scale-90 active:bg-blue-700 transition-all duration-150" />
 
       <div className="flex items-center gap-3">
         {/* 검색 */}
