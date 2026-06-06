@@ -262,8 +262,10 @@ async function fetchLikes(reviewId: string) {
     setReviewLikes(prev => ({ ...prev, [reviewId]: data }));
   }
 
-  async function toggleLike(reviewId: string) {
+ async function toggleLike(reviewId: string) {
     if (!auth.token) return router.push('/login');
+    if (reviewLikes[reviewId]?.loading) return;
+    setReviewLikes(prev => ({ ...prev, [reviewId]: { ...prev[reviewId], loading: true } }));
     const res = await fetch('/api/reviews/like', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
@@ -275,6 +277,7 @@ async function fetchLikes(reviewId: string) {
       [reviewId]: {
         count: (prev[reviewId]?.count || 0) + (data.liked ? 1 : -1),
         liked: data.liked,
+        loading: false,
       },
     }));
   }
@@ -642,10 +645,12 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
                   <p className="text-xs text-gray-400">{review.created_at}</p>
                  <button onClick={() => toggleLike(review.id)}
                     className="flex items-center gap-1 text-xs transition-all"
-                  style={{
+                style={{
                       color: reviewLikes[review.id]?.liked ? '#ec4899' : '#9ca3af',
                       fontSize: '15px',
                       WebkitTextStroke: reviewLikes[review.id]?.liked ? '0.5px #ec4899' : 'none',
+                      opacity: reviewLikes[review.id]?.loading ? 0.5 : 1,
+                      pointerEvents: reviewLikes[review.id]?.loading ? 'none' : 'auto',
                     }}>
                     ♥ {reviewLikes[review.id]?.count || 0}
                   </button>

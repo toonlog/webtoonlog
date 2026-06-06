@@ -16,14 +16,15 @@ export default function CollectionDetailPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
-const [pendingItems, setPendingItems] = useState<any[]>([]);
+  const [pendingItems, setPendingItems] = useState<any[]>([]);
   const [likeCount, setLikeCount] = useState(0);
-  const [liked, setLiked] = useState(false);
+const [liked, setLiked] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
 
   useEffect(() => {
     const userId = localStorage.getItem('userId');
     setMyUserId(userId);
-fetchCollection();
+    fetchCollection();
     fetchItems();
     fetchLike();
   }, [collectionId]);
@@ -49,7 +50,7 @@ fetchCollection();
     setLoading(false);
   }
 
-async function fetchLike() {
+  async function fetchLike() {
     const userId = localStorage.getItem('userId') || '';
     const res = await fetch(`/api/collections/like?collectionId=${collectionId}&userId=${userId}`);
     const data = await res.json();
@@ -57,9 +58,11 @@ async function fetchLike() {
     setLiked(data.liked || false);
   }
 
-  async function toggleLike() {
+ async function toggleLike() {
     const token = localStorage.getItem('token');
     if (!token) return router.push('/login');
+    if (likeLoading) return;
+    setLikeLoading(true);
     const res = await fetch('/api/collections/like', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -68,20 +71,21 @@ async function fetchLike() {
     const data = await res.json();
     setLiked(data.liked);
     setLikeCount(prev => prev + (data.liked ? 1 : -1));
+    setLikeLoading(false);
   }
 
-async function searchWebtoons(q: string) {
-  if (!q.trim()) { setSearchResults([]); return; }
-  setSearching(true);
-  try {
-    const res = await fetch(`/api/webtoons/search?q=${encodeURIComponent(q)}`);
-    const data = await res.json();
-    if (!Array.isArray(data)) { setSearchResults([]); return; }
-    const existingIds = new Set([...items.map(i => i.webtoon_id), ...pendingItems.map(i => i.id)]);
-    setSearchResults(data.filter((w: any) => !existingIds.has(w.id)));
-  } catch { setSearchResults([]); }
-  finally { setSearching(false); }
-}
+  async function searchWebtoons(q: string) {
+    if (!q.trim()) { setSearchResults([]); return; }
+    setSearching(true);
+    try {
+      const res = await fetch(`/api/webtoons/search?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      if (!Array.isArray(data)) { setSearchResults([]); return; }
+      const existingIds = new Set([...items.map(i => i.webtoon_id), ...pendingItems.map(i => i.id)]);
+      setSearchResults(data.filter((w: any) => !existingIds.has(w.id)));
+    } catch { setSearchResults([]); }
+    finally { setSearching(false); }
+  }
 
   function addToPending(webtoon: any) {
     setPendingItems(prev => [...prev, webtoon]);
@@ -134,25 +138,40 @@ async function searchWebtoons(q: string) {
           )}
         </div>
         {collection?.description && <p className="text-gray-500 text-sm mt-1">{collection.description}</p>}
-<div className="flex items-center gap-3 mt-2">
+        <div className="flex items-center gap-3 mt-2">
           <p className="text-gray-400 text-xs">웹툰 {items.length}개</p>
-          <button onClick={toggleLike}
-            className="flex items-center gap-1 text-xs transition-all"
-            style={{
-              color: liked ? '#ec4899' : '#9ca3af',
-              fontSize: '15px',
-              WebkitTextStroke: liked ? '0.5px #ec4899' : 'none',
-              pointerEvents: liked ? 'none' : 'auto',
-            }}>
-            ♥ {likeCount}
-          </button>
+          {!isOwner && likeCount > 0 && (
+            <p className="text-gray-400 text-xs">좋아요 {likeCount}</p>
+          )}
         </div>
-        {isOwner && (
-          <button onClick={() => setShowSearch(!showSearch)}
-            className="mt-3 text-sm bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
-            + 웹툰 추가
-          </button>
-        )}
+        <div className="flex items-center gap-3 mt-3">
+          {isOwner && (
+            <button onClick={() => setShowSearch(!showSearch)}
+              className="text-sm bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+              + 웹툰 추가
+            </button>
+          )}
+          {!isOwner && (
+            <button onClick={toggleLike}
+            style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '6px 14px', borderRadius: 20,
+                border: liked ? '1.5px solid #ec4899' : '1.5px solid #B4B2A9',
+                background: 'transparent', cursor: likeLoading ? 'not-allowed' : 'pointer',
+                fontSize: 13, color: liked ? '#444441' : '#888780',
+                transition: 'all 0.2s', opacity: likeLoading ? 0.5 : 1,
+                pointerEvents: likeLoading ? 'none' : 'auto',
+              }}>
+              <svg width="15" height="15" viewBox="0 0 24 24"
+                fill={liked ? '#ec4899' : 'none'}
+                stroke={liked ? '#ec4899' : '#888780'}
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+              컬렉션 좋아요 {likeCount > 0 ? likeCount : ''}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* 웹툰 추가 패널 */}
@@ -167,7 +186,6 @@ async function searchWebtoons(q: string) {
             </button>
           </div>
 
-          {/* 추가 대기 목록 */}
           {pendingItems.length > 0 && (
             <div className="flex flex-col gap-2 mb-3">
               {pendingItems.map(w => (
