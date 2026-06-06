@@ -643,10 +643,10 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
                   <p className="text-xs text-gray-400">{review.created_at}</p>
                  <button onClick={() => toggleLike(review.id)}
                     className="flex items-center gap-1 text-xs transition-all"
-                style={{
+              style={{
                       color: reviewLikes[review.id]?.liked ? '#ec4899' : '#9ca3af',
                       fontSize: '15px',
-                      WebkitTextStroke: reviewLikes[review.id]?.liked ? '0.5px #ec4899' : 'none',
+                      WebkitTextStroke: 'none',
                       opacity: reviewLikes[review.id]?.loading ? 0.5 : 1,
                       pointerEvents: reviewLikes[review.id]?.loading ? 'none' : 'auto',
                     }}>
