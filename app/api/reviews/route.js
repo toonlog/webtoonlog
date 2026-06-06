@@ -8,7 +8,7 @@ export async function GET(request) {
     const webtoonId = searchParams.get('webtoonId');
 
     const records = await base('REVIEW').select({
-      filterByFormula: `AND(FIND("${webtoonId}", {webtoon_id}), OR({is_public} = 1, {is_public} = ""))`,
+    filterByFormula: `FIND("${webtoonId}", {webtoon_id})`,
       sort: [{ field: 'created_at', direction: 'desc' }],
     }).all();
 

@@ -238,7 +238,10 @@ async function saveEdit(reviewId: string) {
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
     body: JSON.stringify({ reviewId, rating: editRating, content: editContent, tags: editTags, is_public: review?.is_public ?? true }),
   });
-  if (res.ok) { setEditingId(null); fetchReviews(); }
+if (res.ok) {
+    setEditingId(null);
+    setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, rating: editRating, content: editContent, tags: editTags, is_public: review?.is_public ?? true } : r));
+  }
 }
 
   async function toggleReviewPublic(reviewId: string, current: boolean) {
