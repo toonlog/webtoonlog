@@ -626,7 +626,7 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
                     </div>
                   )}
                 </div>
-<p className="text-sm text-gray-700 mb-1 mt-5">{review.content}</p>
+<p className="text-sm text-gray-700 mb-1 mt-4">{review.content}</p>
 {review.tags && (
                   <div className="flex flex-wrap gap-1 mb-1">
                     {review.tags.split(',').map((t: string) => t.trim()).filter(Boolean).map((t: string) => (
