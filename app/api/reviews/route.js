@@ -4,12 +4,13 @@ import { getUserFromRequest } from '../../lib/auth';
 
 async function updateWebtoonRating(webtoonId) {
   try {
-    const reviews = await base('REVIEW').select({
+const reviews = await base('REVIEW').select({
       filterByFormula: `{webtoon_id} = "${webtoonId}"`,
     }).all();
-    const count = reviews.length;
+    const ratedReviews = reviews.filter(r => !r.fields.is_wishlist);
+    const count = ratedReviews.length;
     const avg = count > 0
-      ? Math.round((reviews.reduce((s, r) => s + (r.fields.rating || 0), 0) / count) * 10) / 10
+      ? Math.round((ratedReviews.reduce((s, r) => s + (r.fields.rating || 0), 0) / count) * 10) / 10
       : 0;
     await base('WEBTOON').update(webtoonId, { avg_rating: avg, review_count: count });
   } catch (e) { console.error('rating update fail', e); }
@@ -49,7 +50,8 @@ export async function GET(request) {
       content: r.fields.content,
       tags: r.fields.tags || '',
       created_at: r.fields.created_at,
-      is_public: r.fields.is_public ?? true,
+is_public: r.fields.is_public ?? true,
+      is_wishlist: r.fields.is_wishlist || false,
       readStatus: statusMap[r.fields.user_id] || null,
     })));
   } catch (error) {
@@ -62,7 +64,7 @@ export async function POST(request) {
     const user = getUserFromRequest(request);
     if (!user) return NextResponse.json({ error: '로그인이 필요해요' }, { status: 401 });
 
-    const { webtoonId, rating, content, tags } = await request.json();
+  const { webtoonId, rating, content, tags, is_wishlist } = await request.json();
     if (!content?.trim()) return NextResponse.json({ error: '리뷰 내용을 입력해주세요' }, { status: 400 });
 
     const existing = await base('REVIEW').select({
@@ -71,14 +73,15 @@ export async function POST(request) {
     }).firstPage();
     if (existing.length > 0) return NextResponse.json({ error: '이미 리뷰를 작성했어요. 수정해주세요!' }, { status: 409 });
 
-    const record = await base('REVIEW').create({
+const record = await base('REVIEW').create({
       nickname: user.nickname,
       user_id: user.userId,
       webtoon_id: webtoonId,
-      rating: Number(rating),
+      rating: is_wishlist ? 0 : Number(rating),
       content: content.trim(),
       tags: tags ? tags.trim() : '',
       is_public: true,
+      is_wishlist: is_wishlist || false,
       created_at: new Date().toISOString().split('T')[0],
       webtoon: [webtoonId],
     });

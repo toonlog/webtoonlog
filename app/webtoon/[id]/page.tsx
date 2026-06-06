@@ -129,7 +129,8 @@ export default function WebtoonPage() {
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState('');
   const [tags, setTags] = useState('');
-  const [isPublic, setIsPublic] = useState(true);
+const [isPublic, setIsPublic] = useState(true);
+  const [isWishlist, setIsWishlist] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editRating, setEditRating] = useState(5);
   const [editContent, setEditContent] = useState('');
@@ -209,7 +210,7 @@ const [reviewLikes, setReviewLikes] = useState<Record<string, { count: number; l
     const res = await fetch('/api/reviews', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
-      body: JSON.stringify({ webtoonId: id, rating, content, tags, is_public: isPublic }),
+    body: JSON.stringify({ webtoonId: id, rating, content, tags, is_public: isPublic, is_wishlist: isWishlist }),
     });
     const data = await res.json();
     setLoading(false);
@@ -521,7 +522,13 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
         ) : (
           <>
             <p className="text-xs text-gray-400 mb-2">{auth.nickname} 님으로 작성됩니다</p>
-            <StarPicker rating={rating} onChange={setRating} />
+          <div className="flex items-center gap-2 mb-2">
+              <input type="checkbox" id="wishlist" checked={isWishlist}
+                onChange={e => setIsWishlist(e.target.checked)}
+                className="cursor-pointer" />
+              <label htmlFor="wishlist" className="text-xs text-gray-500 cursor-pointer">읽고싶다 (별점 없이 남기기)</label>
+            </div>
+            {!isWishlist && <StarPicker rating={rating} onChange={setRating} />}
             <textarea className="w-full border rounded-lg p-2 mt-2 mb-2 text-sm" rows={3}
               placeholder="리뷰를 작성해주세요" value={content} onChange={e => setContent(e.target.value)} />
  <TagInput value={tags} onChange={setTags} placeholder="태그 (쉼표로 구분 - 예. 순애, 계략남주, 조폭)" />
@@ -602,7 +609,12 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
                     ) : (
                       <span className="font-bold text-sm">{review.nickname}</span>
                     )}
-                <StarDisplay rating={review.rating} size={13} />
+             {review.is_wishlist ? (
+                  <span className="text-xs px-2 py-0.5 rounded-full"
+                    style={{ background: '#EEEDFE', color: '#534AB7' }}>읽고싶다</span>
+                ) : (
+                  <StarDisplay rating={review.rating} size={13} />
+                )}
                    {review.readStatus && (
                       <span className="text-xs px-2 py-0.5 rounded-full"
                         style={{ background: '#EBF5FF', color: '#185FA5' }}>
