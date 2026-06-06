@@ -91,13 +91,13 @@ function StarPicker({ rating, onChange }: { rating: number; onChange: (v: number
           const filled = rating >= i ? '#E9A800' : '#D3D1C7';
           const half = rating >= i - 0.5 && rating < i;
           return (
-            <div key={i} style={{ position: 'relative', width: 26, height: 26 }}
+          <div key={i} style={{ position: 'relative', width: 22, height: 22 }}
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 onChange(x < rect.width / 2 ? i - 0.5 : i);
               }}>
-              <svg width={26} height={26} viewBox="0 0 24 24">
+              <svg width={22} height={22} viewBox="2 2 20 20">
                 <defs>
                   <linearGradient id={`half-${i}`}>
                     <stop offset="50%" stopColor="#E9A800" />
