@@ -18,14 +18,15 @@ const slides = [
         <text x="80" y="63" textAnchor="middle" fontSize="9" fill="#1e3a8a">제목 *</text>
         <rect x="22" y="72" width="116" height="14" rx="4" fill="rgba(255,255,255,0.6)"/>
         <text x="80" y="83" textAnchor="middle" fontSize="9" fill="#1e3a8a">작가</text>
-        <rect x="22" y="90" width="48" height="13" rx="6" fill="rgba(255,255,255,0.4)"/>
-        <text x="46" y="100" textAnchor="middle" fontSize="8" fill="white">BL</text>
-        <rect x="74" y="90" width="48" height="13" rx="6" fill="rgba(255,255,255,0.4)"/>
-        <text x="98" y="100" textAnchor="middle" fontSize="8" fill="white">로맨스</text>
-      </svg>
+       <rect x="22" y="90" width="34" height="13" rx="6" fill="rgba(255,255,255,0.4)"/>
+        <text x="39" y="100" textAnchor="middle" fontSize="8" fill="white">BL</text>
+        <rect x="60" y="90" width="34" height="13" rx="6" fill="rgba(255,255,255,0.4)"/>
+        <text x="77" y="100" textAnchor="middle" fontSize="8" fill="white">로맨스</text>
+        <rect x="98" y="90" width="34" height="13" rx="6" fill="rgba(255,255,255,0.4)"/>
+        <text x="115" y="100" textAnchor="middle" fontSize="8" fill="white">무협</text>
     ),
   },
-  {
+ {
     bg: '#1E40AF',
     textColor: '#ffffff',
     descColor: 'rgba(255,255,255,0.85)',
@@ -36,8 +37,8 @@ const slides = [
       <svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
         <rect x="10" y="10" width="140" height="24" rx="12" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.4)" strokeWidth="1"/>
         <text x="26" y="26" fontSize="10" fill="rgba(255,255,255,0.7)">검색...</text>
-        <circle cx="143" cy="22" r="6" fill="none" stroke="white" strokeWidth="1.5"/>
-        <line x1="147" y1="26" x2="150" y2="29" stroke="white" strokeWidth="1.5"/>
+        <circle cx="138" cy="22" r="5" fill="none" stroke="white" strokeWidth="1.5"/>
+        <line x1="142" y1="26" x2="145" y2="29" stroke="white" strokeWidth="1.5"/>
         <rect x="10" y="42" width="140" height="32" rx="8" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.2)" strokeWidth="0.5"/>
         <text x="20" y="56" fontSize="10" fill="white" fontWeight="500">복숭아소년</text>
         <text x="20" y="68" fontSize="8" fill="rgba(255,255,255,0.7)">★★★★★  5.0 (2개)</text>
@@ -54,15 +55,38 @@ const slides = [
     title: '취향이 비슷한 유저를 팔로우해보세요',
     titleBreak: false,
     desc: '리뷰어 닉네임을 클릭하면 그 유저의 프로필과 리뷰 목록을 볼 수 있어요',
-    visual: (
+  visual: (
       <svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-        <rect x="15" y="8" width="130" height="104" rx="12" fill="rgba(255,255,255,0.15)"/>
-        <circle cx="80" cy="38" r="20" fill="rgba(255,255,255,0.9)"/>
-        <text x="80" y="45" textAnchor="middle" fontSize="18">🦊</text>
-        <text x="80" y="70" textAnchor="middle" fontSize="12" fill="white" fontWeight="500">웹툰러1</text>
-        <text x="80" y="83" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">팔로워 12   팔로잉 8</text>
-        <rect x="46" y="92" width="68" height="16" rx="8" fill="white"/>
-        <text x="80" y="104" textAnchor="middle" fontSize="10" fill="#1D4ED8" fontWeight="500">팔로우</text>
+        {/* 카드3 (맨 뒤) */}
+        <rect x="60" y="10" width="90" height="100" rx="10" fill="#FFF7ED" stroke="#FED7AA" strokeWidth="1"/>
+        <rect x="64" y="14" width="42" height="42" rx="4" fill="#e5e7eb"/>
+        <rect x="64" y="14" width="21" height="21" rx="2" fill="#d97706" opacity="0.6"/>
+        <rect x="85" y="14" width="21" height="21" rx="2" fill="#f59e0b" opacity="0.5"/>
+        <rect x="64" y="35" width="21" height="21" rx="2" fill="#fbbf24" opacity="0.4"/>
+        <rect x="85" y="35" width="21" height="21" rx="2" fill="#d97706" opacity="0.3"/>
+        <text x="109" y="40" textAnchor="middle" fontSize="7" fill="#9a3412" fontWeight="500">레진 BL</text>
+        <text x="109" y="50" textAnchor="middle" fontSize="7" fill="#9a3412">완결 모음</text>
+        <text x="109" y="102" textAnchor="middle" fontSize="6" fill="#f97316">웹툰 14개</text>
+        {/* 카드2 (중간) */}
+        <rect x="35" y="10" width="90" height="100" rx="10" fill="#DCFCE7" stroke="#86EFAC" strokeWidth="1"/>
+        <rect x="39" y="14" width="42" height="42" rx="4" fill="#e5e7eb"/>
+        <rect x="39" y="14" width="21" height="21" rx="2" fill="#16a34a" opacity="0.6"/>
+        <rect x="60" y="14" width="21" height="21" rx="2" fill="#22c55e" opacity="0.5"/>
+        <rect x="39" y="35" width="21" height="21" rx="2" fill="#4ade80" opacity="0.4"/>
+        <rect x="60" y="35" width="21" height="21" rx="2" fill="#16a34a" opacity="0.3"/>
+        <text x="95" y="40" textAnchor="middle" fontSize="8" fill="#166534" fontWeight="500">순애</text>
+        <text x="95" y="51" textAnchor="middle" fontSize="8" fill="#166534">모음</text>
+        <text x="95" y="102" textAnchor="middle" fontSize="6" fill="#22c55e">웹툰 5개</text>
+        {/* 카드1 (맨 앞) */}
+        <rect x="10" y="10" width="90" height="100" rx="10" fill="#DBEAFE" stroke="#93C5FD" strokeWidth="1"/>
+        <rect x="14" y="14" width="42" height="42" rx="4" fill="#e5e7eb"/>
+        <rect x="14" y="14" width="21" height="21" rx="2" fill="#1d4ed8" opacity="0.6"/>
+        <rect x="35" y="14" width="21" height="21" rx="2" fill="#3b82f6" opacity="0.5"/>
+        <rect x="14" y="35" width="21" height="21" rx="2" fill="#60a5fa" opacity="0.4"/>
+        <rect x="35" y="35" width="21" height="21" rx="2" fill="#1d4ed8" opacity="0.3"/>
+        <text x="70" y="40" textAnchor="middle" fontSize="8" fill="#1e40af" fontWeight="500">무협</text>
+        <text x="70" y="51" textAnchor="middle" fontSize="8" fill="#1e40af">판타지</text>
+        <text x="70" y="102" textAnchor="middle" fontSize="6" fill="#3b82f6">웹툰 8개</text>
       </svg>
     ),
   },
@@ -149,6 +173,7 @@ export default function Carousel() {
     touchEndX.current = null;
   }
 
+  if (isMobile === null) return <div style={{ borderRadius: '16px', background: '#fff', minHeight: '160px' }} />;
   const slide = slides[cur];
 
   const renderTitle = (title: string, titleBreak: boolean) => {
