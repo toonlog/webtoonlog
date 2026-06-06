@@ -57,7 +57,7 @@ const slides = [
     desc: '리뷰어 닉네임을 클릭하면 그 유저의 프로필과 리뷰 목록을 볼 수 있어요',
   visual: (
       <svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-        {/* 카드3 (맨 뒤) */}
+
         <rect x="60" y="10" width="90" height="100" rx="10" fill="#FFF7ED" stroke="#FED7AA" strokeWidth="1"/>
         <rect x="64" y="14" width="42" height="42" rx="4" fill="#e5e7eb"/>
         <rect x="64" y="14" width="21" height="21" rx="2" fill="#d97706" opacity="0.6"/>
@@ -67,7 +67,7 @@ const slides = [
         <text x="109" y="40" textAnchor="middle" fontSize="7" fill="#9a3412" fontWeight="500">레진 BL</text>
         <text x="109" y="50" textAnchor="middle" fontSize="7" fill="#9a3412">완결 모음</text>
         <text x="109" y="102" textAnchor="middle" fontSize="6" fill="#f97316">웹툰 14개</text>
-        {/* 카드2 (중간) */}
+
         <rect x="35" y="10" width="90" height="100" rx="10" fill="#DCFCE7" stroke="#86EFAC" strokeWidth="1"/>
         <rect x="39" y="14" width="42" height="42" rx="4" fill="#e5e7eb"/>
         <rect x="39" y="14" width="21" height="21" rx="2" fill="#16a34a" opacity="0.6"/>
@@ -77,7 +77,7 @@ const slides = [
         <text x="95" y="40" textAnchor="middle" fontSize="8" fill="#166534" fontWeight="500">순애</text>
         <text x="95" y="51" textAnchor="middle" fontSize="8" fill="#166534">모음</text>
         <text x="95" y="102" textAnchor="middle" fontSize="6" fill="#22c55e">웹툰 5개</text>
-        {/* 카드1 (맨 앞) */}
+
         <rect x="10" y="10" width="90" height="100" rx="10" fill="#DBEAFE" stroke="#93C5FD" strokeWidth="1"/>
         <rect x="14" y="14" width="42" height="42" rx="4" fill="#e5e7eb"/>
         <rect x="14" y="14" width="21" height="21" rx="2" fill="#1d4ed8" opacity="0.6"/>
