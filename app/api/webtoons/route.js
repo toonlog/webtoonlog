@@ -13,6 +13,8 @@ export async function GET(request) {
       title: r.fields.title,
       author: r.fields.author,
       platform: r.fields.platform,
+      genre: r.fields.genre,
+      status: r.fields.status,
       thumbnail_url: r.fields.thumbnail_url,
     }));
 

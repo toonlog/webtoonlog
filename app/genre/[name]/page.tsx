@@ -1,46 +1,33 @@
 import Link from 'next/link';
 import base from '../../lib/airtable';
 
-async function getWebtoonsByTag(tag: string) {
-  const decoded = decodeURIComponent(tag);
-  const records = await base('REVIEW').select({
-    fields: ['webtoon_id', 'tags'],
+async function getWebtoonsByGenre(genre: string) {
+  const decoded = decodeURIComponent(genre);
+  const records = await base('WEBTOON').select({
+    maxRecords: 100,
+    sort: [{ field: 'title', direction: 'asc' }],
   }).all();
 
-  const webtoonIds = [...new Set(
-    records
-      .filter(r => {
-        const rawTags = r.fields.tags;
-        if (!rawTags || typeof rawTags !== 'string') return false;
-        return rawTags.split(',').map((t: string) => t.trim()).includes(decoded);
-      })
-      .map(r => r.fields.webtoon_id)
-      .filter(Boolean)
-  )];
-
-  if (webtoonIds.length === 0) return [];
-
-  const webtoons = await Promise.all(webtoonIds.map(async (wId) => {
-    try {
-      const r = await base('WEBTOON').find(wId as string);
-      return { id: r.id, ...r.fields };
-    } catch { return null; }
-  }));
-
-  return webtoons.filter(Boolean) as any[];
+  return records
+    .map(r => ({ id: r.id, ...r.fields }))
+    .filter((w: any) => {
+      if (!w.genre) return false;
+      const genres = w.genre.split(',').map((g: string) => g.trim());
+      return genres.includes(decoded);
+    }) as any[];
 }
 
-export default async function TagPage({ params }: any) {
+export default async function GenrePage({ params }: any) {
   const { name } = await params;
-  const tag = decodeURIComponent(name);
-  const webtoons = await getWebtoonsByTag(name);
+  const genre = decodeURIComponent(name);
+  const webtoons = await getWebtoonsByGenre(name);
 
   return (
     <main className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
           <Link href="/" className="text-gray-400 hover:text-gray-600 text-sm">← 홈</Link>
-          <h1 className="text-2xl font-bold text-gray-900">#{tag}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{genre}</h1>
           <span className="text-gray-400 text-sm">{webtoons.length}개</span>
         </div>
 
@@ -83,7 +70,7 @@ export default async function TagPage({ params }: any) {
         </div>
 
         {webtoons.length === 0 && (
-          <p className="text-center text-gray-400 mt-8">해당 태그 작품이 없어요!</p>
+          <p className="text-center text-gray-400 mt-8">해당 장르 작품이 없어요!</p>
         )}
       </div>
     </main>
