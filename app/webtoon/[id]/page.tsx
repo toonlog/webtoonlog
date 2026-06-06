@@ -523,9 +523,17 @@ if (res.ok) {
                       <span className="font-bold text-sm">{review.nickname}</span>
                     )}
                 <StarDisplay rating={review.rating} size={13} />
-                   {review.userId === auth.userId && (
+                   {review.readStatus && (
                       <span className="text-xs px-2 py-0.5 rounded-full"
-                        style={{ background: '#EAF3DE', color: '#3B6D11' }}>
+                        style={{ background: '#EBF5FF', color: '#185FA5' }}>
+                        {review.readStatus}
+                      </span>
+                    )}
+                    {review.userId === auth.userId && (
+                      <span className="text-xs px-2 py-0.5 rounded-full"
+                        style={(review.is_public ?? true)
+                          ? { background: '#D1FAE5', color: '#059669' }
+                          : { background: '#F1EFE8', color: '#5F5E5A' }}>
                         {(review.is_public ?? true) ? '공개' : '비공개'}
                       </span>
                     )}

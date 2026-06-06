@@ -21,6 +21,12 @@ export async function GET(request) {
       } catch { userMap[uid] = null; }
     }));
 
+    const statusRecords = await base('READING_STATUS').select({
+      filterByFormula: `{webtoon_id} = "${webtoonId}"`,
+    }).all();
+    const statusMap = {};
+    statusRecords.forEach(s => { statusMap[s.fields.user_id] = s.fields.status; });
+
     return NextResponse.json(records.map(r => ({
       id: r.id,
       nickname: r.fields.nickname || '익명',
@@ -31,6 +37,7 @@ export async function GET(request) {
       tags: r.fields.tags || '',
       created_at: r.fields.created_at,
       is_public: r.fields.is_public ?? true,
+      readStatus: statusMap[r.fields.user_id] || null,
     })));
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
