@@ -14,7 +14,7 @@ function MiniCollectionCard({ c }: any) {
 
   return (
     <Link href={`/collections/${c.id}`}>
-      <div className="border rounded-xl overflow-hidden hover:bg-gray-50 transition">
+<div className="border border-gray-200 rounded-xl overflow-hidden hover:bg-gray-50 transition">
         <div className="grid grid-cols-2 w-full aspect-square">
           {[0,1,2,3].map(i => (
             <div key={i} className="bg-gray-100">
@@ -222,9 +222,12 @@ export default function MyPage() {
               </div>
             )}
             <button onClick={() => { setEditingImage(true); setNewImage(profileImage || ''); }}
-              className="absolute bottom-0 right-0 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              ✏️
-            </button>
+  className="absolute bottom-0 right-0 w-6 h-6 rounded-full border-2 border-gray-300 bg-white flex items-center justify-center hover:border-gray-400 transition">
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+  </svg>
+</button>
           </div>
           <div className="flex-1 min-w-0">
             {editingNickname ? (
