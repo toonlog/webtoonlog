@@ -51,14 +51,6 @@ function WebtoonCollectionSection({ collections }: { collections: any[] }) {
 }
 
 function getAuth() {
-  // ... 기존 코드 그대로
-
-'use client';
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-
-function getAuth() {
   return {
     token: localStorage.getItem('token'),
     nickname: localStorage.getItem('nickname'),
