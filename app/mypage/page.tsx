@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-function function MiniCollectionCard({ c }: any) {
+function MiniCollectionCard({ c }: any) {
   const [previews, setPreviews] = useState<any[]>([]);
 
   useEffect(() => {
