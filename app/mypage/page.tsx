@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-function MiniCollectionCard({ c }: any) {
+function function MiniCollectionCard({ c }: any) {
   const [previews, setPreviews] = useState<any[]>([]);
 
   useEffect(() => {
@@ -14,14 +14,14 @@ function MiniCollectionCard({ c }: any) {
 
   return (
     <Link href={`/collections/${c.id}`}>
-<div className="border border-gray-200 rounded-xl overflow-hidden hover:bg-gray-50 transition">
-        <div className="grid grid-cols-2 w-full aspect-square">
+      <div className="border border-gray-200 rounded-xl overflow-hidden hover:bg-gray-50 transition">
+        <div className="grid grid-cols-2 w-full" style={{ aspectRatio: '1' }}>
           {[0,1,2,3].map(i => (
-            <div key={i} className="bg-gray-100">
+            <div key={i} style={{ aspectRatio: '1', overflow: 'hidden' }}>
               {previews[i]?.thumbnail_url ? (
                 <img src={previews[i].thumbnail_url} alt="" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full bg-gray-200" />
+                <div className="w-full h-full bg-gray-100" />
               )}
             </div>
           ))}
@@ -269,7 +269,7 @@ export default function MyPage() {
             <h2 className="font-bold text-gray-900">내 컬렉션</h2>
             <Link href="/collections" className="text-xs text-blue-500 hover:underline">전체보기</Link>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {collections.map(c => (
               <MiniCollectionCard key={c.id} c={c} />
             ))}
