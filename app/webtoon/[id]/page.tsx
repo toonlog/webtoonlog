@@ -85,7 +85,7 @@ function StarDisplay({ rating, size = 13 }: { rating: number; size?: number }) {
 
 function StarPicker({ rating, onChange }: { rating: number; onChange: (v: number) => void }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <div style={{ display: 'flex', gap: '2px', cursor: 'pointer' }}>
         {[1, 2, 3, 4, 5].map(i => (
           <div key={i} style={{ display: 'flex' }}>
@@ -231,14 +231,15 @@ export default function WebtoonPage() {
     fetchReviews();
   }
 
-  async function saveEdit(reviewId: string) {
-    const res = await fetch('/api/reviews', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
-      body: JSON.stringify({ reviewId, rating: editRating, content: editContent, tags: editTags }),
-    });
-    if (res.ok) { setEditingId(null); fetchReviews(); }
-  }
+async function saveEdit(reviewId: string) {
+  const review = reviews.find(r => r.id === reviewId);
+  const res = await fetch('/api/reviews', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
+    body: JSON.stringify({ reviewId, rating: editRating, content: editContent, tags: editTags, is_public: review?.is_public ?? true }),
+  });
+  if (res.ok) { setEditingId(null); fetchReviews(); }
+}
 
   async function toggleReviewPublic(reviewId: string, current: boolean) {
     await fetch('/api/reviews', {
@@ -485,24 +486,21 @@ export default function WebtoonPage() {
         {displayedReviews.map((review, idx) => (
           <div key={review.id} className={idx > 0 ? 'border-t border-gray-100 pt-3 mt-3' : ''}>
            {editingId === review.id ? (
-              <div className="flex flex-col gap-2">
-                <StarPicker rating={editRating} onChange={setEditRating} />
-                <textarea className="border rounded-lg p-2 text-sm w-full" rows={3}
-                  value={editContent} onChange={e => setEditContent(e.target.value)} />
-              <TagInput value={editTags} onChange={setEditTags} />
-             <div className="flex items-center gap-2">
-                  <div onClick={() => {
-                      const next = !(review.is_public ?? true);
-                      toggleReviewPublic(review.id, review.is_public ?? true);
-                      setReviews(prev => prev.map(r => r.id === review.id ? { ...r, is_public: next } : r));
-                    }}
-                    style={{ width:36, height:20, borderRadius:10, background:(review.is_public??true)?'#3B82F6':'#B4B2A9', cursor:'pointer', display:'flex', alignItems:'center', padding:'2px', transition:'background 0.2s' }}>
-                    <div style={{ width:16, height:16, borderRadius:'50%', background:'#fff', transform:(review.is_public??true)?'translateX(16px)':'translateX(0)', transition:'transform 0.2s' }} />
+ <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <StarPicker rating={editRating} onChange={setEditRating} />
+                  <div onClick={() => { const next = !(review.is_public??true); toggleReviewPublic(review.id, review.is_public??true); setReviews(prev => prev.map(r => r.id===review.id ? {...r, is_public:next} : r)); }}
+                    style={{ width:28, height:16, borderRadius:8, background:(review.is_public??true)?'#3B82F6':'#B4B2A9', cursor:'pointer', display:'flex', alignItems:'center', padding:'2px', transition:'background 0.2s', flexShrink:0 }}>
+                    <div style={{ width:12, height:12, borderRadius:'50%', background:'#fff', transform:(review.is_public??true)?'translateX(12px)':'translateX(0)', transition:'transform 0.2s' }} />
                   </div>
                   <span className="text-xs" style={{ color:(review.is_public??true)?'#3B82F6':'#888780' }}>
                     {(review.is_public??true)?'공개':'나만보기'}
                   </span>
                 </div>
+                <textarea className="border rounded-lg p-2 text-sm w-full" rows={3}
+                  value={editContent} onChange={e => setEditContent(e.target.value)} />
+              <TagInput value={editTags} onChange={setEditTags} />
+
                 <div className="flex gap-2">
                   <button onClick={() => saveEdit(review.id)}
                     className="px-3 py-1 rounded-lg text-sm text-white border-none"
