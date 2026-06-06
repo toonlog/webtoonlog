@@ -14,7 +14,7 @@ function StarPicker({ rating, onChange }: { rating: number; onChange: (v: number
             <svg width={26} height={26} viewBox="0 0 24 24" onClick={() => onChange(i - 0.5)} style={{ cursor: 'pointer' }}>
               <defs>
                 <linearGradient id={`mp-half-${i}`}>
-                  <stop offset="50%" stopColor={rating >= i - 0.5 ? '#E9A800' : '#D3D1C7'} />
+                 <stop offset="50%" stopColor={rating >= i - 0.5 ? '#F59E0B' : '#D3D1C7'} />
                   <stop offset="50%" stopColor="#D3D1C7" />
                 </linearGradient>
               </defs>
