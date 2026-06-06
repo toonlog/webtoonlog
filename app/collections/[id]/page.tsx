@@ -16,13 +16,16 @@ export default function CollectionDetailPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
-  const [pendingItems, setPendingItems] = useState<any[]>([]);
+const [pendingItems, setPendingItems] = useState<any[]>([]);
+  const [likeCount, setLikeCount] = useState(0);
+  const [liked, setLiked] = useState(false);
 
   useEffect(() => {
     const userId = localStorage.getItem('userId');
     setMyUserId(userId);
-    fetchCollection();
+fetchCollection();
     fetchItems();
+    fetchLike();
   }, [collectionId]);
 
   async function fetchCollection() {
@@ -44,6 +47,27 @@ export default function CollectionDetailPage() {
     const data = await res.json();
     setItems(data);
     setLoading(false);
+  }
+
+async function fetchLike() {
+    const userId = localStorage.getItem('userId') || '';
+    const res = await fetch(`/api/collections/like?collectionId=${collectionId}&userId=${userId}`);
+    const data = await res.json();
+    setLikeCount(data.count || 0);
+    setLiked(data.liked || false);
+  }
+
+  async function toggleLike() {
+    const token = localStorage.getItem('token');
+    if (!token) return router.push('/login');
+    const res = await fetch('/api/collections/like', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ collectionId }),
+    });
+    const data = await res.json();
+    setLiked(data.liked);
+    setLikeCount(prev => prev + (data.liked ? 1 : -1));
   }
 
 async function searchWebtoons(q: string) {
@@ -110,7 +134,19 @@ async function searchWebtoons(q: string) {
           )}
         </div>
         {collection?.description && <p className="text-gray-500 text-sm mt-1">{collection.description}</p>}
-        <p className="text-gray-400 text-xs mt-2">웹툰 {items.length}개</p>
+<div className="flex items-center gap-3 mt-2">
+          <p className="text-gray-400 text-xs">웹툰 {items.length}개</p>
+          <button onClick={toggleLike}
+            className="flex items-center gap-1 text-xs transition-all"
+            style={{
+              color: liked ? '#ec4899' : '#9ca3af',
+              fontSize: '15px',
+              WebkitTextStroke: liked ? '0.5px #ec4899' : 'none',
+              pointerEvents: liked ? 'none' : 'auto',
+            }}>
+            ♥ {likeCount}
+          </button>
+        </div>
         {isOwner && (
           <button onClick={() => setShowSearch(!showSearch)}
             className="mt-3 text-sm bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">

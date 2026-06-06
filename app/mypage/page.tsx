@@ -85,7 +85,8 @@ export default function MyPage() {
   const [newNickname, setNewNickname] = useState('');
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [editingImage, setEditingImage] = useState(false);
-  const [newImage, setNewImage] = useState('');
+const [newImage, setNewImage] = useState('');
+  const [likedCollections, setLikedCollections] = useState<any[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -96,7 +97,8 @@ export default function MyPage() {
     setUserId(uid);
     fetchData(token, uid);
     fetchFollowCounts(uid);
-    fetchCollections(uid);
+fetchCollections(uid);
+    fetchLikedCollections(uid);
   }, []);
 
   function fetchData(token: string, uid: string) {
@@ -121,6 +123,12 @@ export default function MyPage() {
     fetch(`/api/collections?userId=${uid}`)
       .then(r => r.json())
       .then(data => setCollections(Array.isArray(data) ? data.slice(0, 4) : []));
+  }
+
+async function fetchLikedCollections(uid: string) {
+    const res = await fetch(`/api/collections/like?userId=${uid}`);
+    const data = await res.json();
+    setLikedCollections(Array.isArray(data) ? data : []);
   }
 
   function refetch() {
@@ -305,6 +313,18 @@ async function saveProfileImage() {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {collections.map(c => (
+              <MiniCollectionCard key={c.id} c={c} />
+            ))}
+          </div>
+        </div>
+      )}
+
+    {/* 좋아요한 컬렉션 */}
+      {likedCollections.length > 0 && (
+        <div className="bg-white rounded-xl shadow p-4 mb-4">
+          <h2 className="font-bold text-gray-900 mb-3">좋아요한 컬렉션</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {likedCollections.map(c => (
               <MiniCollectionCard key={c.id} c={c} />
             ))}
           </div>
