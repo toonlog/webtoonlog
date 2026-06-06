@@ -59,7 +59,7 @@ async function getBoomWebtoons() {
   } catch { return []; }
 }
 
-const ALL_GENRES = ['BL', 'GL', '로맨스', '판타지', '현대', '드라마', '액션', '무협', '스릴러', '공호', '개그', 'SF', '스포츠', '일상'];
+const ALL_GENRES = ['BL', 'GL', '로맨스', '판타지', '현대', '드라마', '액션', '무협', '스릴러', '공포', '개그', 'SF', '스포츠', '일상'];
 const ALL_PLATFORMS = ['네이버웹툰', '카카오페이지', '레진코믹스', '봄툰', '리디', '피너툰', '탑툰', '코미코', '기타'];
 const TOP_GENRES = ALL_GENRES.slice(0, 5);
 const TOP_PLATFORMS = ALL_PLATFORMS.slice(0, 5);
@@ -201,7 +201,7 @@ export default async function Home({ searchParams }: any) {
           ))}
         </div>
 
-      {/* PC */}
+        {/* PC */}
         <div className="hidden md:grid md:grid-cols-4 gap-4">
           {webtoons.map((webtoon: any) => (
             <Link href={`/webtoon/${webtoon.id}`} key={webtoon.id} className="flex">
@@ -227,6 +227,7 @@ export default async function Home({ searchParams }: any) {
             </Link>
           ))}
         </div>
+      </div>
 
       {webtoons.length === 0 && <p className="text-center text-gray-400 mt-8">검색 결과가 없어요!</p>}
 
