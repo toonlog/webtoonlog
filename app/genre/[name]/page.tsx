@@ -1,36 +1,32 @@
+'use client';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import base from '../../lib/airtable';
 
-async function getWebtoonsByGenre(genre: string) {
-  const decoded = decodeURIComponent(genre);
-  const records = await base('WEBTOON').select({
-    maxRecords: 100,
-    sort: [{ field: 'title', direction: 'asc' }],
-  }).all();
-
-  return records
-    .map(r => ({ id: r.id, ...r.fields }))
-    .filter((w: any) => {
-      if (!w.genre) return false;
-      const genres = w.genre.split(',').map((g: string) => g.trim());
-      return genres.includes(decoded);
-    }) as any[];
-}
-
-export default async function GenrePage({ params }: any) {
-  const { name } = await params;
+export default function GenrePage() {
+  const params = useParams();
+  const router = useRouter();
+  const name = params.name as string;
   const genre = decodeURIComponent(name);
-  const webtoons = await getWebtoonsByGenre(name);
+  const [webtoons, setWebtoons] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`/api/genre?name=${encodeURIComponent(genre)}`)
+      .then(r => r.json())
+      .then(data => { setWebtoons(data); setLoading(false); });
+  }, [genre]);
+
+  if (loading) return <div className="p-8 text-center">로딩중...</div>;
 
   return (
     <main className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
-          <Link href="/" className="text-gray-400 hover:text-gray-600 text-sm">← 홈</Link>
+          <button onClick={() => router.back()} className="text-gray-400 hover:text-gray-600 text-sm">←</button>
           <h1 className="text-2xl font-bold text-gray-900">{genre}</h1>
           <span className="text-gray-400 text-sm">{webtoons.length}개</span>
         </div>
-
         <div className="flex flex-col gap-3 md:hidden">
           {webtoons.map((webtoon: any) => (
             <Link href={`/webtoon/${webtoon.id}`} key={webtoon.id}>
@@ -49,7 +45,6 @@ export default async function GenrePage({ params }: any) {
             </Link>
           ))}
         </div>
-
         <div className="hidden md:grid md:grid-cols-4 gap-4">
           {webtoons.map((webtoon: any) => (
             <Link href={`/webtoon/${webtoon.id}`} key={webtoon.id} className="flex">
@@ -68,10 +63,7 @@ export default async function GenrePage({ params }: any) {
             </Link>
           ))}
         </div>
-
-        {webtoons.length === 0 && (
-          <p className="text-center text-gray-400 mt-8">해당 장르 작품이 없어요!</p>
-        )}
+        {webtoons.length === 0 && <p className="text-center text-gray-400 mt-8">해당 장르 작품이 없어요!</p>}
       </div>
     </main>
   );
