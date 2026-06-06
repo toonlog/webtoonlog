@@ -146,6 +146,8 @@ const [reviewPage, setReviewPage] = useState(1);
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const [comments, setComments] = useState<Record<string, any[]>>({});
   const [commentInput, setCommentInput] = useState<Record<string, string>>({});
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editCommentContent, setEditCommentContent] = useState('');
 
   useEffect(() => {
     const a = getAuth();
@@ -304,6 +306,17 @@ async function fetchLikes(reviewId: string) {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${auth.token}` },
     });
+    fetchComments(reviewId);
+  }
+
+async function saveCommentEdit(reviewId: string, commentId: string) {
+    if (!editCommentContent.trim()) return;
+    await fetch('/api/reviews/comments', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
+      body: JSON.stringify({ commentId, content: editCommentContent }),
+    });
+    setEditingCommentId(null);
     fetchComments(reviewId);
   }
 
@@ -545,8 +558,7 @@ async function fetchLikes(reviewId: string) {
         {reviews.length === 0 && <p className="text-gray-400 text-sm">아직 리뷰가 없어요!</p>}
 
         {displayedReviews.map((review, idx) => (
-          <div key={review.id} className={idx > 0 ? 'border-t border-gray-100 pt-3 mt-3' : ''}>
-           {editingId === review.id ? (
+<div key={review.id} className={idx > 0 ? 'border-t border-gray-100 pt-9 mt-9' : ''}>           {editingId === review.id ? (
  <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   <StarPicker rating={editRating} onChange={setEditRating} />
@@ -649,22 +661,42 @@ async function fetchLikes(reviewId: string) {
                 {expandedComments[review.id] && (
                   <div className="mt-2 pl-2 border-l-2 border-gray-100">
                     {(comments[review.id] || []).map(c => (
-                    <div key={c.id} className="flex items-start justify-between py-1">
-                        <div className="flex items-center gap-1 flex-wrap">
-                          {c.profileImage ? (
-                            <img src={c.profileImage} alt={c.nickname} className="rounded-full object-cover flex-shrink-0" style={{ width: 14, height: 14 }} />
-                          ) : (
-                            <div className="rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0" style={{ width: 14, height: 14, fontSize: 8 }}>
-                              {c.nickname?.[0]?.toUpperCase()}
+                    <div key={c.id} className="py-1.5">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1">
+                            {c.profileImage ? (
+                              <img src={c.profileImage} alt={c.nickname} className="rounded-full object-cover flex-shrink-0" style={{ width: 14, height: 14 }} />
+                            ) : (
+                              <div className="rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0" style={{ width: 14, height: 14, fontSize: 8 }}>
+                                {c.nickname?.[0]?.toUpperCase()}
+                              </div>
+                            )}
+                            <span className="text-xs font-bold text-gray-700">{c.nickname}</span>
+                            <span className="text-xs text-gray-300">{c.created_at}</span>
+                          </div>
+                          {c.userId === auth.userId && (
+                            <div className="flex gap-2">
+                              <button onClick={() => { setEditingCommentId(c.id); setEditCommentContent(c.content); }}
+                                className="text-xs text-gray-300 hover:text-blue-400">수정</button>
+                              <button onClick={() => deleteComment(review.id, c.id)}
+                                className="text-xs text-gray-300 hover:text-red-400">삭제</button>
                             </div>
                           )}
-                          <span className="text-xs font-bold text-gray-700">{c.nickname}</span>
-                          <span className="text-xs text-gray-600">{c.content}</span>
-                          <span className="text-xs text-gray-300">{c.created_at}</span>
                         </div>
-                        {c.userId === auth.userId && (
-                          <button onClick={() => deleteComment(review.id, c.id)}
-                            className="text-xs text-gray-300 hover:text-red-400 ml-2 flex-shrink-0">삭제</button>
+                        {editingCommentId === c.id ? (
+                          <div className="flex gap-1 mt-1">
+                            <input className="flex-1 border rounded px-2 py-1 text-xs"
+                              value={editCommentContent}
+                              onChange={e => setEditCommentContent(e.target.value)}
+                              onKeyDown={e => e.key === 'Enter' && saveCommentEdit(review.id, c.id)} />
+                            <button onClick={() => saveCommentEdit(review.id, c.id)}
+                              className="text-xs px-2 py-1 rounded text-white border-none"
+                              style={{ background: '#3B82F6' }}>저장</button>
+                            <button onClick={() => setEditingCommentId(null)}
+                              className="text-xs px-2 py-1 rounded bg-gray-100">취소</button>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-gray-600 mt-0.5 ml-4">{c.content}</p>
                         )}
                       </div>
                     ))}
