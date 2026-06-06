@@ -63,7 +63,7 @@ function StarDisplay({ rating, size = 13 }: { rating: number; size?: number }) {
   return (
     <div style={{ display: 'flex', gap: '1px', alignItems: 'center' }}>
       {[1, 2, 3, 4, 5].map(i => {
-        const fill = rating >= i ? '#E9A800' : rating >= i - 0.5 ? 'url(#half)' : '#D3D1C7';
+      const fill = rating >= i ? '#F59E0B' : rating >= i - 0.5 ? 'url(#half)' : '#D3D1C7';
         return (
           <svg key={i} width={size} height={size} viewBox="0 0 24 24">
             {i === 1 && (
@@ -100,7 +100,7 @@ function StarPicker({ rating, onChange }: { rating: number; onChange: (v: number
               <svg width={22} height={22} viewBox="2 2 20 20">
                 <defs>
                   <linearGradient id={`half-${i}`}>
-                    <stop offset="50%" stopColor="#E9A800" />
+                <stop offset="50%" stopColor="#F59E0B" />
                     <stop offset="50%" stopColor="#D3D1C7" />
                   </linearGradient>
                 </defs>
@@ -642,11 +642,10 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
                   <p className="text-xs text-gray-400">{review.created_at}</p>
                  <button onClick={() => toggleLike(review.id)}
                     className="flex items-center gap-1 text-xs transition-all"
-                   style={{
+                  style={{
                       color: reviewLikes[review.id]?.liked ? '#ec4899' : '#9ca3af',
                       fontSize: '15px',
                       WebkitTextStroke: reviewLikes[review.id]?.liked ? '0.5px #ec4899' : 'none',
-                      pointerEvents: reviewLikes[review.id]?.liked ? 'none' : 'auto',
                     }}>
                     ♥ {reviewLikes[review.id]?.count || 0}
                   </button>
