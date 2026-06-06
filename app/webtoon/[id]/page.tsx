@@ -86,7 +86,7 @@ function StarDisplay({ rating, size = 13 }: { rating: number; size?: number }) {
 function StarPicker({ rating, onChange }: { rating: number; onChange: (v: number) => void }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-<div style={{ display: 'flex', gap: '4px', cursor: 'pointer' }}>
+<div style={{ display: 'flex', gap: '6px', cursor: 'pointer' }}>
         {[1, 2, 3, 4, 5].map(i => (
           <div key={i} style={{ display: 'flex' }}>
             <svg
