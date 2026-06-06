@@ -9,6 +9,7 @@ export default function MyPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [reviews, setReviews] = useState<any[]>([]);
   const [statuses, setStatuses] = useState<any[]>([]);
+  const [collections, setCollections] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'reviews' | 'status'>('reviews');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -32,7 +33,7 @@ export default function MyPage() {
     setUserId(uid);
     fetchData(token, uid);
     fetchFollowCounts(uid);
-    fetchProfile(uid);
+    fetchCollections(uid);
   }, []);
 
   function fetchData(token: string, uid: string) {
@@ -53,10 +54,10 @@ export default function MyPage() {
     });
   }
 
-  function fetchProfile(uid: string) {
-    fetch(`/api/users/${uid}`).then(r => r.json()).then(data => {
-      setProfileImage(data.user?.profile_image || null);
-    });
+  function fetchCollections(uid: string) {
+    fetch(`/api/collections?userId=${uid}`)
+      .then(r => r.json())
+      .then(data => setCollections(Array.isArray(data) ? data.slice(0, 4) : []));
   }
 
   function refetch() {
@@ -105,7 +106,7 @@ export default function MyPage() {
     refetch();
   }
 
-async function saveEdit(reviewId: string) {
+  async function saveEdit(reviewId: string) {
     const token = localStorage.getItem('token');
     const res = await fetch('/api/reviews', {
       method: 'PATCH',
@@ -175,10 +176,12 @@ async function saveEdit(reviewId: string) {
   if (loading) return <div className="p-8 text-center">로딩중...</div>;
 
   return (
-    <main className="min-h-screen bg-gray-50 p-8 max-w-2xl mx-auto pb-32">
-      <div className="bg-white rounded-xl shadow p-6 mb-6">
+    <main className="min-h-screen bg-gray-50 p-4 md:p-8 max-w-2xl mx-auto pb-24">
+
+      {/* 프로필 */}
+      <div className="bg-white rounded-xl shadow p-6 mb-4">
         <div className="flex items-center gap-4 mb-4">
-          <div className="relative">
+          <div className="relative flex-shrink-0">
             {profileImage ? (
               <img src={profileImage} alt="프로필" className="w-16 h-16 rounded-full object-cover" />
             ) : (
@@ -191,20 +194,20 @@ async function saveEdit(reviewId: string) {
               ✏️
             </button>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {editingNickname ? (
-              <div className="flex items-center gap-2">
-                <input className="border rounded-lg px-3 py-1 text-sm w-36"
+              <div className="flex flex-wrap items-center gap-2">
+                <input className="border rounded-lg px-2 py-1 text-sm w-28"
                   value={newNickname} onChange={e => setNewNickname(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && saveNickname()} />
-                <button onClick={saveNickname} className="text-sm bg-blue-500 text-white px-3 py-1 rounded-lg">저장</button>
-                <button onClick={() => setEditingNickname(false)} className="text-sm text-gray-400">취소</button>
+                <button onClick={saveNickname} className="text-xs bg-blue-500 text-white px-2 py-1 rounded-lg">저장</button>
+                <button onClick={() => setEditingNickname(false)} className="text-xs text-gray-400">취소</button>
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold text-gray-900">{nickname}</h1>
+                <h1 className="text-xl font-bold text-gray-900 truncate">{nickname}</h1>
                 <button onClick={() => { setEditingNickname(true); setNewNickname(nickname || ''); }}
-                  className="text-xs text-gray-400 hover:text-blue-500">수정</button>
+                  className="text-xs text-gray-400 hover:text-blue-500 flex-shrink-0">수정</button>
               </div>
             )}
             <div className="flex gap-4 mt-2 text-sm text-gray-500">
@@ -212,15 +215,9 @@ async function saveEdit(reviewId: string) {
               <span>팔로잉 <strong className="text-gray-800">{followingCount}</strong></span>
             </div>
           </div>
-          {userId && (
-            <Link href={`/users/${userId}`} className="text-sm text-blue-500 hover:underline">
-              내 프로필
-            </Link>
-          )}
         </div>
-
         {editingImage && (
-          <div className="flex gap-2 mt-2">
+          <div className="flex gap-2">
             <input className="border rounded-lg px-3 py-1 text-sm flex-1"
               placeholder="이미지 URL 입력"
               value={newImage} onChange={e => setNewImage(e.target.value)} />
@@ -230,6 +227,27 @@ async function saveEdit(reviewId: string) {
         )}
       </div>
 
+      {/* 컬렉션 */}
+      {collections.length > 0 && (
+        <div className="bg-white rounded-xl shadow p-6 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-bold text-gray-900">내 컬렉션</h2>
+            <Link href="/collections" className="text-xs text-blue-500 hover:underline">전체보기</Link>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {collections.map(c => (
+              <Link key={c.id} href={`/collections/${c.id}`}>
+                <div className="border rounded-xl p-3 hover:bg-gray-50 transition">
+                  <p className="font-bold text-sm text-gray-900 truncate">{c.name}</p>
+                  <p className="text-xs text-gray-400 mt-1">{c.is_public ? '공개' : '비공개'}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 탭 */}
       <div className="flex mb-4 bg-white rounded-xl shadow p-1 gap-1">
         <button onClick={() => setTab('reviews')}
           className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${tab === 'reviews' ? 'bg-blue-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`}>
@@ -241,6 +259,7 @@ async function saveEdit(reviewId: string) {
         </button>
       </div>
 
+      {/* 내 리뷰 */}
       {tab === 'reviews' && (
         <div className="bg-white rounded-xl shadow p-6">
           {reviews.length === 0 && <p className="text-gray-400">아직 작성한 리뷰가 없어요!</p>}
@@ -252,29 +271,29 @@ async function saveEdit(reviewId: string) {
                 ) : (
                   <div className="w-10 h-14 bg-gray-200 rounded flex-shrink-0" />
                 )}
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1">
                     {review.webtoon_id ? (
-                      <Link href={`/webtoon/${review.webtoon_id}`} className="font-bold text-blue-500 hover:underline text-sm">
+                      <Link href={`/webtoon/${review.webtoon_id}`} className="font-bold text-blue-500 hover:underline text-sm truncate">
                         {review.webtoon_title || review.webtoon_id}
                       </Link>
                     ) : (
                       <span className="font-bold text-gray-400 text-sm">웹툰 정보 없음</span>
                     )}
-                    <div className="flex gap-2">
-  <button onClick={() => togglePublic(review.id, review.is_public ?? true)}
-    className={`text-xs px-2 py-0.5 rounded-full border transition ${
-      review.is_public ?? true
-        ? 'text-green-600 border-green-300 hover:bg-red-50 hover:text-red-500 hover:border-red-300'
-        : 'text-gray-400 border-gray-300 hover:bg-green-50 hover:text-green-600 hover:border-green-300'
-    }`}>
-    {review.is_public ?? true ? '공개' : '비공개'}
-  </button>
-  <button onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); }}
-    className="text-xs text-gray-400 hover:text-blue-500">수정</button>
-  <button onClick={() => deleteReview(review.id)}
-    className="text-xs text-gray-400 hover:text-red-500">삭제</button>
-</div>
+                    <div className="flex gap-1 flex-shrink-0">
+                      <button onClick={() => togglePublic(review.id, review.is_public ?? true)}
+                        className={`text-xs px-1.5 py-0.5 rounded-full border transition ${
+                          review.is_public ?? true
+                            ? 'text-green-600 border-green-300'
+                            : 'text-gray-400 border-gray-300'
+                        }`}>
+                        {review.is_public ?? true ? '공개' : '비공개'}
+                      </button>
+                      <button onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); }}
+                        className="text-xs text-gray-400 hover:text-blue-500">수정</button>
+                      <button onClick={() => deleteReview(review.id)}
+                        className="text-xs text-gray-400 hover:text-red-500">삭제</button>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-yellow-400 text-sm">{'★'.repeat(review.rating)}</span>
@@ -307,6 +326,7 @@ async function saveEdit(reviewId: string) {
         </div>
       )}
 
+      {/* 읽기 상태 */}
       {tab === 'status' && (
         <div className="bg-white rounded-xl shadow p-6">
           <div className="flex gap-2 flex-wrap mb-4">
@@ -320,24 +340,33 @@ async function saveEdit(reviewId: string) {
           {filteredStatuses.length === 0 && <p className="text-gray-400">해당 상태의 작품이 없어요!</p>}
           {filteredStatuses.map(s => (
             <div key={s.id} className="border-b py-4 last:border-0">
-              <div className="flex items-center justify-between mb-2">
-                {s.webtoon_id ? (
-                  <Link href={`/webtoon/${s.webtoon_id}`} className="font-bold text-blue-500 hover:underline text-sm">
-                    {s.webtoon_title || s.webtoon_id}
-                  </Link>
+              <div className="flex items-center gap-3 mb-2">
+                {s.thumbnail_url ? (
+                  <img src={s.thumbnail_url} alt={s.webtoon_title} className="w-10 h-14 object-cover rounded flex-shrink-0" />
                 ) : (
-                  <span className="font-bold text-gray-400 text-sm">웹툰 정보 없음</span>
+                  <div className="w-10 h-14 bg-gray-200 rounded flex-shrink-0" />
                 )}
-                <button onClick={() => deleteStatus(s.webtoon_id)}
-                  className="text-xs text-gray-400 hover:text-red-500">삭제</button>
-              </div>
-              <div className="flex gap-2 flex-wrap">
-                {statusList.map(st => (
-                  <button key={st} onClick={() => changeStatus(s.webtoon_id, st)}
-                    className={`px-3 py-1 rounded-full text-xs border transition ${s.status === st ? 'bg-blue-500 text-white border-blue-500' : 'text-gray-500 hover:bg-gray-100'}`}>
-                    {st}
-                  </button>
-                ))}
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    {s.webtoon_id ? (
+                      <Link href={`/webtoon/${s.webtoon_id}`} className="font-bold text-blue-500 hover:underline text-sm">
+                        {s.webtoon_title || s.webtoon_id}
+                      </Link>
+                    ) : (
+                      <span className="font-bold text-gray-400 text-sm">웹툰 정보 없음</span>
+                    )}
+                    <button onClick={() => deleteStatus(s.webtoon_id)}
+                      className="text-xs text-gray-400 hover:text-red-500">삭제</button>
+                  </div>
+                  <div className="flex gap-2 flex-wrap mt-2">
+                    {statusList.map(st => (
+                      <button key={st} onClick={() => changeStatus(s.webtoon_id, st)}
+                        className={`px-3 py-1 rounded-full text-xs border transition ${s.status === st ? 'bg-blue-500 text-white border-blue-500' : 'text-gray-500 hover:bg-gray-100'}`}>
+                        {st}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           ))}

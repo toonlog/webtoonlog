@@ -204,16 +204,18 @@ export default async function Home({ searchParams }: any) {
         {/* PC */}
         <div className="hidden md:grid md:grid-cols-4 gap-4">
           {webtoons.map((webtoon: any) => (
-            <Link href={`/webtoon/${webtoon.id}`} key={webtoon.id}>
-              <div className="bg-white rounded-xl shadow p-4 hover:shadow-md transition cursor-pointer">
+            <Link href={`/webtoon/${webtoon.id}`} key={webtoon.id} className="flex">
+              <div className="bg-white rounded-xl shadow p-4 hover:shadow-md transition cursor-pointer flex flex-col w-full">
                 {webtoon.thumbnail_url ? (
                   <img src={webtoon.thumbnail_url} alt={webtoon.title} className="w-full h-40 object-cover rounded-lg mb-3" />
                 ) : (
                   <div className="bg-gray-200 rounded-lg h-40 mb-3" />
                 )}
-                <h2 className="font-bold text-sm text-gray-900">{webtoon.title}</h2>
-                <p className="text-xs text-gray-500">{webtoon.author}</p>
-                <p className="text-xs text-blue-500">{Array.isArray(webtoon.platform) ? webtoon.platform.join(', ') : webtoon.platform}</p>
+             <div className="flex flex-col flex-1">
+                  <h2 className="font-bold text-sm text-gray-900">{webtoon.title}</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">{webtoon.author}</p>
+                  <p className="text-xs text-blue-500 mt-0.5">{Array.isArray(webtoon.platform) ? webtoon.platform.join(', ') : webtoon.platform}</p>
+                </div>
                 {webtoon.review_count > 0 && (
                   <div className="flex items-center gap-1 mt-1">
                     <span className="text-yellow-400 text-xs">★</span>
@@ -221,6 +223,7 @@ export default async function Home({ searchParams }: any) {
                     <span className="text-xs text-gray-400">({webtoon.review_count})</span>
                   </div>
                 )}
+              </div>
               </div>
             </Link>
           ))}

@@ -18,6 +18,7 @@ export default function WebtoonPage() {
 
   const [webtoon, setWebtoon] = useState<any>(null);
   const [reviews, setReviews] = useState<any[]>([]);
+  const [sortOrder, setSortOrder] = useState<'latest' | 'likes'>('latest');
   const [readStatus, setReadStatus] = useState<string | null>(null);
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState('');
@@ -133,9 +134,16 @@ export default function WebtoonPage() {
   if (!webtoon) return <div className="p-8 text-center">로딩중...</div>;
   const myReview = reviews.find(r => r.userId === auth.userId);
   const genres = webtoon.genre ? webtoon.genre.split(',').map((g: string) => g.trim()).filter(Boolean) : [];
+  const avgRating = reviews.length > 0
+    ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
+    : null;
+  const sortedReviews = [...reviews].sort((a, b) => {
+    if (sortOrder === 'likes') return (b.likes || 0) - (a.likes || 0);
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
 
   return (
-    <main className="min-h-screen bg-gray-50 p-8 max-w-2xl mx-auto">
+    <main className="min-h-screen bg-gray-50 p-4 md:p-8 max-w-2xl mx-auto">
 
       {/* 작품 정보 */}
       <div className="bg-white rounded-xl shadow p-6 mb-6">
@@ -146,7 +154,7 @@ export default function WebtoonPage() {
           <div className="flex-1">
             <h1 className="text-2xl font-bold mb-1 text-gray-900">{webtoon.title}</h1>
             <p className="text-gray-500 mb-1">{webtoon.author}</p>
-            <p className="text-blue-500 text-sm mb-3">{webtoon.platform}</p>
+            <p className="text-blue-500 text-sm mb-3">{Array.isArray(webtoon.platform) ? webtoon.platform.join(', ') : webtoon.platform}</p>
             {genres.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {genres.map((g: string) => (
@@ -213,7 +221,7 @@ export default function WebtoonPage() {
               <Link key={c.id} href={`/collections/${c.id}`}
                 className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition border">
                 <span className="font-medium text-sm">{c.name}</span>
-                {c.description && <span className="text-gray-400 text-xs">{c.description}</span>}
+                {c.description && <span className="text-gray-400 text-xs truncate ml-2">{c.description}</span>}
               </Link>
             ))}
           </div>
@@ -249,15 +257,27 @@ export default function WebtoonPage() {
 
       {/* 리뷰 목록 */}
       <div className="bg-white rounded-xl shadow p-6">
-        <div className="flex flex-col gap-2 mb-4">
-          <h2 className="text-lg font-bold">리뷰 {reviews.length}개</h2>
-          <div className="flex gap-2">
-            <button className="text-xs px-3 py-1 rounded-full bg-blue-500 text-white">최신순</button>
-            <button className="text-xs px-3 py-1 rounded-full border text-gray-500">좋아요순</button>
+        <div className="mb-4">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-bold">리뷰 {reviews.length}개</h2>
+            {avgRating && (
+              <span className="text-sm text-gray-500">· 평균 <span className="text-yellow-500 font-bold">★{avgRating}</span></span>
+            )}
+          </div>
+          <div className="flex gap-2 mt-2">
+            <button onClick={() => setSortOrder('latest')}
+              className={`text-xs px-3 py-1 rounded-full border transition ${sortOrder === 'latest' ? 'bg-blue-500 text-white border-blue-500' : 'text-gray-500 hover:bg-gray-100'}`}>
+              최신순
+            </button>
+            <button onClick={() => setSortOrder('likes')}
+              className={`text-xs px-3 py-1 rounded-full border transition ${sortOrder === 'likes' ? 'bg-blue-500 text-white border-blue-500' : 'text-gray-500 hover:bg-gray-100'}`}>
+              좋아요순
+            </button>
           </div>
         </div>
-        {reviews.length === 0 && <p className="text-gray-400">아직 리뷰가 없어요!</p>}
-        {reviews.map(review => (
+
+        {sortedReviews.length === 0 && <p className="text-gray-400">아직 리뷰가 없어요!</p>}
+        {sortedReviews.map(review => (
           <div key={review.id} className="border-b py-4 last:border-0">
             {editingId === review.id ? (
               <div className="flex flex-col gap-2">
@@ -270,7 +290,8 @@ export default function WebtoonPage() {
                   value={editContent} onChange={e => setEditContent(e.target.value)} />
                 <div className="flex gap-2">
                   <button onClick={() => saveEdit(review.id)} className="bg-blue-500 text-white px-3 py-1 rounded text-sm">저장</button>
-<button onClick={() => setEditingId(null)} className="bg-gray-100 px-3 py-1 rounded text-sm">취소</button>                </div>
+                  <button onClick={() => setEditingId(null)} className="bg-gray-100 px-3 py-1 rounded text-sm">취소</button>
+                </div>
               </div>
             ) : (
               <>
