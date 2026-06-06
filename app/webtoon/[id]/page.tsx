@@ -630,26 +630,20 @@ async function fetchLikes(reviewId: string) {
                   <p className="text-xs text-gray-400">{review.created_at}</p>
                  <button onClick={() => toggleLike(review.id)}
                     className="flex items-center gap-1 text-xs transition-all"
-                    style={{
-                      color: reviewLi<button onClick={() => toggleLike(review.id)}
-                    className="flex items-center gap-1 text-xs transition-all"
-                    style={{
+                   style={{
                       color: reviewLikes[review.id]?.liked ? '#ec4899' : '#9ca3af',
                       fontSize: '15px',
                       WebkitTextStroke: reviewLikes[review.id]?.liked ? '0.5px #ec4899' : 'none',
                       pointerEvents: reviewLikes[review.id]?.liked ? 'none' : 'auto',
                     }}>
                     ♥ {reviewLikes[review.id]?.count || 0}
-                  </button>kes[review.id]?.liked ? '#E9A800' : '#9ca3af',
-                      fontSize: reviewLikes[review.id]?.liked ? '15px' : '12.5px',
-                      WebkitTextStroke: reviewLikes[review.id]?.liked ? '0.5px #E9A800' : 'none',
-                      pointerEvents: reviewLikes[review.id]?.liked ? 'none' : 'auto',
-                    }}>
-                    ♥ {reviewLikes[review.id]?.count || 0}
                   </button>
-                  <button onClick={() => toggleComments(review.id)}
-                    className="text-xs text-gray-400 hover:text-blue-500">
-                    💬 댓글 {comments[review.id]?.length ?? ''}
+                 <button onClick={() => toggleComments(review.id)}
+                    className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-500">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    {comments[review.id]?.length ?? ''}
                   </button>
                 </div>
                 {expandedComments[review.id] && (
