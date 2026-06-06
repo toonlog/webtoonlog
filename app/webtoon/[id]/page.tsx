@@ -490,24 +490,18 @@ export default function WebtoonPage() {
                 <textarea className="border rounded-lg p-2 text-sm w-full" rows={3}
                   value={editContent} onChange={e => setEditContent(e.target.value)} />
               <TagInput value={editTags} onChange={setEditTags} />
-                <div className="flex items-center gap-2">
-                  <span className="text-xs" style={{ color: (review.is_public ?? true) ? '#3B82F6' : '#888780' }}>
-                    {(review.is_public ?? true) ? '공개' : '나만보기'}
-                  </span>
-                  <div
-                    onClick={() => toggleReviewPublic(review.id, review.is_public ?? true)}
-                    style={{
-                      width: 36, height: 20, borderRadius: 10,
-                      background: (review.is_public ?? true) ? '#3B82F6' : '#B4B2A9',
-                      cursor: 'pointer', position: 'relative',
-                      transition: 'background 0.2s', display: 'flex', alignItems: 'center', padding: '2px'
-                    }}>
-                    <div style={{
-                      width: 16, height: 16, borderRadius: '50%', background: '#fff',
-                      transform: (review.is_public ?? true) ? 'translateX(16px)' : 'translateX(0)',
-                      transition: 'transform 0.2s'
-                    }} />
+             <div className="flex items-center gap-2">
+                  <div onClick={() => {
+                      const next = !(review.is_public ?? true);
+                      toggleReviewPublic(review.id, review.is_public ?? true);
+                      setReviews(prev => prev.map(r => r.id === review.id ? { ...r, is_public: next } : r));
+                    }}
+                    style={{ width:36, height:20, borderRadius:10, background:(review.is_public??true)?'#3B82F6':'#B4B2A9', cursor:'pointer', display:'flex', alignItems:'center', padding:'2px', transition:'background 0.2s' }}>
+                    <div style={{ width:16, height:16, borderRadius:'50%', background:'#fff', transform:(review.is_public??true)?'translateX(16px)':'translateX(0)', transition:'transform 0.2s' }} />
                   </div>
+                  <span className="text-xs" style={{ color:(review.is_public??true)?'#3B82F6':'#888780' }}>
+                    {(review.is_public??true)?'공개':'나만보기'}
+                  </span>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => saveEdit(review.id)}
@@ -537,16 +531,11 @@ export default function WebtoonPage() {
                       <span className="font-bold text-sm">{review.nickname}</span>
                     )}
                 <StarDisplay rating={review.rating} size={13} />
-                    {review.userId === auth.userId && (
-                      <div className="flex items-center gap-1">
-                        <div onClick={() => toggleReviewPublic(review.id, review.is_public ?? true)}
-                          style={{ width:28, height:16, borderRadius:8, background:(review.is_public??true)?'#3B82F6':'#B4B2A9', cursor:'pointer', display:'flex', alignItems:'center', padding:'2px', transition:'background 0.2s', flexShrink:0 }}>
-                          <div style={{ width:12, height:12, borderRadius:'50%', background:'#fff', transform:(review.is_public??true)?'translateX(12px)':'translateX(0)', transition:'transform 0.2s' }} />
-                        </div>
-                        <span className="text-xs" style={{ color:(review.is_public??true)?'#3B82F6':'#888780' }}>
-                          {(review.is_public??true)?'공개':'나만보기'}
-                        </span>
-                      </div>
+                   {review.userId === auth.userId && (
+                      <span className="text-xs px-2 py-0.5 rounded-full"
+                        style={{ background: '#EAF3DE', color: '#3B6D11' }}>
+                        {(review.is_public ?? true) ? '공개' : '비공개'}
+                      </span>
                     )}
                   </div>
                   {review.userId === auth.userId && (
