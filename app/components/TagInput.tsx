@@ -18,8 +18,9 @@ export default function TagInput({ value, onChange, placeholder = '태그 (쉼�
   }
 
   function handleKey(e: KeyboardEvent<HTMLInputElement>) {
-    if (e.key === ' ' || e.key === 'Enter') {
+if (e.key === ' ' || e.key === 'Enter') {
       e.preventDefault();
+      e.stopPropagation();
       addTag(input);
     } else if (e.key === 'Backspace' && input === '' && tags.length > 0) {
       removeTag(tags.length - 1);

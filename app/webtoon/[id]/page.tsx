@@ -103,13 +103,14 @@ function StarPicker({ rating, onChange }: { rating: number; onChange: (v: number
               <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
                 fill={rating >= i ? '#E9A800' : rating >= i - 0.5 ? `url(#pick-half-${i})` : '#D3D1C7'} />
             </svg>
-            <svg
-              width={26} height={26} viewBox="0 0 24 24"
+<svg
+              width={13} height={26} viewBox="12 0 12 24"
               onClick={() => onChange(i)}
               style={{ cursor: 'pointer', marginLeft: -26 }}
             >
               <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
                 fill="transparent" />
+            </svg>
             </svg>
           </div>
         ))}
@@ -445,9 +446,7 @@ if (res.ok) {
             <StarPicker rating={rating} onChange={setRating} />
             <textarea className="w-full border rounded-lg p-2 mt-2 mb-2 text-sm" rows={3}
               placeholder="리뷰를 작성해주세요" value={content} onChange={e => setContent(e.target.value)} />
-            <input className="w-full border rounded-lg p-2 mb-2 text-sm"
-              placeholder="태그 입력 (쉼표로 구분, 예: 연하공,순애)"
-              value={tags} onChange={e => setTags(e.target.value)} />
+ <TagInput value={tags} onChange={setTags} placeholder="태그 (쉼표로 구분 - 예. 순애, 계략남주, 조폭)" />
             <button onClick={submitReview} disabled={loading}
               className="px-4 py-2 rounded-lg text-sm text-white border-none"
               style={{ background: '#3B82F6' }}>
