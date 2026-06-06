@@ -4,6 +4,7 @@ import Link from 'next/link';
 import base from './lib/airtable';
 import FeedbackButton from './components/FeedbackButton';
 import Carousel from './components/Carousel';
+import ScrollToTop from './components/ScrollToTop';
 
 async function getWebtoons(search?: string, genre?: string, platform?: string) {
   const records = await base('WEBTOON').select({
@@ -236,6 +237,7 @@ export default async function Home({ searchParams }: any) {
       <div className="max-w-4xl mx-auto mt-12 text-center">
         <FeedbackButton />
       </div>
+      <ScrollToTop />
     </main>
   );
 }
