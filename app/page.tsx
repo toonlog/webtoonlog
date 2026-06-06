@@ -201,7 +201,7 @@ export default async function Home({ searchParams }: any) {
           ))}
         </div>
 
-        {/* PC */}
+      {/* PC */}
         <div className="hidden md:grid md:grid-cols-4 gap-4">
           {webtoons.map((webtoon: any) => (
             <Link href={`/webtoon/${webtoon.id}`} key={webtoon.id} className="flex">
@@ -211,23 +211,22 @@ export default async function Home({ searchParams }: any) {
                 ) : (
                   <div className="bg-gray-200 rounded-lg h-40 mb-3" />
                 )}
-             <div className="flex flex-col flex-1">
+                <div className="flex flex-col flex-1">
                   <h2 className="font-bold text-sm text-gray-900">{webtoon.title}</h2>
                   <p className="text-xs text-gray-500 mt-0.5">{webtoon.author}</p>
                   <p className="text-xs text-blue-500 mt-0.5">{Array.isArray(webtoon.platform) ? webtoon.platform.join(', ') : webtoon.platform}</p>
+                  {webtoon.review_count > 0 && (
+                    <div className="flex items-center gap-1 mt-2">
+                      <span className="text-yellow-400 text-xs">★</span>
+                      <span className="text-xs font-bold text-gray-700">{webtoon.avg_rating}</span>
+                      <span className="text-xs text-gray-400">({webtoon.review_count})</span>
+                    </div>
+                  )}
                 </div>
-                {webtoon.review_count > 0 && (
-                  <div className="flex items-center gap-1 mt-1">
-                    <span className="text-yellow-400 text-xs">★</span>
-                    <span className="text-xs font-bold text-gray-700">{webtoon.avg_rating}</span>
-                    <span className="text-xs text-gray-400">({webtoon.review_count})</span>
-                  </div>
-                )}
-              </div>
               </div>
             </Link>
           ))}
-      </div>
+        </div>
 
       {webtoons.length === 0 && <p className="text-center text-gray-400 mt-8">검색 결과가 없어요!</p>}
 
