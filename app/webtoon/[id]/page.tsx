@@ -86,7 +86,7 @@ function StarDisplay({ rating, size = 13 }: { rating: number; size?: number }) {
 function StarPicker({ rating, onChange }: { rating: number; onChange: (v: number) => void }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <div style={{ display: 'flex', gap: '6px', cursor: 'pointer' }}>
+      <div style={{ display: 'flex', gap: '1px', cursor: 'pointer' }}>
         {[1, 2, 3, 4, 5].map(i => {
           const filled = rating >= i ? '#E9A800' : '#D3D1C7';
           const half = rating >= i - 0.5 && rating < i;
