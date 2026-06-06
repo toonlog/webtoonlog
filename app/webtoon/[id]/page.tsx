@@ -141,7 +141,11 @@ export default function WebtoonPage() {
   const [webtoonCollections, setWebtoonCollections] = useState<any[]>([]);
   const [showAllTags, setShowAllTags] = useState(false);
   const [showMoreReviews, setShowMoreReviews] = useState(false);
-  const [reviewPage, setReviewPage] = useState(1);
+const [reviewPage, setReviewPage] = useState(1);
+  const [reviewLikes, setReviewLikes] = useState<Record<string, { count: number; liked: boolean }>>({});
+  const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
+  const [comments, setComments] = useState<Record<string, any[]>>({});
+  const [commentInput, setCommentInput] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const a = getAuth();
@@ -166,7 +170,10 @@ export default function WebtoonPage() {
   }, [id]);
 
   function fetchReviews() {
-    fetch(`/api/reviews?webtoonId=${id}`).then(r => r.json()).then(setReviews);
+    fetch(`/api/reviews?webtoonId=${id}`).then(r => r.json()).then(data => {
+      setReviews(data);
+      data.forEach((r: any) => fetchLikes(r.id));
+    });
   }
   function fetchStatus(userId: string) {
     fetch(`/api/reading-status?webtoonId=${id}&userId=${userId}`)
@@ -244,6 +251,66 @@ if (res.ok) {
 
   async function toggleReviewPublic(reviewId: string, current: boolean) {
     setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, is_public: !current } : r));
+  }
+
+async function fetchLikes(reviewId: string) {
+    const userId = auth.userId || '';
+    const res = await fetch(`/api/reviews/like?reviewId=${reviewId}&userId=${userId}`);
+    const data = await res.json();
+    setReviewLikes(prev => ({ ...prev, [reviewId]: data }));
+  }
+
+  async function toggleLike(reviewId: string) {
+    if (!auth.token) return router.push('/login');
+    const res = await fetch('/api/reviews/like', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
+      body: JSON.stringify({ reviewId }),
+    });
+    const data = await res.json();
+    setReviewLikes(prev => ({
+      ...prev,
+      [reviewId]: {
+        count: (prev[reviewId]?.count || 0) + (data.liked ? 1 : -1),
+        liked: data.liked,
+      },
+    }));
+  }
+
+  async function fetchComments(reviewId: string) {
+    const res = await fetch(`/api/reviews/comments?reviewId=${reviewId}`);
+    const data = await res.json();
+    setComments(prev => ({ ...prev, [reviewId]: data }));
+  }
+
+  async function submitComment(reviewId: string) {
+    if (!auth.token) return router.push('/login');
+    const content = commentInput[reviewId]?.trim();
+    if (!content) return;
+    const res = await fetch('/api/reviews/comments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
+      body: JSON.stringify({ reviewId, content }),
+    });
+    if (res.ok) {
+      setCommentInput(prev => ({ ...prev, [reviewId]: '' }));
+      fetchComments(reviewId);
+    }
+  }
+
+  async function deleteComment(reviewId: string, commentId: string) {
+    if (!confirm('댓글을 삭제할까요?')) return;
+    await fetch(`/api/reviews/comments?commentId=${commentId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${auth.token}` },
+    });
+    fetchComments(reviewId);
+  }
+
+  function toggleComments(reviewId: string) {
+    const next = !expandedComments[reviewId];
+    setExpandedComments(prev => ({ ...prev, [reviewId]: next }));
+    if (next && !comments[reviewId]) fetchComments(reviewId);
   }
 
   const statusList = ['읽는중', '완독', '읽고싶다', '보류'];
@@ -559,7 +626,49 @@ if (res.ok) {
                     ))}
                   </div>
                 )}
-                <p className="text-xs text-gray-400">{review.created_at}</p>
+                <div className="flex items-center gap-3 mt-1">
+                  <p className="text-xs text-gray-400">{review.created_at}</p>
+                  <button onClick={() => toggleLike(review.id)}
+                    className="flex items-center gap-1 text-xs"
+                    style={{ color: reviewLikes[review.id]?.liked ? '#E9A800' : '#9ca3af' }}>
+                    ♥ {reviewLikes[review.id]?.count || 0}
+                  </button>
+                  <button onClick={() => toggleComments(review.id)}
+                    className="text-xs text-gray-400 hover:text-blue-500">
+                    💬 댓글 {comments[review.id]?.length ?? ''}
+                  </button>
+                </div>
+                {expandedComments[review.id] && (
+                  <div className="mt-2 pl-2 border-l-2 border-gray-100">
+                    {(comments[review.id] || []).map(c => (
+                      <div key={c.id} className="flex items-start justify-between py-1">
+                        <div>
+                          <span className="text-xs font-bold text-gray-700 mr-1">{c.nickname}</span>
+                          <span className="text-xs text-gray-600">{c.content}</span>
+                          <span className="text-xs text-gray-300 ml-1">{c.created_at}</span>
+                        </div>
+                        {c.userId === auth.userId && (
+                          <button onClick={() => deleteComment(review.id, c.id)}
+                            className="text-xs text-gray-300 hover:text-red-400 ml-2 flex-shrink-0">삭제</button>
+                        )}
+                      </div>
+                    ))}
+                    {auth.token && (
+                      <div className="flex gap-1 mt-1">
+                        <input
+                          className="flex-1 border rounded px-2 py-1 text-xs"
+                          placeholder="댓글 입력..."
+                          value={commentInput[review.id] || ''}
+                          onChange={e => setCommentInput(prev => ({ ...prev, [review.id]: e.target.value }))}
+                          onKeyDown={e => e.key === 'Enter' && submitComment(review.id)}
+                        />
+                        <button onClick={() => submitComment(review.id)}
+                          className="text-xs px-2 py-1 rounded text-white border-none"
+                          style={{ background: '#3B82F6' }}>등록</button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             )}
           </div>

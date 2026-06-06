@@ -2,32 +2,46 @@ import { NextResponse } from 'next/server';
 import base from '../../../lib/airtable';
 import { getUserFromRequest } from '../../../lib/auth';
 
+export async function GET(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const collectionId = searchParams.get('collectionId');
+    const userId = searchParams.get('userId');
+
+    const records = await base('COLLECTION_LIKE').select({
+      filterByFormula: `{collection_id} = "${collectionId}"`,
+    }).all();
+
+    const count = records.length;
+    const liked = userId ? records.some(r => r.fields.user_id === userId) : false;
+    return NextResponse.json({ count, liked });
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
 export async function POST(request) {
   try {
     const user = getUserFromRequest(request);
     if (!user) return NextResponse.json({ error: '로그인이 필요해요' }, { status: 401 });
 
-    const { reviewId } = await request.json();
-    const record = await base('REVIEW').find(reviewId);
+    const { collectionId } = await request.json();
+    const existing = await base('COLLECTION_LIKE').select({
+      filterByFormula: `AND({collection_id} = "${collectionId}", {user_id} = "${user.userId}")`,
+      maxRecords: 1,
+    }).firstPage();
 
-    const likedBy = (record.fields.liked_by || '').split(',').filter(Boolean);
-    const alreadyLiked = likedBy.includes(user.userId);
-
-    let newLikedBy, newCount;
-    if (alreadyLiked) {
-      newLikedBy = likedBy.filter(id => id !== user.userId).join(',');
-      newCount = Math.max(0, (record.fields.like_count || 0) - 1);
+    if (existing.length > 0) {
+      await base('COLLECTION_LIKE').destroy(existing[0].id);
+      return NextResponse.json({ liked: false });
     } else {
-      newLikedBy = [...likedBy, user.userId].join(',');
-      newCount = (record.fields.like_count || 0) + 1;
+      await base('COLLECTION_LIKE').create({
+        collection_id: collectionId,
+        user_id: user.userId,
+        created_at: new Date().toISOString().split('T')[0],
+      });
+      return NextResponse.json({ liked: true });
     }
-
-    await base('REVIEW').update(reviewId, {
-      liked_by: newLikedBy,
-      like_count: newCount,
-    });
-
-    return NextResponse.json({ liked: !alreadyLiked, like_count: newCount });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
