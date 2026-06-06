@@ -1,3 +1,5 @@
+export const revalidate = 60; // 60초 캐시
+
 import Link from 'next/link';
 import base from './lib/airtable';
 import FeedbackButton from './components/FeedbackButton';
