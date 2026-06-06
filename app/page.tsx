@@ -227,7 +227,6 @@ export default async function Home({ searchParams }: any) {
               </div>
             </Link>
           ))}
-        </div>
       </div>
 
       {webtoons.length === 0 && <p className="text-center text-gray-400 mt-8">검색 결과가 없어요!</p>}
