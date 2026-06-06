@@ -68,8 +68,8 @@ function StarDisplay({ rating, size = 13 }: { rating: number; size?: number }) {
           <svg key={i} width={size} height={size} viewBox="0 0 24 24">
             {i === 1 && (
               <defs>
-                <linearGradient id="half">
-                  <stop offset="50%" stopColor="#E9A800" />
+            <linearGradient id="half">
+                  <stop offset="50%" stopColor="#F59E0B" />
                   <stop offset="50%" stopColor="#D3D1C7" />
                 </linearGradient>
               </defs>
