@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import TagInput from '@/app/components/TagInput';
-
+import ImageUpload from '@/app/components/ImageUpload';
 
 function StarPicker({ rating, onChange }: { rating: number; onChange: (v: number) => void }) {
   return (
@@ -285,11 +285,11 @@ async function saveProfileImage() {
         </div>
 {editingImage && (
           <div className="flex flex-col gap-2">
-            <input className="border rounded-lg px-3 py-1 text-sm w-full"
-              placeholder="이미지 URL 입력"
-              value={newImage} onChange={e => setNewImage(e.target.value)} />
+            <ImageUpload onUpload={(url) => { setNewImage(url); }} />
+            {newImage && <img src={newImage} alt="미리보기" className="w-16 h-16 rounded-full object-cover" />}
             <div className="flex gap-2">
-              <button onClick={saveProfileImage} className="text-sm bg-blue-500 text-white px-3 py-1 rounded-lg">저장</button>
+              <button onClick={saveProfileImage} disabled={!newImage}
+                className="text-sm bg-blue-500 text-white px-3 py-1 rounded-lg disabled:opacity-50">저장</button>
               <button onClick={() => setEditingImage(false)} className="text-sm text-gray-400">취소</button>
             </div>
           </div>
