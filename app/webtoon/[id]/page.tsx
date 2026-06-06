@@ -11,16 +11,6 @@ function getAuth() {
   };
 }
 
-function Avatar({ src, nickname, size = 8 }: { src?: string; nickname?: string; size?: number }) {
-  const sizeClass = `w-${size} h-${size}`;
-  if (src) return <img src={src} alt={nickname} className={`${sizeClass} rounded-full object-cover flex-shrink-0`} />;
-  return (
-    <div className={`${sizeClass} rounded-full bg-blue-100 flex items-center justify-center text-xs text-blue-500 font-bold flex-shrink-0`}>
-      {nickname?.charAt(0)}
-    </div>
-  );
-}
-
 export default function WebtoonPage() {
   const params = useParams();
   const router = useRouter();
@@ -28,26 +18,17 @@ export default function WebtoonPage() {
 
   const [webtoon, setWebtoon] = useState<any>(null);
   const [reviews, setReviews] = useState<any[]>([]);
-  const [comments, setComments] = useState<Record<string, any[]>>({});
-  const [openComments, setOpenComments] = useState<Record<string, boolean>>({});
-  const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
   const [readStatus, setReadStatus] = useState<string | null>(null);
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState('');
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editRating, setEditRating] = useState(5);
   const [editContent, setEditContent] = useState('');
-  const [editTags, setEditTags] = useState<string[]>([]);
-  const [editTagInput, setEditTagInput] = useState('');
   const [auth, setAuth] = useState<{ token: string | null; nickname: string | null; userId: string | null }>({ token: null, nickname: null, userId: null });
   const [loading, setLoading] = useState(false);
   const [collections, setCollections] = useState<any[]>([]);
   const [showCollectionMenu, setShowCollectionMenu] = useState(false);
   const [webtoonCollections, setWebtoonCollections] = useState<any[]>([]);
-  const [sortBy, setSortBy] = useState<'latest' | 'likes'>('latest');
-  const [showAllTags, setShowAllTags] = useState(false);
 
   useEffect(() => {
     const a = getAuth();
@@ -88,74 +69,6 @@ export default function WebtoonPage() {
     fetch(`/api/collections?webtoonId=${id}`).then(r => r.json()).then(setWebtoonCollections);
   }
 
-  async function fetchComments(reviewId: string) {
-    const res = await fetch(`/api/comments?reviewId=${reviewId}`);
-    const data = await res.json();
-    setComments(prev => ({ ...prev, [reviewId]: data }));
-  }
-
-  function toggleComments(reviewId: string) {
-    const isOpen = openComments[reviewId];
-    setOpenComments(prev => ({ ...prev, [reviewId]: !isOpen }));
-    if (!isOpen && !comments[reviewId]) fetchComments(reviewId);
-  }
-
-  async function submitComment(reviewId: string) {
-    if (!auth.token) return router.push('/login');
-    const content = commentInputs[reviewId];
-    if (!content?.trim()) return;
-    const res = await fetch('/api/comments', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
-      body: JSON.stringify({ reviewId, content }),
-    });
-    if (res.ok) {
-      setCommentInputs(prev => ({ ...prev, [reviewId]: '' }));
-      fetchComments(reviewId);
-    }
-  }
-
-  async function deleteComment(reviewId: string, commentId: string) {
-    if (!confirm('댓글을 삭제할까요?')) return;
-    await fetch(`/api/comments?commentId=${commentId}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
-    fetchComments(reviewId);
-  }
-
-  async function toggleCommentLike(reviewId: string, commentId: string) {
-    if (!auth.token) return router.push('/login');
-    const res = await fetch('/api/comments/like', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
-      body: JSON.stringify({ commentId }),
-    });
-    if (res.ok) fetchComments(reviewId);
-  }
-
-  function addTag() {
-    const t = tagInput.trim().replace(/^#/, '');
-    if (!t || tags.includes(t)) return;
-    setTags(prev => [...prev, t]);
-    setTagInput('');
-  }
-
-  function removeTag(t: string) {
-    setTags(prev => prev.filter(tag => tag !== t));
-  }
-
-  function addEditTag() {
-    const t = editTagInput.trim().replace(/^#/, '');
-    if (!t || editTags.includes(t)) return;
-    setEditTags(prev => [...prev, t]);
-    setEditTagInput('');
-  }
-
-  function removeEditTag(t: string) {
-    setEditTags(prev => prev.filter(tag => tag !== t));
-  }
-
   async function addToCollection(collectionId: string) {
     const token = localStorage.getItem('token');
     const res = await fetch('/api/collections/items', {
@@ -177,14 +90,13 @@ export default function WebtoonPage() {
     const res = await fetch('/api/reviews', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
-      body: JSON.stringify({ webtoonId: id, rating, content, tags }),
+      body: JSON.stringify({ webtoonId: id, rating, content }),
     });
     const data = await res.json();
     setLoading(false);
     if (!res.ok) return alert(data.error);
     setContent('');
     setRating(5);
-    setTags([]);
     fetchReviews();
   }
 
@@ -212,146 +124,65 @@ export default function WebtoonPage() {
     const res = await fetch('/api/reviews', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
-      body: JSON.stringify({ reviewId, rating: editRating, content: editContent, tags: editTags }),
+      body: JSON.stringify({ reviewId, rating: editRating, content: editContent }),
     });
     if (res.ok) { setEditingId(null); fetchReviews(); }
   }
 
-  async function toggleLike(reviewId: string) {
-    if (!auth.token) return router.push('/login');
-    const res = await fetch('/api/reviews/like', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
-      body: JSON.stringify({ reviewId }),
-    });
-    if (res.ok) fetchReviews();
-  }
-
-  // 태그 집계
-  function getTagStats() {
-    const map: Record<string, number> = {};
-    reviews.forEach(r => {
-      (r.tags || []).forEach((t: string) => {
-        map[t] = (map[t] || 0) + 1;
-      });
-    });
-    return Object.entries(map).sort((a, b) => b[1] - a[1]);
-  }
-
   const statusList = ['읽는중', '완독', '읽고싶다', '보류'];
-  const statusColors: Record<string, string> = {
-    '읽는중': 'bg-blue-100 text-blue-600',
-    '완독': 'bg-green-100 text-green-600',
-    '읽고싶다': 'bg-purple-100 text-purple-600',
-    '보류': 'bg-gray-100 text-gray-500',
-  };
-
   if (!webtoon) return <div className="p-8 text-center">로딩중...</div>;
   const myReview = reviews.find(r => r.userId === auth.userId);
-  const avgRating = reviews.length > 0
-    ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
-    : null;
-
-  const sortedReviews = [...reviews].sort((a, b) => {
-    if (sortBy === 'likes') return (b.like_count || 0) - (a.like_count || 0);
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-  });
-
-  const genres = Array.isArray(webtoon.genre) ? webtoon.genre : (webtoon.genre ? [webtoon.genre] : []);
-  const platformList = Array.isArray(webtoon.platform) ? webtoon.platform : (webtoon.platform ? [webtoon.platform] : []);
-  const tagStats = getTagStats();
-  const visibleTags = showAllTags ? tagStats : tagStats.slice(0, 10);
+  const genres = webtoon.genre ? webtoon.genre.split(',').map((g: string) => g.trim()).filter(Boolean) : [];
 
   return (
     <main className="min-h-screen bg-gray-50 p-8 max-w-2xl mx-auto">
 
       {/* 작품 정보 */}
       <div className="bg-white rounded-xl shadow p-6 mb-6">
-        <div className="flex gap-4">
-          {webtoon.thumbnail_url ? (
-            <img src={webtoon.thumbnail_url} alt={webtoon.title} className="w-24 h-32 object-cover rounded-lg flex-shrink-0" />
-          ) : (
-            <div className="w-24 h-32 bg-gray-200 rounded-lg flex-shrink-0" />
-          )}
+        {webtoon.thumbnail_url && (
+          <img src={webtoon.thumbnail_url} alt={webtoon.title} className="w-full h-60 object-cover rounded-lg mb-4" />
+        )}
+        <div className="flex items-start justify-between">
           <div className="flex-1">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold mb-1">{webtoon.title}</h1>
-                <p className="text-gray-500 mb-1">{webtoon.author}</p>
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {platformList.map((p: string) => (
-                    <Link key={p} href={`/?platform=${p}`}
-                      className="text-xs bg-blue-50 text-blue-500 px-2 py-0.5 rounded-full hover:bg-blue-100 transition">
-                      {p}
-                    </Link>
-                  ))}
-                </div>
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {genres.map((g: string) => (
-                    <Link key={g} href={`/?genre=${g}`}
-                      className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full hover:bg-gray-200 transition">
-                      {g}
-                    </Link>
-                  ))}
-                </div>
-                {webtoon.status && (
-                  <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full">{webtoon.status}</span>
-                )}
-                {avgRating && (
-                  <div className="flex items-center gap-1 mt-2">
-                    <span className="text-yellow-400">★</span>
-                    <span className="font-bold">{avgRating}</span>
-                    <span className="text-gray-400 text-sm">({reviews.length}개)</span>
-                  </div>
-                )}
+            <h1 className="text-2xl font-bold mb-1 text-gray-900">{webtoon.title}</h1>
+            <p className="text-gray-500 mb-1">{webtoon.author}</p>
+            <p className="text-blue-500 text-sm mb-3">{webtoon.platform}</p>
+            {genres.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {genres.map((g: string) => (
+                  <Link key={g} href={`/genre/${encodeURIComponent(g)}`}
+                    className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-600 transition">
+                    #{g}
+                  </Link>
+                ))}
               </div>
-              {auth.token && (
-                <div className="relative ml-2">
-                  <button onClick={() => setShowCollectionMenu(!showCollectionMenu)}
-                    className="text-sm bg-gray-100 px-3 py-2 rounded-lg hover:bg-gray-200 transition">
-                    + 컬렉션
-                  </button>
-                  {showCollectionMenu && (
-                    <div className="absolute right-0 top-10 bg-white shadow-lg rounded-xl p-3 w-48 z-10">
-                      {collections.length === 0 ? (
-                        <div className="text-sm text-gray-400 p-2">
-                          <Link href="/collections" className="text-blue-500 hover:underline">컬렉션 만들기</Link>
-                        </div>
-                      ) : (
-                        collections.map(c => (
-                          <button key={c.id} onClick={() => addToCollection(c.id)}
-                            className="w-full text-left text-sm px-3 py-2 hover:bg-gray-50 rounded-lg">
-                            {c.name}
-                          </button>
-                        ))
-                      )}
+            )}
+          </div>
+          {auth.token && (
+            <div className="relative ml-3">
+              <button onClick={() => setShowCollectionMenu(!showCollectionMenu)}
+                className="text-sm bg-gray-100 px-3 py-2 rounded-lg hover:bg-gray-200 transition">
+                + 컬렉션
+              </button>
+              {showCollectionMenu && (
+                <div className="absolute right-0 top-10 bg-white shadow-lg rounded-xl p-3 w-48 z-10">
+                  {collections.length === 0 ? (
+                    <div className="text-sm text-gray-400 p-2">
+                      <Link href="/collections" className="text-blue-500 hover:underline">컬렉션 만들기</Link>
                     </div>
+                  ) : (
+                    collections.map(c => (
+                      <button key={c.id} onClick={() => addToCollection(c.id)}
+                        className="w-full text-left text-sm px-3 py-2 hover:bg-gray-50 rounded-lg">
+                        {c.name}
+                      </button>
+                    ))
                   )}
                 </div>
               )}
             </div>
-          </div>
+          )}
         </div>
-
-        {/* 유저 태그 섹션 */}
-        {tagStats.length > 0 && (
-          <div className="mt-4 pt-4 border-t">
-            <p className="text-xs text-gray-400 mb-2">유저 태그</p>
-            <div className="flex flex-wrap gap-2">
-              {visibleTags.map(([tag, count]) => (
-                <span key={tag} className="text-xs border border-blue-200 bg-blue-50 text-blue-600 px-2 py-1 rounded-lg">
-                  #{tag} <span className="text-blue-400">{count}</span>
-                </span>
-              ))}
-              {tagStats.length > 10 && (
-                <button onClick={() => setShowAllTags(!showAllTags)}
-                  className="text-xs text-gray-400 hover:text-blue-500 px-2 py-1 border rounded-lg">
-                  {showAllTags ? '접기' : `+${tagStats.length - 10}개 더보기`}
-                </button>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* 읽기 상태 */}
@@ -408,27 +239,6 @@ export default function WebtoonPage() {
             </div>
             <textarea className="w-full border rounded p-2 mb-2 text-sm" rows={3}
               placeholder="리뷰를 작성해주세요" value={content} onChange={e => setContent(e.target.value)} />
-
-            {/* 태그 입력 */}
-            <div className="mb-3">
-              <div className="flex flex-wrap gap-1 mb-2">
-                {tags.map(t => (
-                  <span key={t} className="text-xs bg-blue-50 border border-blue-200 text-blue-600 px-2 py-1 rounded-lg flex items-center gap-1">
-                    #{t}
-                    <button onClick={() => removeTag(t)} className="text-blue-400 hover:text-red-500">×</button>
-                  </span>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <input className="flex-1 border rounded px-3 py-1.5 text-sm"
-                  placeholder="#태그 입력 후 Enter (예: 강추, 눈물주의)"
-                  value={tagInput}
-                  onChange={e => setTagInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())} />
-                <button onClick={addTag} className="bg-gray-100 px-3 py-1.5 rounded text-sm hover:bg-gray-200">추가</button>
-              </div>
-            </div>
-
             <button onClick={submitReview} disabled={loading}
               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50 text-sm">
               {loading ? '등록 중...' : '등록'}
@@ -439,157 +249,58 @@ export default function WebtoonPage() {
 
       {/* 리뷰 목록 */}
       <div className="bg-white rounded-xl shadow p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold">리뷰 {reviews.length}개{avgRating && ` · 평균 ★${avgRating}`}</h2>
-          <div className="flex gap-1">
-            <button onClick={() => setSortBy('latest')}
-              className={`text-xs px-3 py-1 rounded-full border transition ${sortBy === 'latest' ? 'bg-blue-500 text-white border-blue-500' : 'text-gray-500 hover:bg-gray-100'}`}>
-              최신순
-            </button>
-            <button onClick={() => setSortBy('likes')}
-              className={`text-xs px-3 py-1 rounded-full border transition ${sortBy === 'likes' ? 'bg-blue-500 text-white border-blue-500' : 'text-gray-500 hover:bg-gray-100'}`}>
-              좋아요순
-            </button>
+        <div className="flex flex-col gap-2 mb-4">
+          <h2 className="text-lg font-bold">리뷰 {reviews.length}개</h2>
+          <div className="flex gap-2">
+            <button className="text-xs px-3 py-1 rounded-full bg-blue-500 text-white">최신순</button>
+            <button className="text-xs px-3 py-1 rounded-full border text-gray-500">좋아요순</button>
           </div>
         </div>
         {reviews.length === 0 && <p className="text-gray-400">아직 리뷰가 없어요!</p>}
-        {sortedReviews.map(review => {
-          const isLiked = auth.userId && review.liked_by?.split(',').includes(auth.userId);
-          const reviewComments = comments[review.id] || [];
-          const isCommentsOpen = openComments[review.id];
-          return (
-            <div key={review.id} className="border-b py-4 last:border-0">
-              {editingId === review.id ? (
-                <div className="flex flex-col gap-2">
-                  <div className="flex gap-1">
-                    {[1,2,3,4,5].map(n => (
-                      <button key={n} onClick={() => setEditRating(n)} className={`text-xl ${n <= editRating ? 'text-yellow-400' : 'text-gray-300'}`}>★</button>
-                    ))}
-                  </div>
-                  <textarea className="border rounded p-2 text-sm w-full" rows={3}
-                    value={editContent} onChange={e => setEditContent(e.target.value)} />
-                  <div className="flex flex-wrap gap-1 mb-1">
-                    {editTags.map(t => (
-                      <span key={t} className="text-xs bg-blue-50 border border-blue-200 text-blue-600 px-2 py-1 rounded-lg flex items-center gap-1">
-                        #{t}
-                        <button onClick={() => removeEditTag(t)} className="text-blue-400 hover:text-red-500">×</button>
-                      </span>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <input className="flex-1 border rounded px-3 py-1.5 text-sm"
-                      placeholder="#태그 추가..."
-                      value={editTagInput}
-                      onChange={e => setEditTagInput(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addEditTag())} />
-                    <button onClick={addEditTag} className="bg-gray-100 px-3 py-1.5 rounded text-sm">추가</button>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => saveEdit(review.id)} className="bg-blue-500 text-white px-3 py-1 rounded text-sm">저장</button>
-                    <button onClick={() => setEditingId(null)} className="bg-gray-100 px-3 py-1 rounded text-sm">취소</button>
-                  </div>
+        {reviews.map(review => (
+          <div key={review.id} className="border-b py-4 last:border-0">
+            {editingId === review.id ? (
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-1">
+                  {[1,2,3,4,5].map(n => (
+                    <button key={n} onClick={() => setEditRating(n)} className={`text-xl ${n <= editRating ? 'text-yellow-400' : 'text-gray-300'}`}>★</button>
+                  ))}
                 </div>
-              ) : (
-                <>
-                  <div className="flex items-start gap-3 mb-2">
-                    <Avatar src={review.profile_image} nickname={review.nickname} size={8} />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {review.userId ? (
-                            <Link href={`/users/${review.userId}`} className="font-bold text-sm hover:text-blue-500 transition">
-                              {review.nickname}
-                            </Link>
-                          ) : (
-                            <span className="font-bold text-sm">{review.nickname}</span>
-                          )}
-                          <span className="text-yellow-400 text-sm">{'★'.repeat(review.rating)}</span>
-                        </div>
-                        {review.userId === auth.userId && (
-                          <div className="flex gap-2">
-                            <button onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); setEditTags(review.tags || []); }}
-                              className="text-xs text-gray-400 hover:text-blue-500">수정</button>
-                            <button onClick={() => deleteReview(review.id)}
-                              className="text-xs text-gray-400 hover:text-red-500">삭제</button>
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-gray-700 text-sm mt-1">{review.content}</p>
-                      {review.tags && review.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {review.tags.map((t: string) => (
-                            <span key={t} className="text-xs border border-blue-200 bg-blue-50 text-blue-500 px-2 py-0.5 rounded-lg">#{t}</span>
-                          ))}
-                        </div>
-                      )}
-                      <div className="flex items-center gap-3 mt-2">
-                        <p className="text-gray-400 text-xs">{review.created_at}</p>
-                        <button onClick={() => toggleLike(review.id)}
-                          className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition ${isLiked ? 'bg-red-50 text-red-500 border-red-200' : 'text-gray-400 hover:bg-gray-50'}`}>
-                          {isLiked ? '♥' : '♡'} {review.like_count || 0}
-                        </button>
-                        <button onClick={() => toggleComments(review.id)}
-                          className="text-xs text-gray-400 hover:text-blue-500 transition">
-                          💬 댓글 {reviewComments.length > 0 ? reviewComments.length : ''}
-                        </button>
-                      </div>
-                    </div>
+                <textarea className="border rounded p-2 text-sm w-full" rows={3}
+                  value={editContent} onChange={e => setEditContent(e.target.value)} />
+                <div className="flex gap-2">
+                  <button onClick={() => saveEdit(review.id)} className="bg-blue-500 text-white px-3 py-1 rounded text-sm">저장</button>
+                  <button onClick={() => setEditingId(null)} className="bg-gray-100 px-3 py-1 rounded text-sm">취소</�>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    {review.userId ? (
+                      <Link href={`/users/${review.userId}`} className="font-bold text-sm hover:text-blue-500 transition">
+                        {review.nickname}
+                      </Link>
+                    ) : (
+                      <span className="font-bold text-sm">{review.nickname}</span>
+                    )}
+                    <span className="text-yellow-400 text-sm">{'★'.repeat(review.rating)}</span>
                   </div>
-
-                  {/* 댓글 섹션 */}
-                  {isCommentsOpen && (
-                    <div className="ml-11 mt-2">
-                      {reviewComments.map(comment => {
-                        const isCommentLiked = auth.userId && comment.liked_by?.split(',').includes(auth.userId);
-                        return (
-                          <div key={comment.id} className="flex items-start gap-2 py-2 border-t first:border-t-0">
-                            <Avatar src={comment.profile_image} nickname={comment.nickname} size={6} />
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between">
-                                <span className="font-bold text-xs">{comment.nickname}</span>
-                                <div className="flex items-center gap-2">
-                                  <button onClick={() => toggleCommentLike(review.id, comment.id)}
-                                    className={`flex items-center gap-0.5 text-xs ${isCommentLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-400'}`}>
-                                    {isCommentLiked ? '♥' : '♡'} {comment.like_count || 0}
-                                  </button>
-                                  {comment.user_id === auth.userId && (
-                                    <button onClick={() => deleteComment(review.id, comment.id)}
-                                      className="text-xs text-gray-300 hover:text-red-500">삭제</button>
-                                  )}
-                                </div>
-                              </div>
-                              <p className="text-xs text-gray-600 mt-0.5">{comment.content}</p>
-                              <p className="text-xs text-gray-400 mt-0.5">{comment.created_at}</p>
-                            </div>
-                          </div>
-                        );
-                      })}
-                      {auth.token ? (
-                        <div className="flex gap-2 mt-2 pt-2 border-t">
-                          <input
-                            className="flex-1 border rounded-lg px-3 py-1.5 text-xs"
-                            placeholder="댓글을 입력해주세요..."
-                            value={commentInputs[review.id] || ''}
-                            onChange={e => setCommentInputs(prev => ({ ...prev, [review.id]: e.target.value }))}
-                            onKeyDown={e => e.key === 'Enter' && submitComment(review.id)}
-                          />
-                          <button onClick={() => submitComment(review.id)}
-                            className="bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs hover:bg-blue-600">
-                            등록
-                          </button>
-                        </div>
-                      ) : (
-                        <p className="text-xs text-gray-400 mt-2 pt-2 border-t">
-                          <button onClick={() => router.push('/login')} className="text-blue-500 underline">로그인</button> 후 댓글을 작성할 수 있어요
-                        </p>
-                      )}
+                  {review.userId === auth.userId && (
+                    <div className="flex gap-2">
+                      <button onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); }}
+                        className="text-xs text-gray-400 hover:text-blue-500">수정</button>
+                      <button onClick={() => deleteReview(review.id)}
+                        className="text-xs text-gray-400 hover:text-red-500">삭제</button>
                     </div>
                   )}
-                </>
-              )}
-            </div>
-          );
-        })}
+                </div>
+                <p className="text-gray-700 text-sm">{review.content}</p>
+                <p className="text-gray-400 text-xs mt-1">{review.created_at}</p>
+              </>
+            )}
+          </div>
+        ))}
       </div>
     </main>
   );

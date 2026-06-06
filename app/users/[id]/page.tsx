@@ -25,8 +25,6 @@ export default function UserPage() {
   }, [targetUserId]);
 
   async function fetchAll(myId: string | null) {
-    const token = localStorage.getItem('token');
-
     const [userData, followData] = await Promise.all([
       fetch(`/api/users/${targetUserId}`).then(r => r.json()),
       myId ? fetch(`/api/follow?followerId=${myId}&followingId=${targetUserId}`).then(r => r.json()) : Promise.resolve({ isFollowing: false }),
@@ -63,9 +61,16 @@ export default function UserPage() {
   return (
     <main className="min-h-screen bg-gray-50 p-8 max-w-2xl mx-auto">
       <div className="bg-white rounded-xl shadow p-6 mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">{targetUser.nickname}</h1>
+        <div className="flex items-center gap-4">
+          {targetUser.profile_image ? (
+            <img src={targetUser.profile_image} alt="프로필" className="w-16 h-16 rounded-full object-cover flex-shrink-0" />
+          ) : (
+            <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-2xl flex-shrink-0">
+              {targetUser.nickname?.[0]?.toUpperCase()}
+            </div>
+          )}
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold text-gray-900">{targetUser.nickname}</h1>
             <div className="flex gap-4 mt-2 text-sm text-gray-500">
               <span>팔로워 <strong className="text-gray-800">{followerCount}</strong></span>
               <span>팔로잉 <strong className="text-gray-800">{followingCount}</strong></span>
@@ -103,16 +108,25 @@ export default function UserPage() {
           {reviews.length === 0 && <p className="text-gray-400">아직 작성한 리뷰가 없어요!</p>}
           {reviews.map(review => (
             <div key={review.id} className="border-b py-4 last:border-0">
-              {review.webtoon_id ? (
-                <Link href={`/webtoon/${review.webtoon_id}`} className="font-bold text-blue-500 hover:underline text-sm">
-                  {review.webtoon_title || review.webtoon_id}
-                </Link>
-              ) : (
-                <span className="font-bold text-gray-400 text-sm">웹툰 정보 없음</span>
-              )}
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-yellow-400 text-sm">{'★'.repeat(review.rating)}</span>
-                <span className="text-gray-400 text-xs">{review.created_at}</span>
+              <div className="flex items-center gap-3 mb-2">
+                {review.thumbnail_url ? (
+                  <img src={review.thumbnail_url} alt={review.webtoon_title} className="w-10 h-14 object-cover rounded flex-shrink-0" />
+                ) : (
+                  <div className="w-10 h-14 bg-gray-200 rounded flex-shrink-0" />
+                )}
+                <div>
+                  {review.webtoon_id ? (
+                    <Link href={`/webtoon/${review.webtoon_id}`} className="font-bold text-blue-500 hover:underline text-sm">
+                      {review.webtoon_title || review.webtoon_id}
+                    </Link>
+                  ) : (
+                    <span className="font-bold text-gray-400 text-sm">웹툰 정보 없음</span>
+                  )}
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-yellow-400 text-sm">{'★'.repeat(review.rating)}</span>
+                    <span className="text-gray-400 text-xs">{review.created_at}</span>
+                  </div>
+                </div>
               </div>
               <p className="text-gray-700 text-sm mt-1">{review.content}</p>
             </div>

@@ -16,29 +16,13 @@ export async function GET(request) {
       sort: [{ field: 'created_at', direction: 'desc' }],
     }).all();
 
-    let collections = await Promise.all(records.map(async r => {
-      // 첫 4개 아이템 썸네일 가져오기
-      const items = await base('COLLECTION_ITEM').select({
-        filterByFormula: `{collection_id} = "${r.id}"`,
-        maxRecords: 4,
-      }).firstPage();
-
-      const thumbnails = await Promise.all(items.map(async item => {
-        try {
-          const w = await base('WEBTOON').find(item.fields.webtoon_id);
-          return w.fields.thumbnail_url || '';
-        } catch { return ''; }
-      }));
-
-      return {
-        id: r.id,
-        name: r.fields.name || '이름 없음',
-        description: r.fields.description || '',
-        is_public: r.fields.is_public || false,
-        user_id: r.fields.user_id || null,
-        created_at: r.fields.created_at,
-        thumbnails: thumbnails.filter(Boolean),
-      };
+    let collections = records.map(r => ({
+      id: r.id,
+      name: r.fields.name || '이름 없음',
+      description: r.fields.description || '',
+      is_public: r.fields.is_public || false,
+      user_id: r.fields.user_id || null,
+      created_at: r.fields.created_at,
     }));
 
     if (webtoonId) {
@@ -49,28 +33,15 @@ export async function GET(request) {
       const pubRecords = await base('COLLECTION').select({
         filterByFormula: `{is_public} = 1`,
       }).all();
-      collections = await Promise.all(pubRecords
+      collections = pubRecords
         .filter(r => collectionIds.has(r.id))
-        .map(async r => {
-          const items = await base('COLLECTION_ITEM').select({
-            filterByFormula: `{collection_id} = "${r.id}"`,
-            maxRecords: 4,
-          }).firstPage();
-          const thumbnails = await Promise.all(items.map(async item => {
-            try {
-              const w = await base('WEBTOON').find(item.fields.webtoon_id);
-              return w.fields.thumbnail_url || '';
-            } catch { return ''; }
-          }));
-          return {
-            id: r.id,
-            name: r.fields.name || '이름 없음',
-            description: r.fields.description || '',
-            is_public: r.fields.is_public || false,
-            user_id: r.fields.user_id || null,
-            created_at: r.fields.created_at,
-            thumbnails: thumbnails.filter(Boolean),
-          };
+        .map(r => ({
+          id: r.id,
+          name: r.fields.name || '이름 없음',
+          description: r.fields.description || '',
+          is_public: r.fields.is_public || false,
+          user_id: r.fields.user_id || null,
+          created_at: r.fields.created_at,
         }));
     }
 
@@ -102,8 +73,31 @@ export async function POST(request) {
       description: record.fields.description,
       is_public: record.fields.is_public,
       user_id: record.fields.user_id,
-      thumbnails: [],
+      created_at: record.fields.created_at,
     });
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function PATCH(request) {
+  try {
+    const user = getUserFromRequest(request);
+    if (!user) return NextResponse.json({ error: '로그인이 필요해요' }, { status: 401 });
+
+    const { collectionId, name, description, is_public } = await request.json();
+    const record = await base('COLLECTION').find(collectionId);
+    if (record.fields.user_id !== user.userId) {
+      return NextResponse.json({ error: '내 컬렉션만 수정할 수 있어요' }, { status: 403 });
+    }
+
+    await base('COLLECTION').update(collectionId, {
+      name: name.trim(),
+      description: description?.trim() || '',
+      is_public: is_public ?? true,
+    });
+
+    return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

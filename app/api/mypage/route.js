@@ -29,23 +29,29 @@ export async function GET(request) {
     await Promise.all(webtoonIds.map(async (wId) => {
       try {
         const rec = await base('WEBTOON').find(wId);
-        webtoonMap[wId] = rec.fields.title;
-      } catch { webtoonMap[wId] = wId; }
+        webtoonMap[wId] = {
+          title: rec.fields.title,
+          thumbnail_url: rec.fields.thumbnail_url || null,
+        };
+      } catch { webtoonMap[wId] = { title: wId, thumbnail_url: null }; }
     }));
 
-    const reviews = reviewRecords.map(r => ({
-      id: r.id,
-      webtoon_id: r.fields.webtoon_id || null,
-      webtoon_title: webtoonMap[r.fields.webtoon_id] || null,
-      rating: r.fields.rating,
-      content: r.fields.content,
-      created_at: r.fields.created_at,
-    }));
+const reviews = reviewRecords.map(r => ({
+  id: r.id,
+  webtoon_id: r.fields.webtoon_id || null,
+  webtoon_title: webtoonMap[r.fields.webtoon_id]?.title || null,
+  thumbnail_url: webtoonMap[r.fields.webtoon_id]?.thumbnail_url || null,
+  rating: r.fields.rating,
+  content: r.fields.content,
+  created_at: r.fields.created_at,
+  is_public: r.fields.is_public ?? true,
+}));
 
     const statuses = statusRecords.map(r => ({
       id: r.id,
       webtoon_id: r.fields.webtoon_id || null,
-      webtoon_title: webtoonMap[r.fields.webtoon_id] || null,
+      webtoon_title: webtoonMap[r.fields.webtoon_id]?.title || null,
+      thumbnail_url: webtoonMap[r.fields.webtoon_id]?.thumbnail_url || null,
       status: r.fields.status,
       updated_at: r.fields.updated_at,
     }));

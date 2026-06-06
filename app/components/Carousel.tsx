@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 const slides = [
   {
@@ -113,6 +113,8 @@ const slides = [
 export default function Carousel() {
   const [cur, setCur] = useState(0);
   const [isMobile, setIsMobile] = useState(true);
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -124,9 +126,28 @@ export default function Carousel() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCur(prev => (prev + 1) % slides.length);
-    }, 1500);
+    }, 2000);
     return () => clearInterval(timer);
   }, []);
+
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX;
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    touchEndX.current = e.changedTouches[0].clientX;
+    if (touchStartX.current === null || touchEndX.current === null) return;
+    const diff = touchStartX.current - touchEndX.current;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        setCur(prev => (prev + 1) % slides.length);
+      } else {
+        setCur(prev => (prev - 1 + slides.length) % slides.length);
+      }
+    }
+    touchStartX.current = null;
+    touchEndX.current = null;
+  }
 
   const slide = slides[cur];
 
@@ -138,7 +159,11 @@ export default function Carousel() {
   };
 
   return (
-    <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden' }}>
+    <div
+      style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden' }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <div style={{
         backgroundColor: slide.bg,
         transition: 'background-color 0.5s ease',

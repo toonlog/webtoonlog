@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import base from '../../../lib/airtable';
-import { getUserFromRequest } from '../../../lib/auth';
 
 export async function GET(request, context) {
   try {
@@ -41,14 +40,18 @@ export async function GET(request, context) {
     await Promise.all(webtoonIds.map(async (wId) => {
       try {
         const rec = await base('WEBTOON').find(wId);
-        webtoonMap[wId] = rec.fields.title;
-      } catch { webtoonMap[wId] = wId; }
+        webtoonMap[wId] = {
+          title: rec.fields.title,
+          thumbnail_url: rec.fields.thumbnail_url || null,
+        };
+      } catch { webtoonMap[wId] = { title: wId, thumbnail_url: null }; }
     }));
 
     const reviews = reviewRecords.map(r => ({
       id: r.id,
       webtoon_id: r.fields.webtoon_id || null,
-      webtoon_title: webtoonMap[r.fields.webtoon_id] || null,
+      webtoon_title: webtoonMap[r.fields.webtoon_id]?.title || null,
+      thumbnail_url: webtoonMap[r.fields.webtoon_id]?.thumbnail_url || null,
       rating: r.fields.rating,
       content: r.fields.content,
       created_at: r.fields.created_at,
@@ -57,7 +60,7 @@ export async function GET(request, context) {
     const statuses = statusRecords.map(r => ({
       id: r.id,
       webtoon_id: r.fields.webtoon_id || null,
-      webtoon_title: webtoonMap[r.fields.webtoon_id] || null,
+      webtoon_title: webtoonMap[r.fields.webtoon_id]?.title || null,
       status: r.fields.status,
       updated_at: r.fields.updated_at,
     }));
@@ -69,64 +72,6 @@ export async function GET(request, context) {
       followerCount: followerRecords.length,
       followingCount: followingRecords.length,
     });
-  } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
-
-export async function PATCH(request, context) {
-  try {
-    const user = getUserFromRequest(request);
-    if (!user) return NextResponse.json({ error: '로그인이 필요해요' }, { status: 401 });
-
-    const { id } = await context.params;
-    if (user.userId !== id) return NextResponse.json({ error: '본인만 수정할 수 있어요' }, { status: 403 });
-
-    const { profile_image } = await request.json();
-    await base('USER').update(id, { profile_image: profile_image || '' });
-
-    return NextResponse.json({ success: true, profile_image });
-  } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
-
-export async function DELETE(request, context) {
-  try {
-    const user = getUserFromRequest(request);
-    if (!user) return NextResponse.json({ error: '로그인이 필요해요' }, { status: 401 });
-
-    const { id } = await context.params;
-    if (user.userId !== id) return NextResponse.json({ error: '본인 계정만 탈퇴할 수 있어요' }, { status: 403 });
-
-    const reviews = await base('REVIEW').select({
-      filterByFormula: `{user_id} = "${id}"`,
-    }).all();
-    await Promise.all(reviews.map(r => base('REVIEW').destroy(r.id)));
-
-    const statuses = await base('READING_STATUS').select({
-      filterByFormula: `{user_id} = "${id}"`,
-    }).all();
-    await Promise.all(statuses.map(r => base('READING_STATUS').destroy(r.id)));
-
-    const collections = await base('COLLECTION').select({
-      filterByFormula: `{user_id} = "${id}"`,
-    }).all();
-    await Promise.all(collections.map(async (c) => {
-      const items = await base('COLLECTION_ITEM').select({
-        filterByFormula: `{collection_id} = "${c.id}"`,
-      }).all();
-      await Promise.all(items.map(i => base('COLLECTION_ITEM').destroy(i.id)));
-      await base('COLLECTION').destroy(c.id);
-    }));
-
-    const follows = await base('FOLLOW').select({
-      filterByFormula: `OR({follower_id} = "${id}", {following_id} = "${id}")`,
-    }).all();
-    await Promise.all(follows.map(r => base('FOLLOW').destroy(r.id)));
-
-    await base('USER').destroy(id);
-    return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
