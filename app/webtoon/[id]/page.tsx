@@ -631,7 +631,16 @@ async function fetchLikes(reviewId: string) {
                  <button onClick={() => toggleLike(review.id)}
                     className="flex items-center gap-1 text-xs transition-all"
                     style={{
-                      color: reviewLikes[review.id]?.liked ? '#E9A800' : '#9ca3af',
+                      color: reviewLi<button onClick={() => toggleLike(review.id)}
+                    className="flex items-center gap-1 text-xs transition-all"
+                    style={{
+                      color: reviewLikes[review.id]?.liked ? '#ec4899' : '#9ca3af',
+                      fontSize: '15px',
+                      WebkitTextStroke: reviewLikes[review.id]?.liked ? '0.5px #ec4899' : 'none',
+                      pointerEvents: reviewLikes[review.id]?.liked ? 'none' : 'auto',
+                    }}>
+                    ♥ {reviewLikes[review.id]?.count || 0}
+                  </button>kes[review.id]?.liked ? '#E9A800' : '#9ca3af',
                       fontSize: reviewLikes[review.id]?.liked ? '15px' : '12.5px',
                       WebkitTextStroke: reviewLikes[review.id]?.liked ? '0.5px #E9A800' : 'none',
                       pointerEvents: reviewLikes[review.id]?.liked ? 'none' : 'auto',
