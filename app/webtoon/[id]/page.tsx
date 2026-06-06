@@ -271,14 +271,12 @@ async function fetchLikes(reviewId: string) {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
       body: JSON.stringify({ reviewId }),
     });
-    const data = await res.json();
+   const data = await res.json();
+    const likeRes = await fetch(`/api/reviews/like?reviewId=${reviewId}&userId=${auth.userId || ''}`);
+    const likeData = await likeRes.json();
     setReviewLikes(prev => ({
       ...prev,
-      [reviewId]: {
-        count: (prev[reviewId]?.count || 0) + (data.liked ? 1 : -1),
-        liked: data.liked,
-        loading: false,
-      },
+      [reviewId]: { count: likeData.count, liked: likeData.liked, loading: false },
     }));
   }
 
