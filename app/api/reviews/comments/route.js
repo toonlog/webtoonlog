@@ -12,10 +12,20 @@ export async function GET(request) {
       sort: [{ field: 'created_at', direction: 'asc' }],
     }).all();
 
+  const userIds = [...new Set(records.map(r => r.fields.user_id).filter(Boolean))];
+    const userMap = {};
+    await Promise.all(userIds.map(async (uid) => {
+      try {
+        const u = await base('USER').find(uid);
+        userMap[uid] = u.fields.profile_image || null;
+      } catch { userMap[uid] = null; }
+    }));
+
     return NextResponse.json(records.map(r => ({
       id: r.id,
       userId: r.fields.user_id,
       nickname: r.fields.nickname,
+      profileImage: userMap[r.fields.user_id] || null,
       content: r.fields.content,
       created_at: r.fields.created_at,
     })));

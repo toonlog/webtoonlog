@@ -649,11 +649,18 @@ async function fetchLikes(reviewId: string) {
                 {expandedComments[review.id] && (
                   <div className="mt-2 pl-2 border-l-2 border-gray-100">
                     {(comments[review.id] || []).map(c => (
-                      <div key={c.id} className="flex items-start justify-between py-1">
-                        <div>
-                          <span className="text-xs font-bold text-gray-700 mr-1">{c.nickname}</span>
+                    <div key={c.id} className="flex items-start justify-between py-1">
+                        <div className="flex items-center gap-1 flex-wrap">
+                          {c.profileImage ? (
+                            <img src={c.profileImage} alt={c.nickname} className="rounded-full object-cover flex-shrink-0" style={{ width: 14, height: 14 }} />
+                          ) : (
+                            <div className="rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0" style={{ width: 14, height: 14, fontSize: 8 }}>
+                              {c.nickname?.[0]?.toUpperCase()}
+                            </div>
+                          )}
+                          <span className="text-xs font-bold text-gray-700">{c.nickname}</span>
                           <span className="text-xs text-gray-600">{c.content}</span>
-                          <span className="text-xs text-gray-300 ml-1">{c.created_at}</span>
+                          <span className="text-xs text-gray-300">{c.created_at}</span>
                         </div>
                         {c.userId === auth.userId && (
                           <button onClick={() => deleteComment(review.id, c.id)}
