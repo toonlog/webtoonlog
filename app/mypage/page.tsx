@@ -253,7 +253,7 @@ async function saveEdit(reviewId: string) {
     router.push('/');
   }
 
-  const statusList = ['읽는중', '완독', '읽고싶다', '보류'];
+  const statusList = ['읽는중', '완독', '읽고싶다', '보관'];
   const filteredStatuses = statusFilter === '전체' ? statuses : statuses.filter(s => s.status === statusFilter);
 
   if (loading) return <div className="p-8 text-center">로딩중...</div>;
@@ -298,21 +298,13 @@ async function saveEdit(reviewId: string) {
             )}
 <div className="flex gap-4 mt-2 text-sm text-gray-500">
               <button onClick={() => fetchFollowList('followers')} className="hover:text-blue-500 transition">
-                팔로워 <strong className="text-gray-800">{followerCount}</strong>
+                팔로워 <span className="text-gray-400">{followerCount}</span>
               </button>
               <button onClick={() => fetchFollowList('following')} className="hover:text-blue-500 transition">
-                팔로잉 <strong className="text-gray-800">{followingCount}</strong>
+                팔로잉 <span className="text-gray-400">{followingCount}</span>
               </button>
+              <span>리뷰 <span className="text-gray-400">{reviews.length}</span></span>
             </div>
-            <div className="flex gap-4 mt-1 text-sm text-gray-500">
-              
-              <span>리뷰 <strong className="text-gray-800">{reviews.length}</strong></span>
-              <span>평균별점 <strong className="text-gray-800">
-                {reviews.filter(r => r.rating > 0).length > 0
-                  ? (reviews.filter(r => r.rating > 0).reduce((s, r) => s + r.rating, 0) / reviews.filter(r => r.rating > 0).length).toFixed(1)
-                  : '-'}
-              </strong></span>
-         </div>
             <div className="flex gap-3 mt-1 text-sm text-gray-500 flex-wrap">
               <span>읽는중 <strong className="text-gray-800">{statuses.filter(s => s.status === '읽는중').length}</strong></span>
               <span>완독 <strong className="text-gray-800">{statuses.filter(s => s.status === '완독').length}</strong></span>
