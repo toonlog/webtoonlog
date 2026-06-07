@@ -86,7 +86,9 @@ export default function MyPage() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [editingImage, setEditingImage] = useState(false);
 const [newImage, setNewImage] = useState('');
-  const [likedCollections, setLikedCollections] = useState<any[]>([]);
+ const [likedCollections, setLikedCollections] = useState<any[]>([]);
+  const [followModal, setFollowModal] = useState<'followers' | 'following' | null>(null);
+  const [followList, setFollowList] = useState<any[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -124,8 +126,15 @@ fetchCollections(uid);
       .then(r => r.json())
       .then(data => setCollections(Array.isArray(data) ? data.slice(0, 4) : []));
   }
+async function fetchFollowList(type: 'followers' | 'following') {
+    const uid = localStorage.getItem('userId');
+    const res = await fetch(`/api/follow?userId=${uid}&type=${type}`);
+    const data = await res.json();
+    setFollowList(Array.isArray(data) ? data : []);
+    setFollowModal(type);
+  }
 
-async function fetchLikedCollections(uid: string) {
+  async function fetchLikedCollections(uid: string) {
     const res = await fetch(`/api/collections/like?userId=${uid}`);
     const data = await res.json();
     setLikedCollections(Array.isArray(data) ? data : []);
@@ -188,14 +197,14 @@ async function saveProfileImage() {
   if (res.ok) { setEditingId(null); refetch(); }
 }
 
-  async function togglePublic(reviewId: string, currentPublic: boolean) {
+ async function togglePublic(reviewId: string, currentPublic: boolean) {
     const token = localStorage.getItem('token');
+    setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, is_public: !currentPublic } : r));
     await fetch('/api/reviews', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ reviewId, is_public: !currentPublic }),
     });
-    refetch();
   }
 
   async function deleteStatus(webtoonId: string) {
@@ -285,9 +294,13 @@ async function saveProfileImage() {
                   className="text-xs text-gray-400 hover:text-blue-500 flex-shrink-0">수정</button>
               </div>
             )}
-            <div className="flex gap-4 mt-2 text-sm text-gray-500">
-              <span>팔로워 <strong className="text-gray-800">{followerCount}</strong></span>
-              <span>팔로잉 <strong className="text-gray-800">{followingCount}</strong></span>
+<div className="flex gap-4 mt-2 text-sm text-gray-500">
+              <button onClick={() => fetchFollowList('followers')} className="hover:text-blue-500 transition">
+                팔로워 <strong className="text-gray-800">{followerCount}</strong>
+              </button>
+              <button onClick={() => fetchFollowList('following')} className="hover:text-blue-500 transition">
+                팔로잉 <strong className="text-gray-800">{followingCount}</strong>
+              </button>
             </div>
           </div>
         </div>
@@ -377,18 +390,20 @@ async function saveProfileImage() {
                       {(review.is_public ?? true) ? '공개' : '비공개'}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
                     <span className="text-yellow-400 text-sm">{'★'.repeat(Math.floor(review.rating))}{review.rating % 1 ? '½' : ''}</span>
                     <span className="text-xs text-gray-600 font-medium">{review.rating.toFixed(1)}</span>
                     <span className="text-gray-400 text-xs">{review.created_at}</span>
-                    <div className="flex gap-3 flex-shrink-0 ml-auto">
-                      <button
-                        onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); setEditTags(review.tags || ''); }}
-                        style={{ background: 'none', border: 'none', padding: 0, fontSize: 12, color: '#9ca3af', cursor: 'pointer' }}>수정</button>
-                      <button
-                        onClick={() => deleteReview(review.id)}
-                        style={{ background: 'none', border: 'none', padding: 0, fontSize: 12, color: '#E24B4A', cursor: 'pointer' }}>삭제</button>
-                    </div>
+                    {editingId !== review.id && (
+                      <div className="flex gap-3 flex-shrink-0 ml-auto">
+                        <button
+                          onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); setEditTags(review.tags || ''); }}
+                          style={{ background: 'none', border: 'none', padding: 0, fontSize: 12, color: '#9ca3af', cursor: 'pointer' }}>수정</button>
+                        <button
+                          onClick={() => deleteReview(review.id)}
+                          style={{ background: 'none', border: 'none', padding: 0, fontSize: 12, color: '#E24B4A', cursor: 'pointer' }}>삭제</button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -485,7 +500,39 @@ async function saveProfileImage() {
         </div>
       )}
 
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t">
+ {followModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4"
+          onClick={() => setFollowModal(null)}>
+          <div className="bg-white rounded-xl shadow-lg w-full max-w-sm p-4"
+            onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-bold text-sm">{followModal === 'followers' ? '팔로워' : '팔로잉'}</h2>
+              <button onClick={() => setFollowModal(null)} className="text-gray-400 text-sm">✕</button>
+            </div>
+            {followList.length === 0 ? (
+              <p className="text-gray-400 text-sm text-center py-4">목록이 없어요</p>
+            ) : (
+              <div className="flex flex-col gap-2 max-h-80 overflow-y-auto">
+                {followList.map((u: any) => (
+                  <button key={u.id} onClick={() => { router.push(`/users/${u.id}`); setFollowModal(null); }}
+                    className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg w-full text-left">
+                    {u.profile_image ? (
+                      <img src={u.profile_image} alt={u.nickname} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-500 flex-shrink-0">
+                        {u.nickname?.[0]?.toUpperCase()}
+                      </div>
+                    )}
+                    <span className="text-sm font-medium text-gray-800">{u.nickname}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+ <div className="fixed bottom-0 left-0 right-0 bg-white border-t">
   <div className="max-w-2xl mx-auto px-4 py-2">
     <button onClick={deleteAccount}
       className="w-full text-center text-xs text-gray-300 hover:text-red-400 py-1">

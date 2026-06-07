@@ -388,16 +388,22 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
                     style={{ background: '#3B82F6', lineHeight: 1.2 }}>
                     + 컬렉션
                   </button>
-                  {showCollectionMenu && (
+                 {showCollectionMenu && (
                     <div className="absolute right-0 top-8 bg-white shadow-lg rounded-xl p-2 w-44 z-10 border border-gray-100">
-                      {collections.length === 0 ? (
-                        <Link href="/collections" className="block text-sm text-blue-500 p-2 hover:bg-gray-50 rounded-lg">컬렉션 만들기</Link>
-                      ) : collections.map(c => (
-                        <button key={c.id} onClick={() => addToCollection(c.id)}
-                          className="w-full text-left text-sm px-3 py-2 hover:bg-gray-50 rounded-lg text-gray-700">
-                          {c.name}
-                        </button>
-                      ))}
+                      <div style={{ maxHeight: 180, overflowY: 'auto' }}>
+                        {collections.slice(0, 5).map(c => (
+                          <button key={c.id} onClick={() => addToCollection(c.id)}
+                            className="w-full text-left text-sm px-3 py-2 hover:bg-gray-50 rounded-lg text-gray-700">
+                            {c.name}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="border-t border-gray-100 mt-1 pt-1">
+                        <Link href="/collections"
+                          className="block text-sm text-blue-500 px-3 py-2 hover:bg-gray-50 rounded-lg">
+                          + 새 컬렉션 만들기
+                        </Link>
+                      </div>
                     </div>
                   )}
                 </div>
