@@ -29,7 +29,8 @@ if (e.key === ' ' || e.key === 'Enter') {
 
   return (
     <div
-      className="flex flex-wrap gap-1 border rounded-lg px-2 py-1.5 cursor-text min-h-[38px]"
+     style={{ background: '#F9F9F9', border: '0.5px solid #EBEBEB', borderRadius: 7 }}
+      className="flex flex-wrap gap-1 px-2 py-1.5 cursor-text min-h-[38px]"
       onClick={() => inputRef.current?.focus()}>
       {tags.map((tag, i) => (
         <span key={i} className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
@@ -45,7 +46,8 @@ if (e.key === ' ' || e.key === 'Enter') {
         onChange={e => setInput(e.target.value)}
         onKeyDown={handleKey}
         placeholder={tags.length === 0 && input === '' ? placeholder : ''}
-        className="text-sm outline-none bg-transparent flex-1 min-w-[80px] py-0.5"
+      className="outline-none bg-transparent flex-1 min-w-[80px] py-0.5"
+        style={{ fontSize: 12, color: '#1a1a1a' }}
       />
     </div>
   );
