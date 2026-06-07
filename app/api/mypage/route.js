@@ -29,9 +29,10 @@ export async function GET(request) {
     await Promise.all(webtoonIds.map(async (wId) => {
       try {
         const rec = await base('WEBTOON').find(wId);
-        webtoonMap[wId] = {
+      webtoonMap[wId] = {
           title: rec.fields.title,
           thumbnail_url: rec.fields.thumbnail_url || null,
+          genre: rec.fields.genre || '',
         };
       } catch { webtoonMap[wId] = { title: wId, thumbnail_url: null }; }
     }));
