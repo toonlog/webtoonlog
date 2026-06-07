@@ -304,6 +304,20 @@ async function saveEdit(reviewId: string) {
                 팔로잉 <strong className="text-gray-800">{followingCount}</strong>
               </button>
             </div>
+            <div className="flex gap-4 mt-1 text-sm text-gray-500">
+              
+              <span>리뷰 <strong className="text-gray-800">{reviews.length}</strong></span>
+              <span>평균별점 <strong className="text-gray-800">
+                {reviews.filter(r => r.rating > 0).length > 0
+                  ? (reviews.filter(r => r.rating > 0).reduce((s, r) => s + r.rating, 0) / reviews.filter(r => r.rating > 0).length).toFixed(1)
+                  : '-'}
+              </strong></span>
+         </div>
+            <div className="flex gap-3 mt-1 text-sm text-gray-500 flex-wrap">
+              <span>읽는중 <strong className="text-gray-800">{statuses.filter(s => s.status === '읽는중').length}</strong></span>
+              <span>완독 <strong className="text-gray-800">{statuses.filter(s => s.status === '완독').length}</strong></span>
+              <span>읽고싶다 <strong className="text-gray-800">{statuses.filter(s => s.status === '읽고싶다').length}</strong></span>
+            </div>
           </div>
         </div>
 {editingImage && (
@@ -318,6 +332,63 @@ async function saveEdit(reviewId: string) {
           </div>
         )}
       </div>
+
+{/* 활동 통계 */}
+      {reviews.length > 0 && (() => {
+        const genreCount: Record<string, number> = {};
+        reviews.forEach(r => {
+          if (!r.genre) return;
+          r.genre.split(',').map((g: string) => g.trim()).filter(Boolean).forEach((g: string) => {
+            genreCount[g] = (genreCount[g] || 0) + 1;
+          });
+        });
+        const topGenres = Object.entries(genreCount).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([g]) => g);
+
+        const tagCount: Record<string, number> = {};
+        reviews.forEach(r => {
+          if (!r.tags) return;
+          r.tags.split(',').map((t: string) => t.trim()).filter(Boolean).forEach((t: string) => {
+            tagCount[t] = (tagCount[t] || 0) + 1;
+          });
+        });
+        const topTags = Object.entries(tagCount).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([t]) => t);
+
+        if (topGenres.length === 0 && topTags.length === 0) return null;
+
+        return (
+          <div className="bg-white rounded-xl shadow p-4 mb-4">
+            <h2 className="font-bold text-gray-900 mb-3">취향 분석</h2>
+            <div className="flex flex-col gap-3">
+              {topGenres.length > 0 && (
+                <div>
+                  <p className="text-xs text-gray-400 mb-1.5">장르 선호 Top 3</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {topGenres.map((g, i) => (
+                      <span key={g} className="text-xs px-3 py-1 rounded-full"
+                        style={{ background: '#F1EFE8', color: '#5F5E5A' }}>
+                        {i + 1}. {g}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {topTags.length > 0 && (
+                <div>
+                  <p className="text-xs text-gray-400 mb-1.5">태그 선호 Top 3</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {topTags.map((t, i) => (
+                      <span key={t} className="text-xs px-3 py-1 rounded-full"
+                        style={{ background: '#EEEDFE', color: '#534AB7' }}>
+                        {i + 1}. #{t}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* 컬렉션 */}
     <div className="bg-white rounded-xl shadow p-4 mb-4">
