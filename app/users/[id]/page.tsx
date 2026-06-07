@@ -16,7 +16,9 @@ export default function UserPage() {
   const [followingCount, setFollowingCount] = useState(0);
   const [tab, setTab] = useState<'reviews' | 'status'>('reviews');
   const [loading, setLoading] = useState(true);
-  const [myUserId, setMyUserId] = useState<string | null>(null);
+const [myUserId, setMyUserId] = useState<string | null>(null);
+  const [followModal, setFollowModal] = useState<'followers' | 'following' | null>(null);
+  const [followList, setFollowList] = useState<any[]>([]);
 
   useEffect(() => {
     const userId = localStorage.getItem('userId');
@@ -37,6 +39,13 @@ export default function UserPage() {
     setFollowingCount(userData.followingCount || 0);
     setIsFollowing(followData.isFollowing);
     setLoading(false);
+  }
+
+async function fetchFollowList(type: 'followers' | 'following') {
+    const res = await fetch(`/api/follow?userId=${targetUserId}&type=${type}`);
+    const data = await res.json();
+    setFollowList(Array.isArray(data) ? data : []);
+    setFollowModal(type);
   }
 
   async function toggleFollow() {
@@ -71,9 +80,13 @@ export default function UserPage() {
           )}
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-gray-900">{targetUser.nickname}</h1>
-            <div className="flex gap-4 mt-2 text-sm text-gray-500">
-              <span>팔로워 <strong className="text-gray-800">{followerCount}</strong></span>
-              <span>팔로잉 <strong className="text-gray-800">{followingCount}</strong></span>
+          <div className="flex gap-4 mt-2 text-sm text-gray-500">
+              <button onClick={() => fetchFollowList('followers')} className="hover:text-blue-500 transition">
+                팔로워 <strong className="text-gray-800">{followerCount}</strong>
+              </button>
+              <button onClick={() => fetchFollowList('following')} className="hover:text-blue-500 transition">
+                팔로잉 <strong className="text-gray-800">{followingCount}</strong>
+              </button>
             </div>
           </div>
           {myUserId && myUserId !== targetUserId && (
@@ -156,6 +169,37 @@ export default function UserPage() {
               </span>
             </div>
           ))}
+        </div>
+      )}
+  {followModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4"
+          onClick={() => setFollowModal(null)}>
+          <div className="bg-white rounded-xl shadow-lg w-full max-w-sm p-4"
+            onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-bold text-sm">{followModal === 'followers' ? '팔로워' : '팔로잉'}</h2>
+              <button onClick={() => setFollowModal(null)} className="text-gray-400 text-sm">✕</button>
+            </div>
+            {followList.length === 0 ? (
+              <p className="text-gray-400 text-sm text-center py-4">목록이 없어요</p>
+            ) : (
+              <div className="flex flex-col gap-2 max-h-80 overflow-y-auto">
+                {followList.map((u: any) => (
+                  <button key={u.id} onClick={() => { router.push(`/users/${u.id}`); setFollowModal(null); }}
+                    className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg w-full text-left">
+                    {u.profile_image ? (
+                      <img src={u.profile_image} alt={u.nickname} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-500 flex-shrink-0">
+                        {u.nickname?.[0]?.toUpperCase()}
+                      </div>
+                    )}
+                    <span className="text-sm font-medium text-gray-800">{u.nickname}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </main>

@@ -78,6 +78,7 @@ export default function MyPage() {
   const [editRating, setEditRating] = useState(5);
   const [editContent, setEditContent] = useState('');
   const [editTags, setEditTags] = useState('');
+  const [editIsPublic, setEditIsPublic] = useState(true);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>('전체');
@@ -187,12 +188,13 @@ async function saveProfileImage() {
     refetch();
   }
 
-  async function saveEdit(reviewId: string) {
+async function saveEdit(reviewId: string) {
   const token = localStorage.getItem('token');
+  const review = reviews.find(r => r.id === reviewId);
   const res = await fetch('/api/reviews', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ reviewId, rating: editRating, content: editContent, tags: editTags }),
+    body: JSON.stringify({ reviewId, rating: editRating, content: editContent, tags: editTags, is_public: review?.is_public ?? true }),
   });
   if (res.ok) { setEditingId(null); refetch(); }
 }
@@ -396,8 +398,8 @@ async function saveProfileImage() {
                     <span className="text-gray-400 text-xs">{review.created_at}</span>
                     {editingId !== review.id && (
                       <div className="flex gap-3 flex-shrink-0 ml-auto">
-                        <button
-                          onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); setEditTags(review.tags || ''); }}
+                      <button
+                          onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); setEditTags(review.tags || ''); setEditIsPublic(review.is_public ?? true); }}
                           style={{ background: 'none', border: 'none', padding: 0, fontSize: 12, color: '#9ca3af', cursor: 'pointer' }}>수정</button>
                         <button
                           onClick={() => deleteReview(review.id)}
@@ -412,13 +414,13 @@ async function saveProfileImage() {
                   <div className="flex items-center justify-between">
                     <StarPicker rating={editRating} onChange={setEditRating} />
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className="text-xs" style={{ color: (review.is_public ?? true) ? '#3B82F6' : '#888780' }}>
-                        {(review.is_public ?? true) ? '공개' : '나만보기'}
+                <span className="text-xs" style={{ color: editIsPublic ? '#3B82F6' : '#888780' }}>
+                        {editIsPublic ? '공개' : '나만보기'}
                       </span>
                       <div
-                        onClick={() => togglePublic(review.id, review.is_public ?? true)}
-                        style={{ width: 34, height: 19, borderRadius: 10, background: (review.is_public ?? true) ? '#3B82F6' : '#B4B2A9', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '2px', transition: 'background 0.2s', flexShrink: 0 }}>
-                        <div style={{ width: 15, height: 15, borderRadius: '50%', background: '#fff', transform: (review.is_public ?? true) ? 'translateX(15px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
+                        onClick={() => { setEditIsPublic(p => !p); togglePublic(review.id, review.is_public ?? true); }}
+                        style={{ width: 34, height: 19, borderRadius: 10, background: editIsPublic ? '#3B82F6' : '#B4B2A9', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '2px', transition: 'background 0.2s', flexShrink: 0 }}>
+                        <div style={{ width: 15, height: 15, borderRadius: '50%', background: '#fff', transform: editIsPublic ? 'translateX(15px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
                       </div>
                     </div>
                   </div>
