@@ -30,22 +30,12 @@ export default function FilterBar({ initialGenre, initialPlatform, search }: {
   return (
     <div>
       {/* 장르 필터 */}
-      <div className="max-w-4xl mx-auto mb-3">
-        <div
-          style={{
-            display: 'flex',
-            gap: 8,
-            overflowX: 'auto',
-            paddingBottom: 4,
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-          }}
-          className="hide-scrollbar">
+<div className="max-w-4xl mx-auto mb-3">
+        <div className="hide-scrollbar flex gap-2 overflow-x-auto md:overflow-x-visible md:flex-wrap pb-1">
           {/* 전체 */}
           <button
             onClick={() => navigate('', initialPlatform)}
-            style={{
-              flexShrink: 0,
+        style={{
               padding: '4px 12px',
               borderRadius: 20,
               fontSize: 14,
@@ -53,15 +43,13 @@ export default function FilterBar({ initialGenre, initialPlatform, search }: {
               background: !initialGenre ? '#3B82F6' : 'white',
               color: !initialGenre ? 'white' : '#374151',
               cursor: 'pointer',
-              whiteSpace: 'nowrap',
             }}>
             전체
           </button>
           {visibleGenres.map(g => (
             <button key={g}
               onClick={() => navigate(g, initialPlatform)}
-              style={{
-                flexShrink: 0,
+            style={{
                 padding: '4px 12px',
                 borderRadius: 20,
                 fontSize: 14,
@@ -69,7 +57,6 @@ export default function FilterBar({ initialGenre, initialPlatform, search }: {
                 background: initialGenre === g ? '#3B82F6' : 'white',
                 color: initialGenre === g ? 'white' : '#374151',
                 cursor: 'pointer',
-                whiteSpace: 'nowrap',
               }}>
               {g}
             </button>
@@ -78,8 +65,7 @@ export default function FilterBar({ initialGenre, initialPlatform, search }: {
           {!showAllGenres ? (
             <button
               onClick={() => setShowAllGenres(true)}
-              style={{
-                flexShrink: 0,
+           style={{
                 padding: '4px 12px',
                 borderRadius: 20,
                 fontSize: 14,
@@ -87,15 +73,13 @@ export default function FilterBar({ initialGenre, initialPlatform, search }: {
                 background: 'white',
                 color: '#9ca3af',
                 cursor: 'pointer',
-                whiteSpace: 'nowrap',
               }}>
               + 더보기
             </button>
           ) : (
             <button
               onClick={() => setShowAllGenres(false)}
-              style={{
-                flexShrink: 0,
+      style={{
                 padding: '4px 12px',
                 borderRadius: 20,
                 fontSize: 14,
@@ -103,7 +87,6 @@ export default function FilterBar({ initialGenre, initialPlatform, search }: {
                 background: 'white',
                 color: '#9ca3af',
                 cursor: 'pointer',
-                whiteSpace: 'nowrap',
               }}>
               접기
             </button>
@@ -112,22 +95,12 @@ export default function FilterBar({ initialGenre, initialPlatform, search }: {
       </div>
 
       {/* 플랫폼 필터 */}
-      <div className="max-w-4xl mx-auto mb-6">
-        <div
-          style={{
-            display: 'flex',
-            gap: 8,
-            overflowX: 'auto',
-            paddingBottom: 4,
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-          }}
-          className="hide-scrollbar">
+<div className="max-w-4xl mx-auto mb-6">
+        <div className="hide-scrollbar flex gap-2 overflow-x-auto md:overflow-x-visible md:flex-wrap pb-1">
           {/* 전체 */}
           <button
             onClick={() => navigate(initialGenre, '')}
-            style={{
-              flexShrink: 0,
+          style={{
               padding: '4px 12px',
               borderRadius: 20,
               fontSize: 14,
@@ -135,15 +108,13 @@ export default function FilterBar({ initialGenre, initialPlatform, search }: {
               background: !initialPlatform ? '#534AB7' : 'white',
               color: !initialPlatform ? 'white' : '#374151',
               cursor: 'pointer',
-              whiteSpace: 'nowrap',
             }}>
             전체
           </button>
           {visiblePlatforms.map(p => (
             <button key={p}
               onClick={() => navigate(initialGenre, p)}
-              style={{
-                flexShrink: 0,
+            style={{
                 padding: '4px 12px',
                 borderRadius: 20,
                 fontSize: 14,
@@ -151,7 +122,6 @@ export default function FilterBar({ initialGenre, initialPlatform, search }: {
                 background: initialPlatform === p ? '#534AB7' : 'white',
                 color: initialPlatform === p ? 'white' : '#374151',
                 cursor: 'pointer',
-                whiteSpace: 'nowrap',
               }}>
               {p}
             </button>
@@ -159,8 +129,7 @@ export default function FilterBar({ initialGenre, initialPlatform, search }: {
           {!showAllPlatforms ? (
             <button
               onClick={() => setShowAllPlatforms(true)}
-              style={{
-                flexShrink: 0,
+           style={{
                 padding: '4px 12px',
                 borderRadius: 20,
                 fontSize: 14,
@@ -168,15 +137,13 @@ export default function FilterBar({ initialGenre, initialPlatform, search }: {
                 background: 'white',
                 color: '#9ca3af',
                 cursor: 'pointer',
-                whiteSpace: 'nowrap',
               }}>
               + 더보기
             </button>
           ) : (
             <button
               onClick={() => setShowAllPlatforms(false)}
-              style={{
-                flexShrink: 0,
+          style={{
                 padding: '4px 12px',
                 borderRadius: 20,
                 fontSize: 14,
@@ -184,7 +151,6 @@ export default function FilterBar({ initialGenre, initialPlatform, search }: {
                 background: 'white',
                 color: '#9ca3af',
                 cursor: 'pointer',
-                whiteSpace: 'nowrap',
               }}>
               접기
             </button>

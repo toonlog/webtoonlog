@@ -529,12 +529,12 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
               <label htmlFor="wishlist" className="text-xs text-gray-500 cursor-pointer">읽고싶다 (별점 없이 남기기)</label>
             </div>
             {!isWishlist && <StarPicker rating={rating} onChange={setRating} />}
-            <textarea className="w-full border rounded-lg p-2 mt-2 mb-2 text-sm" rows={3}
-              placeholder="리뷰를 작성해주세요" value={content} onChange={e => setContent(e.target.value)} />
- <TagInput value={tags} onChange={setTags} placeholder="태그 (쉼표로 구분 - 예. 순애, 계략남주, 조폭)" />
-          <button onClick={submitReview} disabled={loading}
-              className="px-4 py-2 rounded-lg text-sm text-white border-none mt-2"
-              style={{ background: '#3B82F6' }}>
+         <textarea
+              style={{ background: '#F9F9F9', border: '0.5px solid #EBEBEB', borderRadius: 7, padding: '5px 8px', fontSize: 12, color: '#1a1a1a', width: '100%', resize: 'none', minHeight: 64, lineHeight: 1.5, marginTop: 8, marginBottom: 8 }}
+              rows={3} placeholder="리뷰를 작성해주세요" value={content} onChange={e => setContent(e.target.value)} />
+            <TagInput value={tags} onChange={setTags} placeholder="태그 (쉼표로 구분 - 예. 순애, 계략남주, 조폭)" />
+            <button onClick={submitReview} disabled={loading}
+              style={{ fontSize: 13, padding: '6px 16px', borderRadius: 6, border: 'none', background: '#3B82F6', color: 'white', cursor: 'pointer', marginTop: 8 }}>
               {loading ? '등록 중...' : '등록'}
             </button>
           </>
