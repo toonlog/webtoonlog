@@ -345,7 +345,7 @@ async function saveEdit(reviewId: string) {
         });
         const topTags = Object.entries(tagCount).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([t]) => t);
 
-        if (topGenres.length === 0 && topTags.length === 0) return null;
+     if (topGenres.length === 0 && topTags.length === 0) return null;
 
         return (
           <div className="bg-white rounded-xl shadow p-4 mb-4">
