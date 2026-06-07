@@ -78,3 +78,19 @@ export async function DELETE(request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export async function PATCH(request) {
+  try {
+    const user = getUserFromRequest(request);
+    if (!user) return NextResponse.json({ error: '로그인이 필요해요' }, { status: 401 });
+
+    const { commentId, content } = await request.json();
+    const record = await base('REVIEW_COMMENT').find(commentId);
+    if (record.fields.user_id !== user.userId) return NextResponse.json({ error: '내 댓글만 수정할 수 있어요' }, { status: 403 });
+
+    const updated = await base('REVIEW_COMMENT').update(commentId, { content: content.trim() });
+    return NextResponse.json({ id: updated.id, content: updated.fields.content });
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

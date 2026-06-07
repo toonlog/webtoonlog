@@ -47,7 +47,8 @@ thumbnail_url: webtoonMap[r.fields.webtoon_id]?.thumbnail_url || null,
   content: r.fields.content,
   created_at: r.fields.created_at,
   is_public: r.fields.is_public ?? true,
-  tags: r.fields.tags || '',
+ tags: r.fields.tags || '',
+  images: r.fields.images || '',
 }));
 
     const statuses = statusRecords.map(r => ({

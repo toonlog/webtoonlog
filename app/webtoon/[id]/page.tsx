@@ -4,6 +4,47 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import TagInput from '@/app/components/TagInput';
 
+function ImageUploadMulti({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [uploading, setUploading] = useState(false);
+  const imgs = value ? value.split(',').map((u: string) => u.trim()).filter(Boolean) : [];
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch('/api/upload', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (data.url) onChange(value ? `${value},${data.url}` : data.url);
+    setUploading(false);
+    e.target.value = '';
+  }
+
+  function removeImg(idx: number) {
+    const arr = imgs.filter((_: string, i: number) => i !== idx);
+    onChange(arr.join(','));
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2 mt-1">
+      {imgs.map((url: string, i: number) => (
+        <div key={i} className="relative w-14 h-14 rounded-lg overflow-hidden">
+          <img src={url} alt="" className="w-full h-full object-cover" />
+          <button onClick={() => removeImg(i)}
+            className="absolute top-0 right-0 bg-black bg-opacity-60 text-white text-xs w-4 h-4 flex items-center justify-center rounded-bl-lg">✕</button>
+        </div>
+      ))}
+      {imgs.length < 5 && (
+        <label className="w-14 h-14 rounded-lg border border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50">
+          {uploading ? <span className="text-xs text-gray-400">...</span> : <span className="text-gray-400 text-xl">+</span>}
+          <input type="file" accept="image/*" className="hidden" onChange={handleFile} />
+        </label>
+      )}
+    </div>
+  );
+}
+
 function WebtoonCollectionSection({ collections }: { collections: any[] }) {
   const [previews, setPreviews] = useState<Record<string, any[]>>({});
   const SHOW = 5;
@@ -63,12 +104,12 @@ function StarDisplay({ rating, size = 13 }: { rating: number; size?: number }) {
   return (
     <div style={{ display: 'flex', gap: '1px', alignItems: 'center' }}>
       {[1, 2, 3, 4, 5].map(i => {
-      const fill = rating >= i ? '#FBBF24' : rating >= i - 0.5 ? 'url(#half)' : '#D3D1C7';
+        const fill = rating >= i ? '#FBBF24' : rating >= i - 0.5 ? 'url(#half)' : '#D3D1C7';
         return (
           <svg key={i} width={size} height={size} viewBox="0 0 24 24">
             {i === 1 && (
               <defs>
-            <linearGradient id="half">
+                <linearGradient id="half">
                   <stop offset="50%" stopColor="#FBBF24" />
                   <stop offset="50%" stopColor="#D3D1C7" />
                 </linearGradient>
@@ -88,10 +129,9 @@ function StarPicker({ rating, onChange }: { rating: number; onChange: (v: number
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <div style={{ display: 'flex', gap: '1px', cursor: 'pointer' }}>
         {[1, 2, 3, 4, 5].map(i => {
-          const filled = rating >= i ? '#E9A800' : '#D3D1C7';
           const half = rating >= i - 0.5 && rating < i;
           return (
-          <div key={i} style={{ position: 'relative', width: 22, height: 22 }}
+            <div key={i} style={{ position: 'relative', width: 22, height: 22 }}
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const x = e.clientX - rect.left;
@@ -99,14 +139,14 @@ function StarPicker({ rating, onChange }: { rating: number; onChange: (v: number
               }}>
               <svg width={22} height={22} viewBox="2 2 20 20">
                 <defs>
-                <linearGradient id={`half-${i}`}>
+                  <linearGradient id={`half-${i}`}>
                     <stop offset="50%" stopColor="#FBBF24" />
                     <stop offset="50%" stopColor="#D3D1C7" />
                   </linearGradient>
                 </defs>
                 <polygon
                   points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
-                 fill={rating >= i ? '#FBBF24' : half ? `url(#half-${i})` : '#D3D1C7'} />
+                  fill={rating >= i ? '#FBBF24' : half ? `url(#half-${i})` : '#D3D1C7'} />
               </svg>
             </div>
           );
@@ -129,12 +169,16 @@ export default function WebtoonPage() {
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState('');
   const [tags, setTags] = useState('');
-const [isPublic, setIsPublic] = useState(true);
+  const [images, setImages] = useState('');
+  const [isPublic, setIsPublic] = useState(true);
   const [isWishlist, setIsWishlist] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editRating, setEditRating] = useState(5);
   const [editContent, setEditContent] = useState('');
   const [editTags, setEditTags] = useState('');
+  const [editImages, setEditImages] = useState('');
+  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
   const [auth, setAuth] = useState<{ token: string | null; nickname: string | null; userId: string | null }>({ token: null, nickname: null, userId: null });
   const [loading, setLoading] = useState(false);
   const [collections, setCollections] = useState<any[]>([]);
@@ -142,8 +186,8 @@ const [isPublic, setIsPublic] = useState(true);
   const [webtoonCollections, setWebtoonCollections] = useState<any[]>([]);
   const [showAllTags, setShowAllTags] = useState(false);
   const [showMoreReviews, setShowMoreReviews] = useState(false);
-const [reviewPage, setReviewPage] = useState(1);
-const [reviewLikes, setReviewLikes] = useState<Record<string, { count: number; liked: boolean; loading?: boolean }>>({});
+  const [reviewPage, setReviewPage] = useState(1);
+  const [reviewLikes, setReviewLikes] = useState<Record<string, { count: number; liked: boolean; loading?: boolean }>>({});
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const [comments, setComments] = useState<Record<string, any[]>>({});
   const [commentInput, setCommentInput] = useState<Record<string, string>>({});
@@ -210,12 +254,12 @@ const [reviewLikes, setReviewLikes] = useState<Record<string, { count: number; l
     const res = await fetch('/api/reviews', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
-    body: JSON.stringify({ webtoonId: id, rating, content, tags, is_public: isPublic, is_wishlist: isWishlist }),
+      body: JSON.stringify({ webtoonId: id, rating, content, tags, images, is_public: isPublic, is_wishlist: isWishlist }),
     });
     const data = await res.json();
     setLoading(false);
     if (!res.ok) return alert(data.error);
-    setContent(''); setRating(5); setTags(''); setIsPublic(true);
+    setContent(''); setRating(5); setTags(''); setIsPublic(true); setImages('');
     fetchReviews();
   }
 
@@ -239,40 +283,39 @@ const [reviewLikes, setReviewLikes] = useState<Record<string, { count: number; l
     fetchReviews();
   }
 
-async function saveEdit(reviewId: string) {
-  const review = reviews.find(r => r.id === reviewId);
-  const res = await fetch('/api/reviews', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
-    body: JSON.stringify({ reviewId, rating: editRating, content: editContent, tags: editTags, is_public: review?.is_public ?? true }),
-  });
-if (res.ok) {
-    setEditingId(null);
-    setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, rating: editRating, content: editContent, tags: editTags, is_public: review?.is_public ?? true } : r));
+  async function saveEdit(reviewId: string) {
+    const review = reviews.find(r => r.id === reviewId);
+    const res = await fetch('/api/reviews', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
+      body: JSON.stringify({ reviewId, rating: editRating, content: editContent, tags: editTags, images: editImages, is_public: review?.is_public ?? true }),
+    });
+    if (res.ok) {
+      setEditingId(null);
+      setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, rating: editRating, content: editContent, tags: editTags, images: editImages, is_public: review?.is_public ?? true } : r));
+    }
   }
-}
 
   async function toggleReviewPublic(reviewId: string, current: boolean) {
     setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, is_public: !current } : r));
   }
 
-async function fetchLikes(reviewId: string) {
+  async function fetchLikes(reviewId: string) {
     const userId = auth.userId || '';
     const res = await fetch(`/api/reviews/like?reviewId=${reviewId}&userId=${userId}`);
     const data = await res.json();
     setReviewLikes(prev => ({ ...prev, [reviewId]: data }));
   }
 
- async function toggleLike(reviewId: string) {
+  async function toggleLike(reviewId: string) {
     if (!auth.token) return router.push('/login');
     if (reviewLikes[reviewId]?.loading) return;
     setReviewLikes(prev => ({ ...prev, [reviewId]: { ...prev[reviewId], loading: true } }));
-    const res = await fetch('/api/reviews/like', {
+    await fetch('/api/reviews/like', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
       body: JSON.stringify({ reviewId }),
     });
-   const data = await res.json();
     const likeRes = await fetch(`/api/reviews/like?reviewId=${reviewId}&userId=${auth.userId || ''}`);
     const likeData = await likeRes.json();
     setReviewLikes(prev => ({
@@ -311,7 +354,7 @@ async function fetchLikes(reviewId: string) {
     fetchComments(reviewId);
   }
 
-async function saveCommentEdit(reviewId: string, commentId: string) {
+  async function saveCommentEdit(reviewId: string, commentId: string) {
     if (!editCommentContent.trim()) return;
     await fetch('/api/reviews/comments', {
       method: 'PATCH',
@@ -328,7 +371,7 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
     if (next && !comments[reviewId]) fetchComments(reviewId);
   }
 
-  const statusList = ['읽는중', '완독', '읽고싶다', '보류'];
+  const statusList = ['읽는중', '완독', '읽고싶다', '보관'];
   if (!webtoon) return <div className="p-8 text-center">로딩중...</div>;
 
   const myReview = reviews.find(r => r.userId === auth.userId);
@@ -367,8 +410,7 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
       {/* 작품 정보 */}
       <div className="bg-white rounded-xl shadow p-4 mb-4">
         <div className="flex gap-3">
-          {/* 썸네일 */}
-        <div className="flex-shrink-0 w-24 self-stretch flex items-center">
+          <div className="flex-shrink-0 w-24 self-stretch flex items-center">
             {webtoon.thumbnail_url ? (
               <img src={webtoon.thumbnail_url} alt={webtoon.title}
                 className="w-24 rounded-lg object-cover"
@@ -377,7 +419,6 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
               <div className="w-24 bg-gray-200 rounded-lg" style={{ aspectRatio: '8/11' }} />
             )}
           </div>
-          {/* 정보 */}
           <div className="flex-1 min-w-0 flex flex-col gap-1">
             <div className="flex items-start justify-between gap-2">
               <h1 className="text-base font-bold text-gray-900 leading-snug" style={{ wordBreak: 'keep-all' }}>{webtoon.title}</h1>
@@ -388,7 +429,7 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
                     style={{ background: '#3B82F6', lineHeight: 1.2 }}>
                     + 컬렉션
                   </button>
-                 {showCollectionMenu && (
+                  {showCollectionMenu && (
                     <div className="absolute right-0 top-8 bg-white shadow-lg rounded-xl p-2 w-44 z-10 border border-gray-100">
                       <div style={{ maxHeight: 180, overflowY: 'auto' }}>
                         {collections.slice(0, 5).map(c => (
@@ -409,46 +450,37 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
                 </div>
               )}
             </div>
-         <p className="text-xs text-gray-400" style={{ marginTop: '1px', marginBottom: '6px' }}>{webtoon.author}</p>
+            <p className="text-xs text-gray-400" style={{ marginTop: '1px', marginBottom: '6px' }}>{webtoon.author}</p>
             {avgRating && (
               <div className="flex items-center gap-1">
                 <span className="text-yellow-400 text-xs">★ {avgRating}</span>
                 <span className="text-xs text-gray-400">({reviews.length}개)</span>
               </div>
             )}
-       {/* 뱃지 */}
             <div className="flex flex-col gap-1">
               <div className="flex flex-wrap gap-1">
                 {platforms.map((p: string) => (
-                  <span key={p}
-                    className="text-xs px-2 py-0.5 rounded-full"
-                    style={{ background: '#EBF5FF', color: '#185FA5' }}>
-                    {p}
-                  </span>
+                  <span key={p} className="text-xs px-2 py-0.5 rounded-full"
+                    style={{ background: '#EBF5FF', color: '#185FA5' }}>{p}</span>
                 ))}
               </div>
               <div className="flex flex-wrap gap-1">
                 {genres.map((g: string) => (
                   <Link key={g} href={`/genre/${encodeURIComponent(g)}`}
                     className="text-xs px-2 py-0.5 rounded-full"
-                    style={{ background: '#F1EFE8', color: '#5F5E5A' }}>
-                    {g}
-                  </Link>
+                    style={{ background: '#F1EFE8', color: '#5F5E5A' }}>{g}</Link>
                 ))}
               </div>
               {webtoon.status && (
                 <div className="flex flex-wrap gap-1">
                   <span className="text-xs px-2 py-0.5 rounded-full"
-                    style={{ background: '#EAF3DE', color: '#3B6D11' }}>
-                    {webtoon.status}
-                  </span>
+                    style={{ background: '#EAF3DE', color: '#3B6D11' }}>{webtoon.status}</span>
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* 유저 태그 */}
         {sortedTags.length > 0 && (
           <div className="mt-3 pt-3 border-t border-gray-100">
             <p className="text-xs text-gray-400 mb-2">유저 태그</p>
@@ -502,19 +534,9 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
               <span className="text-xs" style={{ color: isPublic ? '#3B82F6' : '#888780' }}>
                 {isPublic ? '공개' : '나만보기'}
               </span>
-              <div
-                onClick={() => setIsPublic(!isPublic)}
-                style={{
-                  width: 36, height: 20, borderRadius: 10,
-                  background: isPublic ? '#3B82F6' : '#B4B2A9',
-                  cursor: 'pointer', position: 'relative',
-                  transition: 'background 0.2s', display: 'flex', alignItems: 'center', padding: '2px'
-                }}>
-                <div style={{
-                  width: 16, height: 16, borderRadius: '50%', background: '#fff',
-                  transform: isPublic ? 'translateX(16px)' : 'translateX(0)',
-                  transition: 'transform 0.2s'
-                }} />
+              <div onClick={() => setIsPublic(!isPublic)}
+                style={{ width: 36, height: 20, borderRadius: 10, background: isPublic ? '#3B82F6' : '#B4B2A9', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', display: 'flex', alignItems: 'center', padding: '2px' }}>
+                <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#fff', transform: isPublic ? 'translateX(16px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
               </div>
             </div>
           )}
@@ -528,17 +550,17 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
         ) : (
           <>
             <p className="text-xs text-gray-400 mb-2">{auth.nickname} 님으로 작성됩니다</p>
-          <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2">
               <input type="checkbox" id="wishlist" checked={isWishlist}
-                onChange={e => setIsWishlist(e.target.checked)}
-                className="cursor-pointer" />
+                onChange={e => setIsWishlist(e.target.checked)} className="cursor-pointer" />
               <label htmlFor="wishlist" className="text-xs text-gray-500 cursor-pointer">읽고싶다 (별점 없이 남기기)</label>
             </div>
             {!isWishlist && <StarPicker rating={rating} onChange={setRating} />}
-         <textarea
+            <textarea
               style={{ background: '#F9F9F9', border: '0.5px solid #EBEBEB', borderRadius: 7, padding: '5px 8px', fontSize: 12, color: '#1a1a1a', width: '100%', resize: 'none', minHeight: 64, lineHeight: 1.5, marginTop: 8, marginBottom: 8 }}
               rows={3} placeholder="리뷰를 작성해주세요" value={content} onChange={e => setContent(e.target.value)} />
             <TagInput value={tags} onChange={setTags} placeholder="태그 (쉼표로 구분 - 예. 순애, 계략남주, 조폭)" />
+            <ImageUploadMulti value={images} onChange={setImages} />
             <button onClick={submitReview} disabled={loading}
               style={{ fontSize: 13, padding: '6px 16px', borderRadius: 6, border: 'none', background: '#3B82F6', color: 'white', cursor: 'pointer', marginTop: 8 }}>
               {loading ? '등록 중...' : '등록'}
@@ -572,22 +594,23 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
         {reviews.length === 0 && <p className="text-gray-400 text-sm">아직 리뷰가 없어요!</p>}
 
         {displayedReviews.map((review, idx) => (
-<div key={review.id} className={idx > 0 ? 'border-t border-gray-100 pt-3 mt-3' : ''}>           {editingId === review.id ? (
- <div className="flex flex-col gap-2">
+          <div key={review.id} className={idx > 0 ? 'border-t border-gray-100 pt-3 mt-3' : ''}>
+            {editingId === review.id ? (
+              <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   <StarPicker rating={editRating} onChange={setEditRating} />
-                 <div onClick={() => toggleReviewPublic(review.id, review.is_public??true)}
-                    style={{ width:28, height:16, borderRadius:8, background:(review.is_public??true)?'#3B82F6':'#B4B2A9', cursor:'pointer', display:'flex', alignItems:'center', padding:'2px', transition:'background 0.2s', flexShrink:0 }}>
-                    <div style={{ width:12, height:12, borderRadius:'50%', background:'#fff', transform:(review.is_public??true)?'translateX(12px)':'translateX(0)', transition:'transform 0.2s' }} />
+                  <div onClick={() => toggleReviewPublic(review.id, review.is_public ?? true)}
+                    style={{ width: 28, height: 16, borderRadius: 8, background: (review.is_public ?? true) ? '#3B82F6' : '#B4B2A9', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '2px', transition: 'background 0.2s', flexShrink: 0 }}>
+                    <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#fff', transform: (review.is_public ?? true) ? 'translateX(12px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
                   </div>
-                  <span className="text-xs" style={{ color:(review.is_public??true)?'#3B82F6':'#888780' }}>
-                    {(review.is_public??true)?'공개':'나만보기'}
+                  <span className="text-xs" style={{ color: (review.is_public ?? true) ? '#3B82F6' : '#888780' }}>
+                    {(review.is_public ?? true) ? '공개' : '나만보기'}
                   </span>
                 </div>
                 <textarea className="border rounded-lg p-2 text-sm w-full" rows={3}
                   value={editContent} onChange={e => setEditContent(e.target.value)} />
-              <TagInput value={editTags} onChange={setEditTags} />
-
+                <TagInput value={editTags} onChange={setEditTags} />
+                <ImageUploadMulti value={editImages} onChange={setEditImages} />
                 <div className="flex gap-2">
                   <button onClick={() => saveEdit(review.id)}
                     className="px-3 py-1 rounded-lg text-sm text-white border-none"
@@ -596,10 +619,10 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
                     className="bg-gray-100 px-3 py-1 rounded-lg text-sm">취소</button>
                 </div>
               </div>
-) : (
+            ) : (
               <>
                 <div className="flex items-start justify-between mb-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {review.profileImage ? (
                       <img src={review.profileImage} alt={review.nickname}
                         className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
@@ -615,13 +638,13 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
                     ) : (
                       <span className="font-bold text-sm">{review.nickname}</span>
                     )}
-             {review.is_wishlist ? (
-                  <span className="text-xs px-2 py-0.5 rounded-full"
-                    style={{ background: '#EEEDFE', color: '#534AB7' }}>읽고싶다</span>
-                ) : (
-                  <StarDisplay rating={review.rating} size={13} />
-                )}
-                   {review.readStatus && (
+                    {review.is_wishlist ? (
+                      <span className="text-xs px-2 py-0.5 rounded-full"
+                        style={{ background: '#EEEDFE', color: '#534AB7' }}>읽고싶다</span>
+                    ) : (
+                      <StarDisplay rating={review.rating} size={13} />
+                    )}
+                    {review.readStatus && (
                       <span className="text-xs px-2 py-0.5 rounded-full"
                         style={{ background: '#EBF5FF', color: '#185FA5' }}>
                         {review.readStatus}
@@ -638,15 +661,33 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
                   </div>
                   {review.userId === auth.userId && (
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <button onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); setEditTags(review.tags || ''); }}
+                      <button onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); setEditTags(review.tags || ''); setEditImages(review.images || ''); }}
                         className="text-xs text-gray-400 hover:text-blue-500">수정</button>
                       <button onClick={() => deleteReview(review.id)}
                         className="text-xs text-gray-400 hover:text-red-500">삭제</button>
                     </div>
                   )}
                 </div>
-<p className="text-sm text-gray-700 mb-1 mt-3">{review.content}</p>
-{review.tags && (
+                <div className="flex items-start gap-2 mt-3">
+                  <p className="text-sm text-gray-700 mb-1 flex-1">{review.content}</p>
+                  {review.images && (() => {
+                    const imgs = review.images.split(',').map((u: string) => u.trim()).filter(Boolean);
+                    if (imgs.length === 0) return null;
+                    return (
+                      <div className="relative flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden cursor-pointer"
+                        onClick={() => { setLightboxImages(imgs); setLightboxIndex(0); }}>
+                        <img src={imgs[0]} alt="" className="w-full h-full object-cover" />
+                        {imgs.length > 1 && (
+                          <div className="absolute inset-0 flex items-center justify-center"
+                            style={{ background: 'rgba(0,0,0,0.6)' }}>
+                            <span className="text-white text-xs font-bold">+{imgs.length - 1}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+                {review.tags && (
                   <div className="flex flex-wrap gap-1 mb-1">
                     {review.tags.split(',').map((t: string) => t.trim()).filter(Boolean).map((t: string) => (
                       <Link key={t} href={`/tag/${encodeURIComponent(t)}`}
@@ -659,18 +700,17 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
                 )}
                 <div className="flex items-center gap-3 mt-1">
                   <p className="text-xs text-gray-400">{review.created_at}</p>
-                 <button onClick={() => toggleLike(review.id)}
+                  <button onClick={() => toggleLike(review.id)}
                     className="flex items-center gap-1 text-xs transition-all"
-              style={{
+                    style={{
                       color: reviewLikes[review.id]?.liked ? '#ec4899' : '#9ca3af',
                       fontSize: '15px',
-                      WebkitTextStroke: 'none',
                       opacity: reviewLikes[review.id]?.loading ? 0.5 : 1,
                       pointerEvents: reviewLikes[review.id]?.loading ? 'none' : 'auto',
                     }}>
                     ♥ {reviewLikes[review.id]?.count || 0}
                   </button>
-                 <button onClick={() => toggleComments(review.id)}
+                  <button onClick={() => toggleComments(review.id)}
                     className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-500">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -681,7 +721,7 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
                 {expandedComments[review.id] && (
                   <div className="mt-2 pl-2 border-l-2 border-gray-100">
                     {(comments[review.id] || []).map(c => (
-                    <div key={c.id} className="py-1.5">
+                      <div key={c.id} className="py-1.5">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1">
                             {c.profileImage ? (
@@ -760,13 +800,40 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
             ))}
             {reviewPage < totalPages && (
               <button onClick={() => setReviewPage(p => p + 1)}
-                className="w-8 h-8 rounded-full text-sm text-gray-500">
-                &gt;
-              </button>
+                className="w-8 h-8 rounded-full text-sm text-gray-500">&gt;</button>
             )}
           </div>
         )}
       </div>
+
+      {/* 라이트박스 */}
+      {lightboxImages.length > 0 && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+          onClick={() => setLightboxImages([])}>
+          <div className="relative max-w-lg w-full" onClick={e => e.stopPropagation()}>
+            <img src={lightboxImages[lightboxIndex]} alt="" className="w-full rounded-xl object-contain max-h-[80vh]" />
+            {lightboxImages.length > 1 && (
+              <div className="flex justify-center gap-2 mt-3">
+                {lightboxImages.map((_, i) => (
+                  <button key={i} onClick={() => setLightboxIndex(i)}
+                    className="w-2 h-2 rounded-full transition"
+                    style={{ background: i === lightboxIndex ? '#fff' : 'rgba(255,255,255,0.4)' }} />
+                ))}
+              </div>
+            )}
+            {lightboxImages.length > 1 && (
+              <>
+                <button onClick={() => setLightboxIndex(i => (i - 1 + lightboxImages.length) % lightboxImages.length)}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 text-white text-2xl bg-black bg-opacity-40 rounded-full w-8 h-8 flex items-center justify-center">‹</button>
+                <button onClick={() => setLightboxIndex(i => (i + 1) % lightboxImages.length)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-white text-2xl bg-black bg-opacity-40 rounded-full w-8 h-8 flex items-center justify-center">›</button>
+              </>
+            )}
+            <button onClick={() => setLightboxImages([])}
+              className="absolute top-2 right-2 text-white text-xl bg-black bg-opacity-40 rounded-full w-8 h-8 flex items-center justify-center">✕</button>
+          </div>
+        </div>
+      )}
 
       {/* 이 작품이 담긴 컬렉션 */}
       {webtoonCollections.length > 0 && (

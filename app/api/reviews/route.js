@@ -53,6 +53,7 @@ export async function GET(request) {
 is_public: r.fields.is_public ?? true,
       is_wishlist: r.fields.is_wishlist || false,
       readStatus: statusMap[r.fields.user_id] || null,
+      images: r.fields.images || '',
     })));
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -64,7 +65,7 @@ export async function POST(request) {
     const user = getUserFromRequest(request);
     if (!user) return NextResponse.json({ error: '로그인이 필요해요' }, { status: 401 });
 
-  const { webtoonId, rating, content, tags, is_wishlist } = await request.json();
+ const { webtoonId, rating, content, tags, is_wishlist, images } = await request.json();
     if (!content?.trim()) return NextResponse.json({ error: '리뷰 내용을 입력해주세요' }, { status: 400 });
 
     const existing = await base('REVIEW').select({
@@ -79,7 +80,8 @@ const record = await base('REVIEW').create({
       webtoon_id: webtoonId,
       rating: is_wishlist ? 0 : Number(rating),
       content: content.trim(),
-      tags: tags ? tags.trim() : '',
+    tags: tags ? tags.trim() : '',
+      images: images || '',
       is_public: true,
       is_wishlist: is_wishlist || false,
       created_at: new Date().toISOString().split('T')[0],
@@ -106,7 +108,7 @@ export async function PATCH(request) {
     const user = getUserFromRequest(request);
     if (!user) return NextResponse.json({ error: '로그인이 필요해요' }, { status: 401 });
 
-    const { reviewId, rating, content, is_public, tags } = await request.json();
+ const { reviewId, rating, content, is_public, tags, images } = await request.json();
     const record = await base('REVIEW').find(reviewId);
     if (record.fields.user_id !== user.userId) return NextResponse.json({ error: '내 리뷰만 수정할 수 있어요' }, { status: 403 });
 
@@ -114,7 +116,8 @@ export async function PATCH(request) {
     if (rating !== undefined) updateFields.rating = Number(rating);
     if (content !== undefined) updateFields.content = content.trim();
     if (is_public !== undefined) updateFields.is_public = is_public;
-    if (tags !== undefined) updateFields.tags = tags.trim();
+  if (tags !== undefined) updateFields.tags = tags.trim();
+    if (images !== undefined) updateFields.images = images;
 
     const updated = await base('REVIEW').update(reviewId, updateFields);
     await updateWebtoonRating(record.fields.webtoon_id);
