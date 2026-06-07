@@ -6,9 +6,29 @@ import { getUserFromRequest } from '../../lib/auth';
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const followingId = searchParams.get('followingId');
+ const followingId = searchParams.get('followingId');
     const followerId = searchParams.get('followerId');
+    const userId = searchParams.get('userId');
+    const type = searchParams.get('type');
 
+    // 팔로워/팔로잉 목록 조회
+    if (userId && type) {
+      const formula = type === 'followers'
+        ? `{following_id} = "${userId}"`
+        : `{follower_id} = "${userId}"`;
+      const records = await base('FOLLOW').select({ filterByFormula: formula }).all();
+      const userIds = records.map(r => type === 'followers' ? r.fields.follower_id : r.fields.following_id);
+      if (userIds.length === 0) return NextResponse.json([]);
+      const users = await Promise.all(userIds.map(async uid => {
+        try {
+          const r = await base('USER').find(uid);
+          return { id: r.id, nickname: r.fields.nickname, profile_image: r.fields.profile_image || null };
+        } catch { return null; }
+      }));
+      return NextResponse.json(users.filter(Boolean));
+    }
+
+    // 팔로우 상태 확인
     if (!followingId || !followerId) return NextResponse.json({ isFollowing: false });
 
     const records = await base('FOLLOW').select({
@@ -39,7 +59,17 @@ export async function POST(request) {
       maxRecords: 1,
     }).firstPage();
 
-    if (existing.length > 0) {
+    if (existing.length > 0) {const followingId = searchParams.get('followingId');
+    const followerId = searchParams.get('followerId');
+
+    if (!followingId || !followerId) return NextResponse.json({ isFollowing: false });
+
+    const records = await base('FOLLOW').select({
+      filterByFormula: `AND({follower_id} = "${followerId}", {following_id} = "${followingId}")`,
+      maxRecords: 1,
+    }).firstPage();
+
+    return NextResponse.json({ isFollowing: records.length > 0 });
       await base('FOLLOW').destroy(existing[0].id);
       return NextResponse.json({ isFollowing: false, message: '언팔로우했어요' });
     }
