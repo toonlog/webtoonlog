@@ -19,7 +19,10 @@ export default function CollectionDetailPage() {
   const [pendingItems, setPendingItems] = useState<any[]>([]);
   const [likeCount, setLikeCount] = useState(0);
 const [liked, setLiked] = useState(false);
-  const [likeLoading, setLikeLoading] = useState(false);
+ const [likeLoading, setLikeLoading] = useState(false);
+  const [editingInfo, setEditingInfo] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editIsPublic, setEditIsPublic] = useState(true);
 
   useEffect(() => {
     const userId = localStorage.getItem('userId');
@@ -48,6 +51,21 @@ const [liked, setLiked] = useState(false);
     const data = await res.json();
     setItems(data);
     setLoading(false);
+  }
+
+ async function saveCollectionInfo() {
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/collections', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ collectionId, name: editName, is_public: editIsPublic }),
+    });
+    if (res.ok) {
+      setCollection((prev: any) => ({ ...prev, name: editName, is_public: editIsPublic }));
+      setEditingInfo(false);
+    } else {
+      alert('수정에 실패했어요');
+    }
   }
 
   async function fetchLike() {
@@ -129,12 +147,43 @@ const [liked, setLiked] = useState(false);
   return (
     <main className="min-h-screen bg-gray-50 p-8 max-w-2xl mx-auto">
       <div className="bg-white rounded-xl shadow p-6 mb-6">
-        <div className="flex items-center gap-2 mb-1">
-          <h1 className="text-2xl font-bold">{collection?.name || '컬렉션'}</h1>
-          {collection && (
-            <span className={`text-xs px-2 py-0.5 rounded-full ${collection.is_public ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
-              {collection.is_public ? '공개' : '비공개'}
-            </span>
+       <div className="flex items-center gap-2 mb-1 flex-wrap">
+          {editingInfo ? (
+            <>
+              <input
+                value={editName}
+                onChange={e => setEditName(e.target.value)}
+                className="border rounded-lg px-2 py-1 text-lg font-bold w-40"
+              />
+              <div className="flex items-center gap-2">
+                <span className="text-xs" style={{ color: editIsPublic ? '#3B82F6' : '#888780' }}>
+                  {editIsPublic ? '공개' : '비공개'}
+                </span>
+                <div
+                  onClick={() => setEditIsPublic(p => !p)}
+                  style={{ width: 34, height: 19, borderRadius: 10, background: editIsPublic ? '#3B82F6' : '#B4B2A9', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '2px', transition: 'background 0.2s', flexShrink: 0 }}>
+                  <div style={{ width: 15, height: 15, borderRadius: '50%', background: '#fff', transform: editIsPublic ? 'translateX(15px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
+                </div>
+              </div>
+              <button onClick={saveCollectionInfo}
+                style={{ fontSize: 13, padding: '3px 10px', borderRadius: 6, border: 'none', background: '#3B82F6', color: 'white', cursor: 'pointer' }}>저장</button>
+              <button onClick={() => setEditingInfo(false)}
+                style={{ fontSize: 13, padding: '3px 10px', borderRadius: 6, border: 'none', background: '#E5E7EB', color: '#374151', cursor: 'pointer' }}>취소</button>
+            </>
+          ) : (
+            <>
+              <h1 className="text-2xl font-bold">{collection?.name || '컬렉션'}</h1>
+              {collection && (
+                <span className={`text-xs px-2 py-0.5 rounded-full ${collection.is_public ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
+                  {collection.is_public ? '공개' : '비공개'}
+                </span>
+              )}
+              {isOwner && (
+                <button
+                  onClick={() => { setEditingInfo(true); setEditName(collection?.name || ''); setEditIsPublic(collection?.is_public ?? true); }}
+                  style={{ fontSize: 12, background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 0 }}>수정</button>
+              )}
+            </>
           )}
         </div>
         {collection?.description && <p className="text-gray-500 text-sm mt-1">{collection.description}</p>}

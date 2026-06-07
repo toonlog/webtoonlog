@@ -368,13 +368,13 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
       <div className="bg-white rounded-xl shadow p-4 mb-4">
         <div className="flex gap-3">
           {/* 썸네일 */}
-          <div className="flex-shrink-0 w-20">
+        <div className="flex-shrink-0 w-24 self-stretch flex items-center">
             {webtoon.thumbnail_url ? (
               <img src={webtoon.thumbnail_url} alt={webtoon.title}
-                className="w-20 rounded-lg object-cover"
+                className="w-24 rounded-lg object-cover"
                 style={{ aspectRatio: '8/11' }} />
             ) : (
-              <div className="w-20 bg-gray-200 rounded-lg" style={{ aspectRatio: '8/11' }} />
+              <div className="w-24 bg-gray-200 rounded-lg" style={{ aspectRatio: '8/11' }} />
             )}
           </div>
           {/* 정보 */}
@@ -403,42 +403,42 @@ async function saveCommentEdit(reviewId: string, commentId: string) {
                 </div>
               )}
             </div>
-            <p className="text-xs text-gray-400">{webtoon.author}</p>
+         <p className="text-xs text-gray-400" style={{ marginTop: '1px', marginBottom: '6px' }}>{webtoon.author}</p>
             {avgRating && (
               <div className="flex items-center gap-1">
                 <span className="text-yellow-400 text-xs">★ {avgRating}</span>
                 <span className="text-xs text-gray-400">({reviews.length}개)</span>
               </div>
             )}
-            {/* 플랫폼 */}
-            <div className="flex flex-wrap gap-1">
-              {platforms.map((p: string) => (
-                <span key={p}
-                  className="text-xs px-2 py-0.5 rounded-full"
-                  style={{ background: '#EBF5FF', color: '#185FA5' }}>
-                  {p}
-                </span>
-              ))}
-            </div>
-            {/* 장르 */}
-            <div className="flex flex-wrap gap-1">
-              {genres.map((g: string) => (
-                <Link key={g} href={`/genre/${encodeURIComponent(g)}`}
-                  className="text-xs px-2 py-0.5 rounded-full"
-                  style={{ background: '#F1EFE8', color: '#5F5E5A' }}>
-                  {g}
-                </Link>
-              ))}
-            </div>
-            {/* 연재상태 */}
-            {webtoon.status && (
-              <div>
-                <span className="text-xs px-2 py-0.5 rounded-full"
-                  style={{ background: '#EAF3DE', color: '#3B6D11' }}>
-                  {webtoon.status}
-                </span>
+       {/* 뱃지 */}
+            <div className="flex flex-col gap-1">
+              <div className="flex flex-wrap gap-1">
+                {platforms.map((p: string) => (
+                  <span key={p}
+                    className="text-xs px-2 py-0.5 rounded-full"
+                    style={{ background: '#EBF5FF', color: '#185FA5' }}>
+                    {p}
+                  </span>
+                ))}
               </div>
-            )}
+              <div className="flex flex-wrap gap-1">
+                {genres.map((g: string) => (
+                  <Link key={g} href={`/genre/${encodeURIComponent(g)}`}
+                    className="text-xs px-2 py-0.5 rounded-full"
+                    style={{ background: '#F1EFE8', color: '#5F5E5A' }}>
+                    {g}
+                  </Link>
+                ))}
+              </div>
+              {webtoon.status && (
+                <div className="flex flex-wrap gap-1">
+                  <span className="text-xs px-2 py-0.5 rounded-full"
+                    style={{ background: '#EAF3DE', color: '#3B6D11' }}>
+                    {webtoon.status}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

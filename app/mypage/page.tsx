@@ -305,19 +305,25 @@ async function saveProfileImage() {
       </div>
 
       {/* 컬렉션 */}
-      {collections.length > 0 && (
-        <div className="bg-white rounded-xl shadow p-4 mb-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-bold text-gray-900">내 컬렉션</h2>
-            <Link href="/collections" className="text-xs text-blue-500 hover:underline">전체보기</Link>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {collections.map(c => (
-              <MiniCollectionCard key={c.id} c={c} />
-            ))}
-          </div>
+    <div className="bg-white rounded-xl shadow p-4 mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-bold text-gray-900">내 컬렉션</h2>
+          <button
+            onClick={() => router.push('/collections')}
+            className="text-xs text-white px-3 py-1.5 rounded-lg border-none"
+            style={{ background: '#3B82F6' }}>
+            + 컬렉션 추가
+          </button>
         </div>
-      )}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {collections.map(c => (
+            <MiniCollectionCard key={c.id} c={c} />
+          ))}
+        </div>
+        {collections.length > 0 && (
+          <Link href="/collections" className="text-xs text-blue-500 hover:underline mt-2 block">전체보기</Link>
+        )}
+      </div>
 
     {/* 좋아요한 컬렉션 */}
       {likedCollections.length > 0 && (
@@ -343,7 +349,7 @@ async function saveProfileImage() {
         </button>
       </div>
 
-      {/* 내 리뷰 */}
+    {/* 내 리뷰 */}
       {tab === 'reviews' && (
         <div className="bg-white rounded-xl shadow p-6">
           {reviews.length === 0 && <p className="text-gray-400">아직 작성한 리뷰가 없어요!</p>}
@@ -356,7 +362,7 @@ async function saveProfileImage() {
                   <div className="w-10 h-14 bg-gray-200 rounded flex-shrink-0" />
                 )}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-1">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {review.webtoon_id ? (
                       <Link href={`/webtoon/${review.webtoon_id}`} className="font-bold text-blue-500 hover:underline text-sm truncate">
                         {review.webtoon_title || review.webtoon_id}
@@ -364,59 +370,52 @@ async function saveProfileImage() {
                     ) : (
                       <span className="font-bold text-gray-400 text-sm">웹툰 정보 없음</span>
                     )}
-                    <div className="flex gap-1 flex-shrink-0">
-                     
-<button onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); setEditTags(review.tags || ''); }}
-                        className="text-xs text-gray-400 hover:text-blue-500">수정</button>
-                      <button onClick={() => deleteReview(review.id)}
-                        className="text-xs text-gray-400 hover:text-red-500">삭제</button>
-                    </div>
+                    <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
+                      style={(review.is_public ?? true)
+                        ? { background: '#EAF3DE', color: '#3B6D11' }
+                        : { background: '#F1EFE8', color: '#5F5E5A' }}>
+                      {(review.is_public ?? true) ? '공개' : '비공개'}
+                    </span>
                   </div>
-                 <div className="flex items-center gap-2 mt-1">
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
                     <span className="text-yellow-400 text-sm">{'★'.repeat(Math.floor(review.rating))}{review.rating % 1 ? '½' : ''}</span>
                     <span className="text-xs text-gray-600 font-medium">{review.rating.toFixed(1)}</span>
-                    <div onClick={() => togglePublic(review.id, review.is_public ?? true)}
-                      style={{ width:28, height:16, borderRadius:8, background:(review.is_public??true)?'#3B82F6':'#B4B2A9', cursor:'pointer', display:'flex', alignItems:'center', padding:'2px', transition:'background 0.2s', flexShrink:0 }}>
-                      <div style={{ width:12, height:12, borderRadius:'50%', background:'#fff', transform:(review.is_public??true)?'translateX(12px)':'translateX(0)', transition:'transform 0.2s' }} />
-                    </div>
-                    <span className="text-xs" style={{ color:(review.is_public??true)?'#3B82F6':'#888780' }}>
-                      {(review.is_public??true)?'공개':'나만보기'}
-                    </span>
                     <span className="text-gray-400 text-xs">{review.created_at}</span>
+                    <div className="flex gap-3 flex-shrink-0 ml-auto">
+                      <button
+                        onClick={() => { setEditingId(review.id); setEditRating(review.rating); setEditContent(review.content); setEditTags(review.tags || ''); }}
+                        style={{ background: 'none', border: 'none', padding: 0, fontSize: 12, color: '#9ca3af', cursor: 'pointer' }}>수정</button>
+                      <button
+                        onClick={() => deleteReview(review.id)}
+                        style={{ background: 'none', border: 'none', padding: 0, fontSize: 12, color: '#E24B4A', cursor: 'pointer' }}>삭제</button>
+                    </div>
                   </div>
                 </div>
               </div>
               {editingId === review.id ? (
                 <div className="flex flex-col gap-2 mt-2">
-                  <StarPicker rating={editRating} onChange={setEditRating} />
-                  <textarea className="border rounded p-2 text-sm w-full" rows={3}
-                    value={editContent} onChange={e => setEditContent(e.target.value)} />
-                  <TagInput value={editTags} onChange={setEditTags} />
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs" style={{ color: (review.is_public ?? true) ? '#3B82F6' : '#888780' }}>
-                      {(review.is_public ?? true) ? '공개' : '나만보기'}
-                    </span>
-                    <div
-                      onClick={() => togglePublic(review.id, review.is_public ?? true)}
-                      style={{
-                        width: 36, height: 20, borderRadius: 10,
-                        background: (review.is_public ?? true) ? '#3B82F6' : '#B4B2A9',
-                        cursor: 'pointer', position: 'relative',
-                        transition: 'background 0.2s', display: 'flex', alignItems: 'center', padding: '2px'
-                      }}>
-                      <div style={{
-                        width: 16, height: 16, borderRadius: '50%', background: '#fff',
-                        transform: (review.is_public ?? true) ? 'translateX(16px)' : 'translateX(0)',
-                        transition: 'transform 0.2s'
-                      }} />
+                  <div className="flex items-center justify-between">
+                    <StarPicker rating={editRating} onChange={setEditRating} />
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="text-xs" style={{ color: (review.is_public ?? true) ? '#3B82F6' : '#888780' }}>
+                        {(review.is_public ?? true) ? '공개' : '나만보기'}
+                      </span>
+                      <div
+                        onClick={() => togglePublic(review.id, review.is_public ?? true)}
+                        style={{ width: 34, height: 19, borderRadius: 10, background: (review.is_public ?? true) ? '#3B82F6' : '#B4B2A9', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '2px', transition: 'background 0.2s', flexShrink: 0 }}>
+                        <div style={{ width: 15, height: 15, borderRadius: '50%', background: '#fff', transform: (review.is_public ?? true) ? 'translateX(15px)' : 'translateX(0)', transition: 'transform 0.2s' }} />
+                      </div>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => saveEdit(review.id)}
-                      className="text-white px-3 py-1 rounded text-sm border-none"
-                      style={{ background: '#3B82F6' }}>저장</button>
+                  <textarea
+                    style={{ background: '#F9F9F9', border: '0.5px solid #EBEBEB', borderRadius: 7, padding: '5px 8px', fontSize: 12, color: '#1a1a1a', width: '100%', resize: 'none', minHeight: 64, lineHeight: 1.5 }}
+                    rows={3} value={editContent} onChange={e => setEditContent(e.target.value)} />
+                  <TagInput value={editTags} onChange={setEditTags} />
+                  <div className="flex gap-2 justify-end">
                     <button onClick={() => setEditingId(null)}
-                      className="bg-gray-100 px-3 py-1 rounded text-sm">취소</button>
+                      style={{ fontSize: 13, padding: '6px 16px', borderRadius: 6, border: 'none', background: '#E5E7EB', color: '#374151', cursor: 'pointer' }}>취소</button>
+                    <button onClick={() => saveEdit(review.id)}
+                      style={{ fontSize: 13, padding: '6px 16px', borderRadius: 6, border: 'none', background: '#3B82F6', color: 'white', cursor: 'pointer' }}>저장</button>
                   </div>
                 </div>
               ) : (

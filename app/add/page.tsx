@@ -125,19 +125,20 @@ export default function AddWebtoon() {
               </button>
             ))}
           </div>
-          <div className="flex gap-2">
+         <div className="flex gap-2 items-center">
             <input className="border rounded p-2 flex-1 text-sm text-gray-900" placeholder="직접 입력해서 장르 추가..." value={customGenre}
               onChange={e => setCustomGenre(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && addCustomGenre()} />
-            <button type="button" onClick={addCustomGenre} className="bg-gray-100 px-3 py-2 rounded text-sm hover:bg-gray-200">+ 추가</button>
+            <button type="button" onClick={addCustomGenre} className="bg-gray-100 px-3 py-2 rounded text-sm hover:bg-gray-200 whitespace-nowrap flex-shrink-0">+ 추가</button>
           </div>
         </div>
-        <select className="border rounded p-2 text-gray-900" value={status} onChange={e => setStatus(e.target.value)}>
+     <select className="border rounded p-2 text-gray-900 pr-8" value={status} onChange={e => setStatus(e.target.value)}>
           <option value="연재중">연재중</option>
           <option value="완결">완결</option>
           <option value="휴재">휴재</option>
         </select>
 <div className="flex flex-col gap-2">
+          <p className="text-xs text-gray-400">카드에 노출되는 썸네일 이미지를 직접 업로드할 수 있어요!</p>
           <ImageUpload onUpload={(url) => setThumbnailUrl(url)} />
           {thumbnailUrl && <img src={thumbnailUrl} alt="썸네일 미리보기" className="w-full h-40 object-cover rounded-lg" />}
         </div>
