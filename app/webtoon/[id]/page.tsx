@@ -687,8 +687,8 @@ export default function WebtoonPage() {
                     );
                   })()}
                 </div>
-                {review.tags && (
-                  <div className="flex flex-wrap gap-1 mb-1">
+              {review.tags && (
+                  <div className="flex flex-wrap gap-1 mb-1 mt-2">
                     {review.tags.split(',').map((t: string) => t.trim()).filter(Boolean).map((t: string) => (
                       <Link key={t} href={`/tag/${encodeURIComponent(t)}`}
                         className="text-xs px-2 py-0.5 rounded-full"
