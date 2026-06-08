@@ -197,8 +197,8 @@ export default function WebtoonPage() {
   useEffect(() => {
     const a = getAuth();
     setAuth(a);
-    fetch(`/api/webtoons/${id}`).then(r => r.json()).then(setWebtoon);
-    fetchReviews();
+ fetch(`/api/webtoons/${id}`).then(r => r.json()).then(setWebtoon);
+    fetchReviews(a.userId || '');
     fetchWebtoonCollections();
     if (a.userId) {
       fetchStatus(a.userId);
@@ -216,10 +216,18 @@ export default function WebtoonPage() {
     return () => window.removeEventListener('authChange', onAuth);
   }, [id]);
 
-  function fetchReviews() {
+ function fetchReviews(currentUserId?: string) {
+    const uid = currentUserId || auth.userId || localStorage.getItem('userId') || '';
     fetch(`/api/reviews?webtoonId=${id}`).then(r => r.json()).then(data => {
       setReviews(data);
-      data.forEach((r: any) => fetchLikes(r.id));
+      data.forEach((r: any) => {
+        const userId = uid;
+        fetch(`/api/reviews/like?reviewId=${r.id}&userId=${userId}`)
+          .then(res => res.json())
+          .then(likeData => {
+            setReviewLikes(prev => ({ ...prev, [r.id]: { count: likeData.count, liked: likeData.liked } }));
+          });
+      });
     });
   }
   function fetchStatus(userId: string) {
