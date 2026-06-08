@@ -7,7 +7,8 @@ const PAGE_SIZE = 10;
 
 export default function WebtoonList({ webtoons }: { webtoons: any[] }) {
   const [visible, setVisible] = useState(INITIAL);
-  const sentinelRef = useRef<HTMLDivElement>(null);
+  const mobileSentinelRef = useRef<HTMLDivElement>(null);
+  const pcSentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setVisible(INITIAL);
@@ -15,13 +16,18 @@ export default function WebtoonList({ webtoons }: { webtoons: any[] }) {
 
   useEffect(() => {
     if (visible >= webtoons.length) return;
-    const observer = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting) {
+
+    const callback = (entries: IntersectionObserverEntry[]) => {
+      if (entries.some(e => e.isIntersecting)) {
         setVisible(prev => Math.min(prev + PAGE_SIZE, webtoons.length));
       }
-}, { root: null, rootMargin: '400px', threshold: 0 });
-    const el = sentinelRef.current;
-    if (el) observer.observe(el);
+    };
+
+    const observer = new IntersectionObserver(callback, { root: null, rootMargin: '400px', threshold: 0 });
+
+    if (mobileSentinelRef.current) observer.observe(mobileSentinelRef.current);
+    if (pcSentinelRef.current) observer.observe(pcSentinelRef.current);
+
     return () => observer.disconnect();
   }, [visible, webtoons.length]);
 
@@ -54,7 +60,9 @@ export default function WebtoonList({ webtoons }: { webtoons: any[] }) {
             </div>
           </Link>
         ))}
-        {visible < webtoons.length && <div ref={sentinelRef} className="h-12" />}
+        {visible < webtoons.length && (
+          <div ref={mobileSentinelRef} className="h-12 w-full" />
+        )}
       </div>
 
       {/* PC */}
@@ -82,7 +90,9 @@ export default function WebtoonList({ webtoons }: { webtoons: any[] }) {
             </div>
           </Link>
         ))}
-        {visible < webtoons.length && <div ref={sentinelRef} className="h-12 col-span-4" />}
+        {visible < webtoons.length && (
+          <div ref={pcSentinelRef} className="h-12 col-span-4" />
+        )}
       </div>
     </div>
   );
