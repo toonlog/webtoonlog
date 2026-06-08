@@ -19,7 +19,7 @@ export default function WebtoonList({ webtoons }: { webtoons: any[] }) {
       if (entries[0].isIntersecting) {
         setVisible(prev => Math.min(prev + PAGE_SIZE, webtoons.length));
       }
-    }, { rootMargin: '200px', threshold: 0 });
+}, { root: null, rootMargin: '400px', threshold: 0 });
     const el = sentinelRef.current;
     if (el) observer.observe(el);
     return () => observer.disconnect();
