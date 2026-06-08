@@ -101,7 +101,7 @@ const slides = [
     textColor: '#ffffff',
     descColor: 'rgba(255,255,255,0.85)',
     title: '읽기 상태로 작품을\n체계적으로 관리해보세요',
-    titleBreak: false,
+    titleBreak: true,
     desc: '마이페이지에서 읽기 상태별로 작품을 한눈에 모아볼 수 있어요',
     visual: (
       <svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
