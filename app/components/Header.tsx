@@ -107,6 +107,13 @@ export default function Header() {
                 </div>
               )}
             </Link>
+       <button onClick={logout} className="text-gray-500 hover:text-red-400 transition md:hidden" aria-label="로그아웃">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
             <button onClick={logout} className="text-sm text-gray-400 hover:text-red-500 transition hidden md:block">로그아웃</button>
           </>
         ) : (

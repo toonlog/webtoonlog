@@ -72,14 +72,15 @@ export default function AddWebtoon() {
   async function handleSubmit() {
     if (!title) return alert('제목을 입력해주세요!');
     setLoading(true);
-    const res = await fetch('/api/webtoons/add', {
+const res = await fetch('/api/webtoons/add', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title, author, platform, genre: genres, status, thumbnailUrl }),
     });
-    if (res.ok) {
+  if (res.ok) {
+      const data = await res.json();
       alert('등록 완료! 🎉\n리뷰를 통해 의견을 나눠보세요!');
-      router.push('/');
+      router.replace(`/webtoon/${data.id}`);
     } else {
       alert('오류가 발생했어요');
     }

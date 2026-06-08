@@ -6,6 +6,7 @@ import FeedbackButton from './components/FeedbackButton';
 import Carousel from './components/Carousel';
 import ScrollToTop from './components/ScrollToTop';
 import FilterBar from './components/FilterBar';
+import WebtoonList from './components/WebtoonList';
 
 async function getWebtoons(search?: string, genre?: string, platform?: string) {
   const records = await base('WEBTOON').select({
@@ -117,60 +118,8 @@ const webtoons = await getWebtoons(search, genre, platform);
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto">
-        {/* 모바일 */}
-        <div className="flex flex-col gap-3 md:hidden">
-          {webtoons.map((webtoon: any) => (
-            <Link href={`/webtoon/${webtoon.id}`} key={webtoon.id}>
-              <div className="bg-white rounded-xl shadow p-3 hover:shadow-md transition flex items-center gap-3">
-                {webtoon.thumbnail_url ? (
-                  <img src={webtoon.thumbnail_url} alt={webtoon.title} className="w-14 h-20 object-cover rounded-lg flex-shrink-0" />
-                ) : (
-                  <div className="bg-gray-200 rounded-lg w-14 h-20 flex-shrink-0" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <h2 className="font-bold text-sm text-gray-900 truncate">{webtoon.title}</h2>
-                  <p className="text-xs text-gray-500 mt-0.5 truncate">{webtoon.author}</p>
-                  <p className="text-xs text-blue-500 mt-0.5 truncate">{Array.isArray(webtoon.platform) ? webtoon.platform.join(', ') : webtoon.platform}</p>
-                  {webtoon.review_count > 0 && (
-                    <div className="flex items-center gap-1 mt-1">
-                      <span className="text-yellow-400 text-xs">★</span>
-                      <span className="text-xs font-bold text-gray-700">{webtoon.avg_rating}</span>
-                      <span className="text-xs text-gray-400">({webtoon.review_count})</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {/* PC */}
-        <div className="hidden md:grid md:grid-cols-4 gap-4">
-          {webtoons.map((webtoon: any) => (
-            <Link href={`/webtoon/${webtoon.id}`} key={webtoon.id} className="flex">
-              <div className="bg-white rounded-xl shadow p-4 hover:shadow-md transition cursor-pointer flex flex-col w-full">
-                {webtoon.thumbnail_url ? (
-                  <img src={webtoon.thumbnail_url} alt={webtoon.title} className="w-full h-40 object-cover rounded-lg mb-3" />
-                ) : (
-                  <div className="bg-gray-200 rounded-lg h-40 mb-3" />
-                )}
-                <div className="flex flex-col flex-1">
-                  <h2 className="font-bold text-sm text-gray-900">{webtoon.title}</h2>
-                  <p className="text-xs text-gray-500 mt-0.5">{webtoon.author}</p>
-                  <p className="text-xs text-blue-500 mt-0.5">{Array.isArray(webtoon.platform) ? webtoon.platform.join(', ') : webtoon.platform}</p>
-                  {webtoon.review_count > 0 && (
-                    <div className="flex items-center gap-1 mt-2">
-                      <span className="text-yellow-400 text-xs">★</span>
-                      <span className="text-xs font-bold text-gray-700">{webtoon.avg_rating}</span>
-                      <span className="text-xs text-gray-400">({webtoon.review_count})</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+<div className="max-w-4xl mx-auto">
+        <WebtoonList webtoons={webtoons} />
       </div>
 
       {webtoons.length === 0 && <p className="text-center text-gray-400 mt-8">검색 결과가 없어요!</p>}

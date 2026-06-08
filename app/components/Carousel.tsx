@@ -2,11 +2,11 @@
 import { useEffect, useState, useRef } from 'react';
 
 const slides = [
-  {
+{
     bg: '#3B82F6',
     textColor: '#ffffff',
     descColor: 'rgba(255,255,255,0.85)',
-    title: '감상을 나누는 작품을 직접 추가할 수 있어요',
+    title: '감상을 나누는 작품을\n직접 추가할 수 있어요',
     titleBreak: true,
     desc: '+ 웹툰 등록 버튼을 눌러 제목, 작가, 장르 등을 설정해 등록해보세요',
    visual: (
@@ -28,12 +28,12 @@ const slides = [
       </svg>
     ),
   },
- {
+{
     bg: '#1E40AF',
     textColor: '#ffffff',
     descColor: 'rgba(255,255,255,0.85)',
-    title: '원하는 작품을 검색하고 리뷰를 참고해보세요',
-    titleBreak: false,
+    title: '원하는 작품을 검색하고\n리뷰를 참고해보세요',
+    titleBreak: true,
     desc: '검색창에 제목이나 작가명을 입력해 등록된 작품을 찾아보세요',
     visual: (
       <svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
@@ -160,11 +160,10 @@ export default function Carousel() {
   if (isMobile === null) return <div style={{ borderRadius: '16px', background: '#fff', minHeight: '160px' }} />;
   const slide = slides[cur];
 
-  const renderTitle = (title: string, titleBreak: boolean) => {
-    if (!titleBreak) return title;
-    const parts = title.split(' ').slice(0, 4).join(' ');
-    const rest = title.split(' ').slice(4).join(' ');
-    return <>{parts}<br />{rest}</>;
+ const renderTitle = (title: string, titleBreak: boolean) => {
+    if (!titleBreak || !isMobile) return title.replace('\n', ' ');
+    const [first, ...rest] = title.split('\n');
+    return <>{first}<br />{rest.join(' ')}</>;
   };
 
   return (

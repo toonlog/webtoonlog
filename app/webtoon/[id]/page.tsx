@@ -687,8 +687,8 @@ export default function WebtoonPage() {
                     );
                   })()}
                 </div>
-              {review.tags && (
-                  <div className="flex flex-wrap gap-1 mb-1 mt-2">
+          {review.tags && (
+                  <div className="flex flex-wrap gap-1 mb-2 mt-3">
                     {review.tags.split(',').map((t: string) => t.trim()).filter(Boolean).map((t: string) => (
                       <Link key={t} href={`/tag/${encodeURIComponent(t)}`}
                         className="text-xs px-2 py-0.5 rounded-full"
@@ -698,7 +698,7 @@ export default function WebtoonPage() {
                     ))}
                   </div>
                 )}
-                <div className="flex items-center gap-3 mt-1">
+             <div className="flex items-center gap-3 mt-2">
                   <p className="text-xs text-gray-400">{review.created_at}</p>
                   <button onClick={() => toggleLike(review.id)}
                     className="flex items-center gap-1 text-xs transition-all"
