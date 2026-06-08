@@ -70,8 +70,8 @@ async function fetchFollowList(type: 'followers' | 'following') {
 
   return (
     <main className="min-h-screen bg-gray-50 p-8 max-w-2xl mx-auto">
-      <div className="bg-white rounded-xl shadow p-6 mb-6">
-        <div className="flex items-center gap-4">
+    <div className="bg-white rounded-xl shadow p-4 mb-6">
+        <div className="flex items-center gap-3">
           {targetUser.profile_image ? (
             <img src={targetUser.profile_image} alt="프로필" className="w-16 h-16 rounded-full object-cover flex-shrink-0" />
           ) : (
@@ -80,7 +80,7 @@ async function fetchFollowList(type: 'followers' | 'following') {
             </div>
           )}
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900">{targetUser.nickname}</h1>
+      <h1 className="text-lg font-bold text-gray-900 truncate">{targetUser.nickname}</h1>
           <div className="flex gap-4 mt-2 text-sm text-gray-500">
               <button onClick={() => fetchFollowList('followers')} className="hover:text-blue-500 transition">
                 팔로워 <strong className="text-gray-800">{followerCount}</strong>
@@ -91,8 +91,8 @@ async function fetchFollowList(type: 'followers' | 'following') {
             </div>
           </div>
           {myUserId && myUserId !== targetUserId && (
-          <button onClick={toggleFollow}
-              className={`px-5 py-2 rounded-lg text-sm font-medium transition ${
+     <button onClick={toggleFollow}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition flex-shrink-0 ${
                 isFollowing
                   ? 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-500'
                   : 'bg-blue-500 text-white hover:bg-blue-600'
