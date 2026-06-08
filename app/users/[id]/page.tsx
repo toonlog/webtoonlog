@@ -48,7 +48,7 @@ async function fetchFollowList(type: 'followers' | 'following') {
     setFollowModal(type);
   }
 
-  async function toggleFollow() {
+ async function toggleFollow() {
     const token = localStorage.getItem('token');
     if (!token) return router.push('/login');
 
@@ -59,8 +59,9 @@ async function fetchFollowList(type: 'followers' | 'following') {
     });
     const data = await res.json();
     if (res.ok) {
-      setIsFollowing(data.isFollowing);
-      setFollowerCount(prev => data.isFollowing ? prev + 1 : prev - 1);
+      const nowFollowing = data.isFollowing;
+      setIsFollowing(nowFollowing);
+      setFollowerCount(prev => nowFollowing ? prev + 1 : prev - 1);
     }
   }
 
@@ -90,13 +91,13 @@ async function fetchFollowList(type: 'followers' | 'following') {
             </div>
           </div>
           {myUserId && myUserId !== targetUserId && (
-            <button onClick={toggleFollow}
+          <button onClick={toggleFollow}
               className={`px-5 py-2 rounded-lg text-sm font-medium transition ${
                 isFollowing
-                  ? 'bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-500'
+                  ? 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-500'
                   : 'bg-blue-500 text-white hover:bg-blue-600'
               }`}>
-              {isFollowing ? '팔로잉' : '팔로우'}
+              {isFollowing ? '✓ 팔로잉' : '팔로우'}
             </button>
           )}
           {myUserId === targetUserId && (

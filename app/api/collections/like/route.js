@@ -48,11 +48,27 @@ export async function POST(request) {
       await base('COLLECTION_LIKE').destroy(existing[0].id);
       return NextResponse.json({ liked: false });
     } else {
-      await base('COLLECTION_LIKE').create({
+     await base('COLLECTION_LIKE').create({
         collection_id: collectionId,
         user_id: user.userId,
         created_at: new Date().toISOString().split('T')[0],
       });
+
+      // 컬렉션 소유자에게 알람
+      try {
+        const { createNotification } = await import('../../../lib/notification');
+        const collection = await base('COLLECTION').find(collectionId);
+        await createNotification({
+          userId: collection.fields.user_id,
+          type: 'collection_like',
+          actorId: user.userId,
+          actorNickname: user.nickname,
+          targetId: collectionId,
+          targetType: 'collection',
+          webtoonId: '',
+        });
+      } catch (e) { console.error('알람 실패:', e.message); }
+
       return NextResponse.json({ liked: true });
     }
   } catch (error) {

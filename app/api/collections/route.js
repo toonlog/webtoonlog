@@ -59,13 +59,32 @@ export async function POST(request) {
     const { name, description, is_public } = await request.json();
     if (!name?.trim()) return NextResponse.json({ error: '컬렉션 이름을 입력해주세요' }, { status: 400 });
 
-    const record = await base('COLLECTION').create({
+   const record = await base('COLLECTION').create({
       name: name.trim(),
       description: description?.trim() || '',
       is_public: is_public ?? true,
       user_id: user.userId,
       created_at: new Date().toISOString().split('T')[0],
     });
+
+    // 팔로워들에게 알람
+    try {
+      const { createNotification } = await import('../../lib/notification');
+      const followRecords = await base('FOLLOW').select({
+        filterByFormula: `{following_id} = "${user.userId}"`,
+      }).all();
+      await Promise.all(followRecords.map(f =>
+        createNotification({
+          userId: f.fields.follower_id,
+          type: 'following_collection',
+          actorId: user.userId,
+          actorNickname: user.nickname,
+          targetId: record.id,
+          targetType: 'collection',
+          webtoonId: '',
+        })
+      ));
+    } catch (e) { console.error('알람 실패:', e.message); }
 
     return NextResponse.json({
       id: record.id,

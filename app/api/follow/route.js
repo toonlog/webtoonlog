@@ -2,16 +2,14 @@ import { NextResponse } from 'next/server';
 import base from '../../lib/airtable';
 import { getUserFromRequest } from '../../lib/auth';
 
-// 팔로우 상태 확인
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
- const followingId = searchParams.get('followingId');
+    const followingId = searchParams.get('followingId');
     const followerId = searchParams.get('followerId');
     const userId = searchParams.get('userId');
     const type = searchParams.get('type');
 
-    // 팔로워/팔로잉 목록 조회
     if (userId && type) {
       const formula = type === 'followers'
         ? `{following_id} = "${userId}"`
@@ -28,7 +26,6 @@ export async function GET(request) {
       return NextResponse.json(users.filter(Boolean));
     }
 
-    // 팔로우 상태 확인
     if (!followingId || !followerId) return NextResponse.json({ isFollowing: false });
 
     const records = await base('FOLLOW').select({
@@ -42,7 +39,6 @@ export async function GET(request) {
   }
 }
 
-// 팔로우 / 언팔로우 토글
 export async function POST(request) {
   try {
     const user = getUserFromRequest(request);
@@ -59,17 +55,7 @@ export async function POST(request) {
       maxRecords: 1,
     }).firstPage();
 
-    if (existing.length > 0) {const followingId = searchParams.get('followingId');
-    const followerId = searchParams.get('followerId');
-
-    if (!followingId || !followerId) return NextResponse.json({ isFollowing: false });
-
-    const records = await base('FOLLOW').select({
-      filterByFormula: `AND({follower_id} = "${followerId}", {following_id} = "${followingId}")`,
-      maxRecords: 1,
-    }).firstPage();
-
-    return NextResponse.json({ isFollowing: records.length > 0 });
+    if (existing.length > 0) {
       await base('FOLLOW').destroy(existing[0].id);
       return NextResponse.json({ isFollowing: false, message: '언팔로우했어요' });
     }
@@ -79,6 +65,20 @@ export async function POST(request) {
       following_id: followingId,
       followed_at: new Date().toISOString().split('T')[0],
     });
+
+    // 팔로우 알람
+    try {
+      const { createNotification } = await import('../../lib/notification');
+      await createNotification({
+        userId: followingId,
+        type: 'follow',
+        actorId: user.userId,
+        actorNickname: user.nickname,
+        targetId: user.userId,
+        targetType: 'user',
+        webtoonId: '',
+      });
+    } catch (e) { console.error('알람 실패:', e.message); }
 
     return NextResponse.json({ isFollowing: true, message: '팔로우했어요' });
   } catch (error) {
