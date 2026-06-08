@@ -35,11 +35,27 @@ export async function POST(request) {
       await base('REVIEW_LIKE').destroy(existing[0].id);
       return NextResponse.json({ liked: false });
     } else {
-      await base('REVIEW_LIKE').create({
+ await base('REVIEW_LIKE').create({
         review_id: reviewId,
         user_id: user.userId,
         created_at: new Date().toISOString().split('T')[0],
       });
+
+      // 리뷰 작성자에게 알람
+      try {
+        const { createNotification } = await import('../../../lib/notification');
+        const review = await base('REVIEW').find(reviewId);
+        await createNotification({
+          userId: review.fields.user_id,
+          type: 'review_like',
+          actorId: user.userId,
+          actorNickname: user.nickname,
+          targetId: reviewId,
+          targetType: 'review',
+          webtoonId: review.fields.webtoon_id,
+        });
+      } catch (e) { console.error('알람 실패:', e.message); }
+
       return NextResponse.json({ liked: true });
     }
   } catch (error) {
