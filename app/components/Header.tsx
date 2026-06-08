@@ -3,6 +3,40 @@ import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+function NotificationBell() {
+  const [count, setCount] = useState(0);
+
+  function fetchCount() {
+    const userId = localStorage.getItem('userId');
+    if (!userId) { setCount(0); return; }
+    fetch(`/api/notifications?userId=${userId}`)
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) setCount(data.filter((n: any) => !n.is_read).length);
+      });
+  }
+
+  useEffect(() => {
+    fetchCount();
+    window.addEventListener('authChange', fetchCount);
+    return () => window.removeEventListener('authChange', fetchCount);
+  }, []);
+
+  return (
+    <Link href="/notifications" className="relative text-gray-500 hover:text-gray-700 transition">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      {count > 0 && (
+        <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+          {count > 9 ? '9+' : count}
+        </span>
+      )}
+    </Link>
+  );
+}
+
 export default function Header() {
   const router = useRouter();
   const [nickname, setNickname] = useState<string | null>(null);
@@ -61,11 +95,9 @@ export default function Header() {
 
   return (
     <header className="bg-white border-b px-4 md:px-6 py-3 flex items-center justify-between sticky top-0 z-50">
-      {/* 로고 - 파란 정사각형 */}
       <Link href="/" className="block w-8 h-8 bg-blue-500 rounded-lg hover:bg-blue-600 active:scale-90 active:bg-blue-700 transition-all duration-150" />
 
       <div className="flex items-center gap-3">
-        {/* 검색 */}
         <div className="flex items-center gap-2">
           <div className={`flex items-center overflow-hidden transition-all duration-300 border rounded-full ${showSearch ? 'w-32 md:w-40 px-3 border-gray-300' : 'w-0 border-transparent'}`}>
             <input
@@ -98,6 +130,7 @@ export default function Header() {
 
         {nickname ? (
           <>
+            <NotificationBell />
             <Link href="/mypage">
               {profileImage ? (
                 <img src={profileImage} alt="프로필" className="w-8 h-8 rounded-full object-cover hover:opacity-80 transition" />
@@ -107,7 +140,7 @@ export default function Header() {
                 </div>
               )}
             </Link>
-       <button onClick={logout} className="text-gray-500 hover:text-red-400 transition md:hidden" aria-label="로그아웃">
+            <button onClick={logout} className="text-gray-500 hover:text-red-400 transition md:hidden" aria-label="로그아웃">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                 <polyline points="16 17 21 12 16 7" />
