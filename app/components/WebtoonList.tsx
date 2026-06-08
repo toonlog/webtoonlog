@@ -14,19 +14,21 @@ export default function WebtoonList({ webtoons }: { webtoons: any[] }) {
   }, [webtoons]);
 
   useEffect(() => {
+    if (visible >= webtoons.length) return;
     const observer = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting) {
         setVisible(prev => Math.min(prev + PAGE_SIZE, webtoons.length));
       }
-    }, { threshold: 0.1 });
-    if (sentinelRef.current) observer.observe(sentinelRef.current);
+    }, { rootMargin: '200px', threshold: 0 });
+    const el = sentinelRef.current;
+    if (el) observer.observe(el);
     return () => observer.disconnect();
-  }, [webtoons.length]);
+  }, [visible, webtoons.length]);
 
   const displayed = webtoons.slice(0, visible);
 
   return (
-    <>
+    <div>
       {/* 모바일 */}
       <div className="flex flex-col gap-3 md:hidden">
         {displayed.map((webtoon: any) => (
@@ -52,6 +54,7 @@ export default function WebtoonList({ webtoons }: { webtoons: any[] }) {
             </div>
           </Link>
         ))}
+        {visible < webtoons.length && <div ref={sentinelRef} className="h-12" />}
       </div>
 
       {/* PC */}
@@ -79,12 +82,8 @@ export default function WebtoonList({ webtoons }: { webtoons: any[] }) {
             </div>
           </Link>
         ))}
+        {visible < webtoons.length && <div ref={sentinelRef} className="h-12 col-span-4" />}
       </div>
-
-      {/* 스크롤 감지 sentinel */}
-      {visible < webtoons.length && (
-        <div ref={sentinelRef} className="h-8 mt-2" />
-      )}
-    </>
+    </div>
   );
 }
