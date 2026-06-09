@@ -91,11 +91,11 @@ async function fetchFollowList(type: 'followers' | 'following') {
             </div>
           </div>
           {myUserId && myUserId !== targetUserId && (
-     <button onClick={toggleFollow}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition flex-shrink-0 ${
+ <button onClick={toggleFollow}
+              className={`px-3 py-1.5 rounded-lg text-xs transition flex-shrink-0 ${
                 isFollowing
-                  ? 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-500'
-                  : 'bg-blue-500 text-white hover:bg-blue-600'
+                  ? 'bg-gray-100 text-gray-700 font-medium hover:font-bold'
+                  : 'bg-blue-500 text-white font-medium hover:bg-blue-600'
               }`}>
               {isFollowing ? '✓ 팔로잉' : '팔로우'}
             </button>
