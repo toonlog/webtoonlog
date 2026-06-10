@@ -314,7 +314,7 @@ async function saveEdit(reviewId: string) {
         </div>
 {editingImage && (
           <div className="flex flex-col gap-2">
-            <ImageUpload onUpload={(url) => { setNewImage(url); }} />
+          <ImageUpload onUpload={(url) => { setNewImage(url); }} aspect={1} circular={true} />
             {newImage && <img src={newImage} alt="미리보기" className="w-16 h-16 rounded-full object-cover" />}
             <div className="flex gap-2">
               <button onClick={saveProfileImage} disabled={!newImage}
