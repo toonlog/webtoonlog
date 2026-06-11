@@ -138,7 +138,7 @@ export default function AddWebtoon() {
         <input className="border rounded p-2 text-gray-900" placeholder="작가" value={author} onChange={e => setAuthor(e.target.value)} />
         <select
           className={`border rounded p-2 text-gray-900 w-full ${errors.platform ? 'border-red-400' : ''}`}
-          style={shakeStyle('platform')}
+style={{ ...shakeStyle('platform'), paddingRight: '2.5rem', appearance: 'auto' }}
           value={platform}
           onChange={e => { setPlatform(e.target.value); setErrors(p => ({ ...p, platform: false })); }}
         >
@@ -167,7 +167,7 @@ export default function AddWebtoon() {
             <button type="button" onClick={addCustomGenre} className="bg-gray-100 px-3 py-2 rounded text-sm hover:bg-gray-200 whitespace-nowrap flex-shrink-0">+ 추가</button>
           </div>
         </div>
-        <select className="border rounded p-2 text-gray-900 pr-8" value={status} onChange={e => setStatus(e.target.value)}>
+    <select className="border rounded p-2 text-gray-900" style={{ paddingRight: '2.5rem' }} value={status}
           <option value="연재중">연재중</option>
           <option value="완결">완결</option>
           <option value="휴재">휴재</option>
