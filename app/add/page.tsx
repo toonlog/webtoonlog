@@ -75,9 +75,13 @@ export default function AddWebtoon() {
     const newErrors: Record<string, boolean> = {};
     const newShaking: Record<string, boolean> = {};
     keys.forEach(k => { newErrors[k] = true; newShaking[k] = true; });
-    setErrors(newErrors);
+    setErrors(prev => ({ ...prev, ...newErrors }));
     setShaking(newShaking);
-    setTimeout(() => setShaking({}), 500);
+    setTimeout(() => setShaking({}), 600);
+  }
+
+  function shakeStyle(key: string) {
+    return shaking[key] ? { animation: 'shake 0.5s ease' } : {};
   }
 
   async function handleSubmit() {
@@ -107,7 +111,7 @@ const res = await fetch('/api/webtoons/add', {
       <h1 className="text-2xl font-bold mb-6 text-gray-900">웹툰 등록</h1>
       <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-4">
         <div>
-        <input className={`border rounded p-2 w-full text-gray-900 ${errors.title ? 'border-red-400' : ''} ${shaking.title ? 'animate-shake' : ''}`} placeholder="제목 *" value={title}
+      <input className={`border rounded p-2 w-full text-gray-900 ${errors.title ? 'border-red-400' : ''}`} style={shakeStyle('title')}
             onChange={e => { setTitle(e.target.value); setShowSimilar(false); }}
             onBlur={checkSimilar} />
           {showSimilar && similarWebtoons.length > 0 && (
@@ -127,12 +131,12 @@ const res = await fetch('/api/webtoons/add', {
           )}
         </div>
         <input className="border rounded p-2 text-gray-900" placeholder="작가" value={author} onChange={e => setAuthor(e.target.value)} />
-     <select className={`border rounded p-2 text-gray-900 w-full ${errors.platform ? 'border-red-400' : ''} ${shaking.platform ? 'animate-shake' : ''}`} value={platform} onChange={e => { setPlatform(e.target.value); setErrors(p => ({ ...p, platform: false })); }}>
+   <select className={`border rounded p-2 text-gray-900 w-full ${errors.platform ? 'border-red-400' : ''}`} style={shakeStyle('platform')}
           <option value="">플랫폼 선택</option>
           {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
         </select>
         <div>
-        <p className={`text-sm mb-2 ${errors.genre ? 'text-red-400' : 'text-gray-600'} ${shaking.genre ? 'animate-shake' : ''}`}>
+      <p className={`text-sm mb-2 ${errors.genre ? 'text-red-400' : 'text-gray-600'}`} style={shakeStyle('genre')}>
             장르 (복수 선택 가능){errors.genre && <span className="ml-1 text-red-400">*</span>}
           </p>
           <div className="flex flex-wrap gap-2 mb-3">
