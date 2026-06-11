@@ -32,7 +32,7 @@ export async function GET(request) {
       webtoonMap[wId] = {
           title: rec.fields.title,
           thumbnail_url: rec.fields.thumbnail_url || null,
-  genre: Array.isArray(rec.fields.genre) ? rec.fields.genre.join(',') : (rec.fields.genre || ''),
+          genre: rec.fields.genre || '',
         };
       } catch { webtoonMap[wId] = { title: wId, thumbnail_url: null }; }
     }));
@@ -46,8 +46,9 @@ thumbnail_url: webtoonMap[r.fields.webtoon_id]?.thumbnail_url || null,
   rating: r.fields.rating,
   content: r.fields.content,
   created_at: r.fields.created_at,
-  is_public: r.fields.is_public ?? true,
- tags: r.fields.tags || '',
+ is_public: r.fields.is_public ?? true,
+  is_wishlist: r.fields.is_wishlist === true ? true : false,
+  tags: r.fields.tags || '',
   images: r.fields.images || '',
 }));
 
