@@ -3,7 +3,7 @@ import base from '../../../lib/airtable';
 
 async function recalcRating(webtoonId) {
   const reviews = await base('REVIEW').select({
-    filterByFormula: `{webtoon_id} = "${webtoonId}"`,
+   filterByFormula: `FIND("${webtoonId}", {webtoon_id})`,
   }).all();
   const rated = reviews.filter(r => !r.fields.is_wishlist);
   const count = rated.length;
