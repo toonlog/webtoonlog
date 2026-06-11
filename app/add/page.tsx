@@ -167,7 +167,7 @@ style={{ ...shakeStyle('platform'), paddingRight: '2.5rem', appearance: 'auto' }
             <button type="button" onClick={addCustomGenre} className="bg-gray-100 px-3 py-2 rounded text-sm hover:bg-gray-200 whitespace-nowrap flex-shrink-0">+ 추가</button>
           </div>
         </div>
-    <select className="border rounded p-2 text-gray-900" style={{ paddingRight: '2.5rem' }} value={status}
+ <select className="border rounded p-2 text-gray-900" style={{ paddingRight: '2.5rem' }} value={status} onChange={e => setStatus(e.target.value)}>
           <option value="연재중">연재중</option>
           <option value="완결">완결</option>
           <option value="휴재">휴재</option>
