@@ -401,8 +401,9 @@ export default function WebtoonPage() {
       ? (b.likes || 0) - (a.likes || 0)
       : new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   );
-  const avgRating = reviews.length > 0
-    ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
+ const ratedReviews = reviews.filter(r => !r.is_wishlist);
+  const avgRating = ratedReviews.length > 0
+    ? (ratedReviews.reduce((sum, r) => sum + (r.rating || 0), 0) / ratedReviews.length).toFixed(1)
     : null;
 
   const INITIAL = 5;
