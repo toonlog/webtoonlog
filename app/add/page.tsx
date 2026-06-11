@@ -85,10 +85,12 @@ export default function AddWebtoon() {
   }
 
   async function handleSubmit() {
-    const missing: string[] = [];
+   const missing: string[] = [];
     if (!title) missing.push('title');
+    if (!author) missing.push('author');
     if (!platform) missing.push('platform');
-    if (genres.length === 0) missing.push('genre');
+   if (genres.length === 0) missing.push('genre');
+    if (!thumbnailUrl) missing.push('thumbnail');
     if (missing.length > 0) { shake(missing); return; }
     setLoading(true);
     const res = await fetch('/api/webtoons/add', {
@@ -135,16 +137,24 @@ export default function AddWebtoon() {
             </div>
           )}
         </div>
-        <input className="border rounded p-2 text-gray-900" placeholder="작가" value={author} onChange={e => setAuthor(e.target.value)} />
-        <select
-          className={`border rounded p-2 text-gray-900 w-full ${errors.platform ? 'border-red-400' : ''}`}
-style={{ ...shakeStyle('platform'), paddingRight: '4rem' }}
-          value={platform}
-          onChange={e => { setPlatform(e.target.value); setErrors(p => ({ ...p, platform: false })); }}
-        >
-          <option value="">플랫폼 선택</option>
-          {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
-        </select>
+     <input
+          className={`border rounded p-2 text-gray-900 w-full ${errors.author ? 'border-red-400' : ''}`}
+          style={shakeStyle('author')}
+          placeholder="작가 *"
+          value={author}
+          onChange={e => { setAuthor(e.target.value); setErrors(p => ({ ...p, author: false })); }}
+        />
+     <div className="relative w-full" style={shakeStyle('platform')}>
+          <select
+            className={`border rounded p-2 pr-8 text-gray-900 w-full appearance-none ${errors.platform ? 'border-red-400' : ''}`}
+            value={platform}
+            onChange={e => { setPlatform(e.target.value); setErrors(p => ({ ...p, platform: false })); }}
+          >
+            <option value="">플랫폼 선택</option>
+            {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">▾</span>
+        </div>
         <div>
           <p
             className={`text-sm mb-2 ${errors.genre ? 'text-red-400' : 'text-gray-600'}`}
@@ -167,14 +177,19 @@ style={{ ...shakeStyle('platform'), paddingRight: '4rem' }}
             <button type="button" onClick={addCustomGenre} className="bg-gray-100 px-3 py-2 rounded text-sm hover:bg-gray-200 whitespace-nowrap flex-shrink-0">+ 추가</button>
           </div>
         </div>
-<select className="border rounded p-2 text-gray-900" style={{ paddingRight: '4rem' }} value={status} onChange={e => setStatus(e.target.value)}>
-          <option value="연재중">연재중</option>
-          <option value="완결">완결</option>
-          <option value="휴재">휴재</option>
-        </select>
+<div className="relative w-full">
+          <select className="border rounded p-2 pr-8 text-gray-900 w-full appearance-none" value={status} onChange={e => setStatus(e.target.value)}>
+            <option value="연재중">연재중</option>
+            <option value="완결">완결</option>
+            <option value="휴재">휴재</option>
+          </select>
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">▾</span>
+        </div>
         <div className="flex flex-col gap-2">
-          <p className="text-xs text-gray-400">카드에 노출되는 썸네일 이미지를 직접 업로드할 수 있어요!</p>
-          <ImageUpload onUpload={(url) => setThumbnailUrl(url)} aspect={3/4} />
+         <p className={`text-xs ${errors.thumbnail ? 'text-red-400' : 'text-gray-400'}`} style={shakeStyle('thumbnail')}>
+            카드에 노출되는 썸네일 이미지를 등록해주세요{errors.thumbnail && ' *'}
+          </p>
+          <ImageUpload onUpload={(url) => { setThumbnailUrl(url); setErrors(p => ({ ...p, thumbnail: false })); }} aspect={3/4} />
           {thumbnailUrl && <img src={thumbnailUrl} alt="썸네일 미리보기" className="w-full h-40 object-cover rounded-lg" />}
         </div>
         <button onClick={handleSubmit} disabled={loading} className="bg-blue-500 text-white py-2 rounded hover:bg-blue-600 disabled:opacity-50">
