@@ -1,6 +1,25 @@
 import { NextResponse } from 'next/server';
 import base from '../../../lib/airtable';
 
+async function recalcRating(webtoonId) {
+  const reviews = await base('REVIEW').select({
+    filterByFormula: `{webtoon_id} = "${webtoonId}"`,
+  }).all();
+  const rated = reviews.filter(r => !r.fields.is_wishlist);
+  const count = rated.length;
+  const avg = count > 0
+    ? Math.round((rated.reduce((s, r) => s + (r.fields.rating || 0), 0) / count) * 10) / 10
+    : 0;
+  await base('WEBTOON').update(webtoonId, { avg_rating: avg, review_count: count });
+  return { avg_rating: avg, review_count: count };
+}
+
+export async function POST(request, context) {
+  const { id } = await context.params;
+  const result = await recalcRating(id);
+  return NextResponse.json(result);
+}
+
 export async function GET(request, context) {
   try {
     const { id } = await context.params;
