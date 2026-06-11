@@ -65,6 +65,19 @@ export async function POST(request) {
       });
     } catch (e) { console.error('알람 실패:', e.message); }
 
+   // comment_count 업데이트
+    try {
+      const review = await base('REVIEW').find(reviewId);
+      const wid = review.fields.webtoon_id;
+      const webtoonReviews = await base('REVIEW').select({ filterByFormula: `{webtoon_id} = "${wid}"` }).all();
+      let total = 0;
+      await Promise.all(webtoonReviews.map(async (r) => {
+        const comments = await base('REVIEW_COMMENT').select({ filterByFormula: `{review_id} = "${r.id}"` }).all();
+        total += comments.length;
+      }));
+      await base('WEBTOON').update(wid, { comment_count: total });
+    } catch (e) { console.error('comment_count 업데이트 실패:', e.message); }
+
     return NextResponse.json({
       id: record.id,
       userId: user.userId,

@@ -456,8 +456,14 @@ async function saveEdit(reviewId: string) {
                     </span>
                   </div>
               <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    <span className="text-yellow-400 text-sm">{'★'.repeat(Math.floor(review.rating))}{review.rating % 1 ? '½' : ''}</span>
-                    <span className="text-xs text-gray-600 font-medium">{review.rating.toFixed(1)}</span>
+                 {review.is_wishlist ? (
+                      <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#EBF5FF', color: '#185FA5' }}>읽고싶다</span>
+                    ) : (
+                      <>
+                        <span className="text-yellow-400 text-sm">{'★'.repeat(Math.floor(review.rating))}{review.rating % 1 ? '½' : ''}</span>
+                        <span className="text-xs text-gray-600 font-medium">{review.rating.toFixed(1)}</span>
+                      </>
+                    )}
                     <span className="text-gray-400 text-xs">{review.created_at}</span>
                     {editingId !== review.id && (
                       <div className="flex gap-3 flex-shrink-0 ml-auto">

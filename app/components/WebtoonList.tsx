@@ -49,13 +49,18 @@ export default function WebtoonList({ webtoons }: { webtoons: any[] }) {
                 <h2 className="font-bold text-sm text-gray-900 truncate leading-snug">{webtoon.title}</h2>
                 <p className="text-xs text-gray-500 mt-0.5 truncate">{webtoon.author}</p>
                 <p className="text-xs text-blue-500 mt-0.5 truncate">{Array.isArray(webtoon.platform) ? webtoon.platform.join(', ') : webtoon.platform}</p>
-                {webtoon.review_count > 0 && (
-                  <div className="flex items-center gap-1 mt-1">
-                    <span className="text-yellow-400 text-xs">★</span>
-                    <span className="text-xs font-bold text-gray-700">{webtoon.avg_rating}</span>
-                    <span className="text-xs text-gray-400">({webtoon.review_count})</span>
-                  </div>
-                )}
+               <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                  {webtoon.review_count > 0 && (
+                    <>
+                      <span className="text-yellow-400 text-xs">★</span>
+                      <span className="text-xs font-bold text-gray-700">{webtoon.avg_rating}</span>
+                      <span className="text-xs text-gray-400">리뷰 {webtoon.review_count}</span>
+                    </>
+                  )}
+                  {webtoon.comment_count > 0 && (
+                    <span className="text-xs text-gray-400">💬 {webtoon.comment_count}</span>
+                  )}
+                </div>
               </div>
             </div>
           </Link>
@@ -79,13 +84,18 @@ export default function WebtoonList({ webtoons }: { webtoons: any[] }) {
                 <h2 className="font-bold text-sm text-gray-900">{webtoon.title}</h2>
                 <p className="text-xs text-gray-500 mt-0.5">{webtoon.author}</p>
                 <p className="text-xs text-blue-500 mt-0.5">{Array.isArray(webtoon.platform) ? webtoon.platform.join(', ') : webtoon.platform}</p>
-                {webtoon.review_count > 0 && (
-                  <div className="flex items-center gap-1 mt-2">
-                    <span className="text-yellow-400 text-xs">★</span>
-                    <span className="text-xs font-bold text-gray-700">{webtoon.avg_rating}</span>
-                    <span className="text-xs text-gray-400">({webtoon.review_count})</span>
-                  </div>
-                )}
+            <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                  {webtoon.review_count > 0 && (
+                    <>
+                      <span className="text-yellow-400 text-xs">★</span>
+                      <span className="text-xs font-bold text-gray-700">{webtoon.avg_rating}</span>
+                      <span className="text-xs text-gray-400">리뷰 {webtoon.review_count}</span>
+                    </>
+                  )}
+                  {webtoon.comment_count > 0 && (
+                    <span className="text-xs text-gray-400">💬 {webtoon.comment_count}</span>
+                  )}
+                </div>
               </div>
             </div>
           </Link>

@@ -140,7 +140,7 @@ const res = await fetch('/api/webtoons/add', {
         </select>
 <div className="flex flex-col gap-2">
           <p className="text-xs text-gray-400">카드에 노출되는 썸네일 이미지를 직접 업로드할 수 있어요!</p>
-          <ImageUpload onUpload={(url) => setThumbnailUrl(url)} />
+          <ImageUpload onUpload={(url) => setThumbnailUrl(url)} aspect={3/4} />
           {thumbnailUrl && <img src={thumbnailUrl} alt="썸네일 미리보기" className="w-full h-40 object-cover rounded-lg" />}
         </div>
         <button onClick={handleSubmit} disabled={loading} className="bg-blue-500 text-white py-2 rounded hover:bg-blue-600 disabled:opacity-50">
