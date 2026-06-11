@@ -80,23 +80,23 @@ export default function AddWebtoon() {
     setTimeout(() => setShaking({}), 600);
   }
 
-  function shakeStyle(key: string) {
+  function shakeStyle(key: string): React.CSSProperties {
     return shaking[key] ? { animation: 'shake 0.5s ease' } : {};
   }
 
   async function handleSubmit() {
-    const missing = [];
+    const missing: string[] = [];
     if (!title) missing.push('title');
     if (!platform) missing.push('platform');
     if (genres.length === 0) missing.push('genre');
     if (missing.length > 0) { shake(missing); return; }
     setLoading(true);
-const res = await fetch('/api/webtoons/add', {
+    const res = await fetch('/api/webtoons/add', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title, author, platform, genre: genres, status, thumbnailUrl }),
     });
-  if (res.ok) {
+    if (res.ok) {
       const data = await res.json();
       alert('등록 완료! 🎉\n리뷰를 통해 의견을 나눠보세요!');
       router.replace(`/webtoon/${data.id}`);
@@ -111,9 +111,14 @@ const res = await fetch('/api/webtoons/add', {
       <h1 className="text-2xl font-bold mb-6 text-gray-900">웹툰 등록</h1>
       <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-4">
         <div>
-      <input className={`border rounded p-2 w-full text-gray-900 ${errors.title ? 'border-red-400' : ''}`} style={shakeStyle('title')}
-            onChange={e => { setTitle(e.target.value); setShowSimilar(false); }}
-            onBlur={checkSimilar} />
+          <input
+            className={`border rounded p-2 w-full text-gray-900 ${errors.title ? 'border-red-400' : ''}`}
+            style={shakeStyle('title')}
+            placeholder="제목 *"
+            value={title}
+            onChange={e => { setTitle(e.target.value); setShowSimilar(false); setErrors(p => ({ ...p, title: false })); }}
+            onBlur={checkSimilar}
+          />
           {showSimilar && similarWebtoons.length > 0 && (
             <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-sm text-yellow-700 font-medium mb-2">⚠️ 비슷한 작품이 있어요! 확인해보세요:</p>
@@ -131,35 +136,43 @@ const res = await fetch('/api/webtoons/add', {
           )}
         </div>
         <input className="border rounded p-2 text-gray-900" placeholder="작가" value={author} onChange={e => setAuthor(e.target.value)} />
-   <select className={`border rounded p-2 text-gray-900 w-full ${errors.platform ? 'border-red-400' : ''}`} style={shakeStyle('platform')}
+        <select
+          className={`border rounded p-2 text-gray-900 w-full ${errors.platform ? 'border-red-400' : ''}`}
+          style={shakeStyle('platform')}
+          value={platform}
+          onChange={e => { setPlatform(e.target.value); setErrors(p => ({ ...p, platform: false })); }}
+        >
           <option value="">플랫폼 선택</option>
           {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
         </select>
         <div>
-      <p className={`text-sm mb-2 ${errors.genre ? 'text-red-400' : 'text-gray-600'}`} style={shakeStyle('genre')}>
+          <p
+            className={`text-sm mb-2 ${errors.genre ? 'text-red-400' : 'text-gray-600'}`}
+            style={shakeStyle('genre')}
+          >
             장르 (복수 선택 가능){errors.genre && <span className="ml-1 text-red-400">*</span>}
           </p>
           <div className="flex flex-wrap gap-2 mb-3">
             {allGenres.map(g => (
-              <button key={g} type="button" onClick={() => toggleGenre(g)}
+              <button key={g} type="button" onClick={() => { toggleGenre(g); setErrors(p => ({ ...p, genre: false })); }}
                 className={`px-3 py-1 rounded-full text-sm border transition ${genres.includes(g) ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-700 hover:bg-gray-100'}`}>
                 {g}
               </button>
             ))}
           </div>
-         <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-center">
             <input className="border rounded p-2 flex-1 text-sm text-gray-900" placeholder="직접 입력해서 장르 추가..." value={customGenre}
               onChange={e => setCustomGenre(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && addCustomGenre()} />
             <button type="button" onClick={addCustomGenre} className="bg-gray-100 px-3 py-2 rounded text-sm hover:bg-gray-200 whitespace-nowrap flex-shrink-0">+ 추가</button>
           </div>
         </div>
-     <select className="border rounded p-2 text-gray-900 pr-8" value={status} onChange={e => setStatus(e.target.value)}>
+        <select className="border rounded p-2 text-gray-900 pr-8" value={status} onChange={e => setStatus(e.target.value)}>
           <option value="연재중">연재중</option>
           <option value="완결">완결</option>
           <option value="휴재">휴재</option>
         </select>
-<div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2">
           <p className="text-xs text-gray-400">카드에 노출되는 썸네일 이미지를 직접 업로드할 수 있어요!</p>
           <ImageUpload onUpload={(url) => setThumbnailUrl(url)} aspect={3/4} />
           {thumbnailUrl && <img src={thumbnailUrl} alt="썸네일 미리보기" className="w-full h-40 object-cover rounded-lg" />}
