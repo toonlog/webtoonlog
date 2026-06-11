@@ -15,9 +15,13 @@ async function recalcRating(webtoonId) {
 }
 
 export async function POST(request, context) {
-  const { id } = await context.params;
-  const result = await recalcRating(id);
-  return NextResponse.json(result);
+  try {
+    const { id } = await context.params;
+    const result = await recalcRating(id);
+    return NextResponse.json(result);
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }
 
 export async function GET(request, context) {
