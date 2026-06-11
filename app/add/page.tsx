@@ -153,7 +153,7 @@ export default function AddWebtoon() {
             <option value="">플랫폼 선택</option>
             {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
           </select>
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">▾</span>
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 text-base">▼</span>
         </div>
         <div>
           <p
@@ -183,7 +183,7 @@ export default function AddWebtoon() {
             <option value="완결">완결</option>
             <option value="휴재">휴재</option>
           </select>
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">▾</span>
+       <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 text-base">▼</span>
         </div>
         <div className="flex flex-col gap-2">
          <p className={`text-xs ${errors.thumbnail ? 'text-red-400' : 'text-gray-400'}`} style={shakeStyle('thumbnail')}>
