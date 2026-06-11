@@ -19,6 +19,8 @@ export default function AddWebtoon() {
   const [loading, setLoading] = useState(false);
   const [similarWebtoons, setSimilarWebtoons] = useState<any[]>([]);
   const [showSimilar, setShowSimilar] = useState(false);
+  const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [shaking, setShaking] = useState<Record<string, boolean>>({});
 
   function normalize(str: string) {
     return str.replace(/\s/g, '').toLowerCase();
@@ -69,8 +71,21 @@ export default function AddWebtoon() {
     setCustomGenre('');
   }
 
+  function shake(keys: string[]) {
+    const newErrors: Record<string, boolean> = {};
+    const newShaking: Record<string, boolean> = {};
+    keys.forEach(k => { newErrors[k] = true; newShaking[k] = true; });
+    setErrors(newErrors);
+    setShaking(newShaking);
+    setTimeout(() => setShaking({}), 500);
+  }
+
   async function handleSubmit() {
-    if (!title) return alert('제목을 입력해주세요!');
+    const missing = [];
+    if (!title) missing.push('title');
+    if (!platform) missing.push('platform');
+    if (genres.length === 0) missing.push('genre');
+    if (missing.length > 0) { shake(missing); return; }
     setLoading(true);
 const res = await fetch('/api/webtoons/add', {
       method: 'POST',
@@ -92,7 +107,7 @@ const res = await fetch('/api/webtoons/add', {
       <h1 className="text-2xl font-bold mb-6 text-gray-900">웹툰 등록</h1>
       <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-4">
         <div>
-          <input className="border rounded p-2 w-full text-gray-900" placeholder="제목 *" value={title}
+        <input className={`border rounded p-2 w-full text-gray-900 ${errors.title ? 'border-red-400' : ''} ${shaking.title ? 'animate-shake' : ''}`} placeholder="제목 *" value={title}
             onChange={e => { setTitle(e.target.value); setShowSimilar(false); }}
             onBlur={checkSimilar} />
           {showSimilar && similarWebtoons.length > 0 && (
@@ -112,12 +127,14 @@ const res = await fetch('/api/webtoons/add', {
           )}
         </div>
         <input className="border rounded p-2 text-gray-900" placeholder="작가" value={author} onChange={e => setAuthor(e.target.value)} />
-        <select className="border rounded p-2 text-gray-900" value={platform} onChange={e => setPlatform(e.target.value)}>
+     <select className={`border rounded p-2 text-gray-900 w-full ${errors.platform ? 'border-red-400' : ''} ${shaking.platform ? 'animate-shake' : ''}`} value={platform} onChange={e => { setPlatform(e.target.value); setErrors(p => ({ ...p, platform: false })); }}>
           <option value="">플랫폼 선택</option>
           {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
         </select>
         <div>
-          <p className="text-sm text-gray-600 mb-2">장르 (복수 선택 가능)</p>
+        <p className={`text-sm mb-2 ${errors.genre ? 'text-red-400' : 'text-gray-600'} ${shaking.genre ? 'animate-shake' : ''}`}>
+            장르 (복수 선택 가능){errors.genre && <span className="ml-1 text-red-400">*</span>}
+          </p>
           <div className="flex flex-wrap gap-2 mb-3">
             {allGenres.map(g => (
               <button key={g} type="button" onClick={() => toggleGenre(g)}
