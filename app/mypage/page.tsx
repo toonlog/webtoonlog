@@ -280,8 +280,8 @@ async function handleShare() {
   return (
     <main className="min-h-screen bg-gray-50 p-4 md:p-8 max-w-2xl mx-auto pb-24">
 
-      {/* 프로필 */}
-      <div className="bg-white rounded-xl shadow p-6 mb-4">
+     {/* 프로필 */}
+      <div className="bg-white rounded-xl shadow p-4 mb-4">
         <div className="flex items-center gap-4 mb-4">
           <div className="relative flex-shrink-0">
             {profileImage ? (
@@ -309,27 +309,10 @@ async function handleShare() {
                 <button onClick={() => setEditingNickname(false)} className="text-xs text-gray-400">취소</button>
               </div>
             ) : (
-         <div className="flex items-center gap-2">
+     <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold text-gray-900 truncate">{nickname}</h1>
                 <button onClick={() => { setEditingNickname(true); setNewNickname(nickname || ''); }}
                   className="text-xs text-gray-400 hover:text-blue-500 flex-shrink-0">수정</button>
-               <button onClick={handleShare}
-                  className="flex items-center gap-1 text-xs text-white px-3 py-1.5 rounded-lg flex-shrink-0 transition-colors"
-                  style={{ background: '#3B82F6' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = '#9CA3AF')}
-                  onMouseLeave={e => (e.currentTarget.style.background = '#3B82F6')}
-                  onTouchStart={e => (e.currentTarget.style.background = '#9CA3AF')}
-                  onTouchEnd={e => (e.currentTarget.style.background = '#3B82F6')}
-                  title="내 프로필 공유">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="18" cy="5" r="3"/>
-                    <circle cx="6" cy="12" r="3"/>
-                    <circle cx="18" cy="19" r="3"/>
-                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-                  </svg>
-                  공유
-                </button>
               </div>
             )}
 <div className="flex gap-4 mt-2 text-sm text-gray-500">
@@ -341,12 +324,29 @@ async function handleShare() {
               </button>
               <span>리뷰 <span className="text-gray-400">{reviews.length}</span></span>
             </div>
-            <div className="flex gap-3 mt-1 text-sm text-gray-500 flex-wrap">
+        <div className="flex gap-3 mt-1 text-sm text-gray-500 flex-wrap">
               <span>읽는중 <strong className="text-gray-800">{statuses.filter(s => s.status === '읽는중').length}</strong></span>
               <span>완독 <strong className="text-gray-800">{statuses.filter(s => s.status === '완독').length}</strong></span>
               <span>읽고싶다 <strong className="text-gray-800">{statuses.filter(s => s.status === '읽고싶다').length}</strong></span>
             </div>
           </div>
+          <button onClick={handleShare}
+            className="self-start flex items-center gap-1 text-xs text-white px-3 py-1.5 rounded-lg flex-shrink-0 transition-colors"
+            style={{ background: '#3B82F6' }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#9CA3AF')}
+            onMouseLeave={e => (e.currentTarget.style.background = '#3B82F6')}
+            onTouchStart={e => (e.currentTarget.style.background = '#9CA3AF')}
+            onTouchEnd={e => (e.currentTarget.style.background = '#3B82F6')}
+            title="내 프로필 공유">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="18" cy="5" r="3"/>
+              <circle cx="6" cy="12" r="3"/>
+              <circle cx="18" cy="19" r="3"/>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            </svg>
+            공유
+          </button>
         </div>
 {editingImage && (
           <div className="flex flex-col gap-2">
