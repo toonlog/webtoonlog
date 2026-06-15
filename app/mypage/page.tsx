@@ -313,10 +313,15 @@ async function handleShare() {
                 <h1 className="text-xl font-bold text-gray-900 truncate">{nickname}</h1>
                 <button onClick={() => { setEditingNickname(true); setNewNickname(nickname || ''); }}
                   className="text-xs text-gray-400 hover:text-blue-500 flex-shrink-0">수정</button>
-                <button onClick={handleShare}
-                  className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-500 flex-shrink-0"
+               <button onClick={handleShare}
+                  className="flex items-center gap-1 text-xs text-white px-3 py-1.5 rounded-lg flex-shrink-0 transition-colors"
+                  style={{ background: '#3B82F6' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#9CA3AF')}
+                  onMouseLeave={e => (e.currentTarget.style.background = '#3B82F6')}
+                  onTouchStart={e => (e.currentTarget.style.background = '#9CA3AF')}
+                  onTouchEnd={e => (e.currentTarget.style.background = '#3B82F6')}
                   title="내 프로필 공유">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="18" cy="5" r="3"/>
                     <circle cx="6" cy="12" r="3"/>
                     <circle cx="18" cy="19" r="3"/>
