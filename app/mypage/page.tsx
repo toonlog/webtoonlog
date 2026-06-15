@@ -245,8 +245,27 @@ async function saveEdit(reviewId: string) {
     router.push('/');
   }
 
+async function handleShare() {
+    const url = `${window.location.origin}/users/${userId}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `${nickname}님의 웹툰로그`, url });
+        return;
+      } catch (e: any) {
+        if (e.name === 'AbortError') return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      alert('프로필 링크가 복사되었어요!');
+    } catch {
+      prompt('아래 링크를 복사하세요', url);
+    }
+  }
+
   function logout() {
     localStorage.removeItem('token');
+
     localStorage.removeItem('nickname');
     localStorage.removeItem('userId');
     window.dispatchEvent(new Event('authChange'));
@@ -290,10 +309,22 @@ async function saveEdit(reviewId: string) {
                 <button onClick={() => setEditingNickname(false)} className="text-xs text-gray-400">취소</button>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+         <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold text-gray-900 truncate">{nickname}</h1>
                 <button onClick={() => { setEditingNickname(true); setNewNickname(nickname || ''); }}
                   className="text-xs text-gray-400 hover:text-blue-500 flex-shrink-0">수정</button>
+                <button onClick={handleShare}
+                  className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-500 flex-shrink-0"
+                  title="내 프로필 공유">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="18" cy="5" r="3"/>
+                    <circle cx="6" cy="12" r="3"/>
+                    <circle cx="18" cy="19" r="3"/>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                  </svg>
+                  공유
+                </button>
               </div>
             )}
 <div className="flex gap-4 mt-2 text-sm text-gray-500">

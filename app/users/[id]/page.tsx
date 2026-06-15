@@ -103,8 +103,64 @@ async function fetchFollowList(type: 'followers' | 'following') {
           {myUserId === targetUserId && (
             <Link href="/mypage" className="text-sm text-blue-500 hover:underline">마이페이지로</Link>
           )}
-        </div>
+    </div>
       </div>
+
+      {reviews.length > 0 && (() => {
+        const genreCount: Record<string, number> = {};
+        reviews.forEach(r => {
+          if (!r.genre) return;
+          r.genre.split(',').map((g: string) => g.trim()).filter(Boolean).forEach((g: string) => {
+            genreCount[g] = (genreCount[g] || 0) + 1;
+          });
+        });
+        const topGenres = Object.entries(genreCount).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([g]) => g);
+
+        const tagCount: Record<string, number> = {};
+        reviews.forEach(r => {
+          if (!r.tags) return;
+          r.tags.split(',').map((t: string) => t.trim()).filter(Boolean).forEach((t: string) => {
+            tagCount[t] = (tagCount[t] || 0) + 1;
+          });
+        });
+        const topTags = Object.entries(tagCount).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([t]) => t);
+
+        if (topGenres.length === 0 && topTags.length === 0) return null;
+
+        return (
+          <div className="bg-white rounded-xl shadow p-4 mb-4">
+            <h2 className="font-bold text-gray-900 mb-3">취향 분석</h2>
+            <div className="flex flex-col gap-3">
+              {topGenres.length > 0 && (
+                <div>
+                  <p className="text-xs text-gray-400 mb-1.5">장르 선호 Top 3</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {topGenres.map((g, i) => (
+                      <span key={g} className="text-xs px-3 py-1 rounded-full"
+                        style={{ background: '#F1EFE8', color: '#5F5E5A' }}>
+                        {i + 1}. {g}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {topTags.length > 0 && (
+                <div>
+                  <p className="text-xs text-gray-400 mb-1.5">태그 선호 Top 3</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {topTags.map((t, i) => (
+                      <span key={t} className="text-xs px-3 py-1 rounded-full"
+                        style={{ background: '#EEEDFE', color: '#534AB7' }}>
+                        {i + 1}. #{t}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="flex mb-4 bg-white rounded-xl shadow p-1 gap-1">
         <button onClick={() => setTab('reviews')}
@@ -136,8 +192,9 @@ async function fetchFollowList(type: 'followers' | 'following') {
                   ) : (
                     <span className="font-bold text-gray-400 text-sm">웹툰 정보 없음</span>
                   )}
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-yellow-400 text-sm">{'★'.repeat(review.rating)}</span>
+               <div className="flex items-center gap-2 mt-1">
+                    <span className="text-yellow-400 text-sm">{'★'.repeat(Math.floor(review.rating))}{review.rating % 1 ? '½' : ''}</span>
+                    <span className="text-gray-600 text-xs font-medium">{review.rating?.toFixed(1)}</span>
                     <span className="text-gray-400 text-xs">{review.created_at}</span>
                   </div>
                 </div>
