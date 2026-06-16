@@ -191,9 +191,12 @@ export default function WebtoonPage() {
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const [comments, setComments] = useState<Record<string, any[]>>({});
   const [commentInput, setCommentInput] = useState<Record<string, string>>({});
-  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+ const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentContent, setEditCommentContent] = useState('');
-
+  const [showReport, setShowReport] = useState(false);
+  const [reportType, setReportType] = useState('링크오류');
+  const [reportContent, setReportContent] = useState('');
+  const [reportLoading, setReportLoading] = useState(false);
   useEffect(() => {
     const a = getAuth();
     setAuth(a);
@@ -373,10 +376,27 @@ export default function WebtoonPage() {
     fetchComments(reviewId);
   }
 
-  function toggleComments(reviewId: string) {
+ function toggleComments(reviewId: string) {
     const next = !expandedComments[reviewId];
     setExpandedComments(prev => ({ ...prev, [reviewId]: next }));
     if (next && !comments[reviewId]) fetchComments(reviewId);
+  }
+
+  async function submitReport() {
+    if (!auth.token) return router.push('/login');
+    if (!reportContent.trim()) return alert('내용을 입력해주세요!');
+    setReportLoading(true);
+    const res = await fetch('/api/reports', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
+      body: JSON.stringify({ webtoonId: id, webtoonTitle: webtoon?.title, type: reportType, content: reportContent }),
+    });
+    setReportLoading(false);
+    if (!res.ok) { const d = await res.json(); return alert(d.error || '오류가 발생했어요'); }
+    alert('제보해주셔서 감사해요! 검토 후 반영할게요 🙏');
+    setShowReport(false);
+    setReportContent('');
+    setReportType('링크오류');
   }
 
   const statusList = ['읽는중', '완독', '읽고싶다', '보관'];
@@ -513,7 +533,7 @@ export default function WebtoonPage() {
                   #{tag} {count}
                 </Link>
               ))}
-              {sortedTags.length > 5 && (
+          {sortedTags.length > 5 && (
                 <button onClick={() => setShowAllTags(!showAllTags)}
                   className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
                   {showAllTags ? '접기' : `+${sortedTags.length - 5}개 더보기`}
@@ -522,7 +542,47 @@ export default function WebtoonPage() {
             </div>
           </div>
         )}
+        <div className="mt-3 pt-2 flex justify-end">
+          <button onClick={() => { if (!auth.token) return router.push('/login'); setShowReport(true); }}
+            className="text-xs text-gray-300 hover:text-gray-500 transition">
+            정보 오류 신고
+          </button>
+        </div>
       </div>
+
+      {showReport && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowReport(false)}>
+          <div className="bg-white rounded-xl shadow-lg w-full max-w-sm p-4"
+            onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-bold text-sm">정보 오류 신고 · 제안</h2>
+              <button onClick={() => setShowReport(false)} className="text-gray-400 text-sm">✕</button>
+            </div>
+            <p className="text-xs text-gray-400 mb-2">{webtoon.title}</p>
+            <div className="flex gap-2 mb-3">
+              {['링크오류', '정보오류', '기타'].map(t => (
+                <button key={t} onClick={() => setReportType(t)}
+                  className="px-3 py-1 rounded-full text-xs border transition"
+                  style={reportType === t
+                    ? { background: '#3B82F6', color: '#fff', border: 'none' }
+                    : { background: 'transparent', color: '#888', borderColor: '#D3D1C7' }}>
+                  {t}
+                </button>
+              ))}
+            </div>
+            <textarea
+              style={{ background: '#F9F9F9', border: '0.5px solid #EBEBEB', borderRadius: 7, padding: '8px', fontSize: 12, color: '#1a1a1a', width: '100%', resize: 'none', minHeight: 80, lineHeight: 1.5 }}
+              placeholder="어떤 정보가 틀렸는지, 올바른 정보가 무엇인지 적어주세요. (예: 링크가 깨졌어요 → 올바른 링크: https://...)"
+              value={reportContent} onChange={e => setReportContent(e.target.value)} />
+            <button onClick={submitReport} disabled={reportLoading}
+              className="w-full mt-3 py-2 rounded-lg text-sm text-white border-none disabled:opacity-50"
+              style={{ background: '#3B82F6' }}>
+              {reportLoading ? '제출 중...' : '제보하기'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 읽기 상태 */}
       <div className="bg-white rounded-xl shadow p-4 mb-4">
