@@ -10,8 +10,9 @@ export default function AddWebtoon() {
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
-  const [platform, setPlatform] = useState('');
+ const [platform, setPlatform] = useState('');
   const [customPlatform, setCustomPlatform] = useState('');
+  const [link, setLink] = useState('');
   const [genres, setGenres] = useState<string[]>([]);
   const [allGenres, setAllGenres] = useState<string[]>(DEFAULT_GENRES);
   const [customGenre, setCustomGenre] = useState('');
@@ -92,13 +93,14 @@ const finalPlatform = platform === '기타' ? customPlatform.trim() : platform;
     if (!author) missing.push('author');
     if (!finalPlatform) missing.push('platform');
    if (genres.length === 0) missing.push('genre');
+    if (!link.trim()) missing.push('link');
     if (!thumbnailUrl) missing.push('thumbnail');
     if (missing.length > 0) { shake(missing); return; }
     setLoading(true);
     const res = await fetch('/api/webtoons/add', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, author, platform: finalPlatform, genre: genres, status, thumbnailUrl }),
+      body: JSON.stringify({ title, author, platform: finalPlatform, genre: genres, status, thumbnailUrl, link: link.trim() }),
     });
     if (res.ok) {
       const data = await res.json();
@@ -139,12 +141,19 @@ const finalPlatform = platform === '기타' ? customPlatform.trim() : platform;
             </div>
           )}
         </div>
-     <input
+  <input
           className={`border rounded p-2 text-gray-900 w-full ${errors.author ? 'border-red-400' : ''}`}
           style={shakeStyle('author')}
           placeholder="작가 *"
           value={author}
           onChange={e => { setAuthor(e.target.value); setErrors(p => ({ ...p, author: false })); }}
+        />
+     <input
+          className={`border rounded p-2 text-gray-900 w-full ${errors.link ? 'border-red-400' : ''}`}
+          style={shakeStyle('link')}
+          placeholder="작품 링크 * (예: https://...)"
+          value={link}
+          onChange={e => { setLink(e.target.value); setErrors(p => ({ ...p, link: false })); }}
         />
      <div className="relative w-full" style={shakeStyle('platform')}>
           <select
