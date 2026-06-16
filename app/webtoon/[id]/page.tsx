@@ -449,7 +449,7 @@ export default function WebtoonPage() {
             )}
           </div>
           <div className="flex-1 min-w-0 flex flex-col gap-1">
-    <div className="flex items-start gap-2 flex-wrap">
+        <div className="flex items-start gap-2 flex-wrap">
               <h1 className="text-base font-bold text-gray-900 leading-snug" style={{ wordBreak: 'keep-all' }}>{webtoon.title}</h1>
               {webtoon.link && (
                 <a href={webtoon.link} target="_blank" rel="noopener noreferrer"
@@ -464,8 +464,7 @@ export default function WebtoonPage() {
                 </a>
               )}
               {auth.token && (
-                <div className="ml-auto">
-                <div className="relative flex-shrink-0">
+                <div className="relative flex-shrink-0 ml-auto">
                   <button onClick={() => setShowCollectionMenu(!showCollectionMenu)}
                     className="text-xs px-3 py-1.5 rounded-lg border-none text-white flex-shrink-0"
                     style={{ background: '#3B82F6', lineHeight: 1.2 }}>
