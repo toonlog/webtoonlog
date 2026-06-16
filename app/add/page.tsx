@@ -4,13 +4,14 @@ import { useRouter } from 'next/navigation';
 import ImageUpload from '@/app/components/ImageUpload';
 
 const DEFAULT_GENRES = ['BL', 'GL', '로맨스', '판타지', '현대', '드라마', '액션', '무협', '스릴러', '공포', '개그', 'SF', '스포츠', '일상'];
-const PLATFORMS = ['네이버웹툰', '카카오페이지', '레진코믹스', '봄툰', '리디', '피너툰', '탑툰', '코미코', '기타'];
+const PLATFORMS = ['네이버웹툰', '카카오페이지', '봄툰', '레진코믹스', '리디', '포스타입', '기타'];
 
 export default function AddWebtoon() {
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [platform, setPlatform] = useState('');
+  const [customPlatform, setCustomPlatform] = useState('');
   const [genres, setGenres] = useState<string[]>([]);
   const [allGenres, setAllGenres] = useState<string[]>(DEFAULT_GENRES);
   const [customGenre, setCustomGenre] = useState('');
@@ -85,10 +86,11 @@ export default function AddWebtoon() {
   }
 
   async function handleSubmit() {
+const finalPlatform = platform === '기타' ? customPlatform.trim() : platform;
    const missing: string[] = [];
     if (!title) missing.push('title');
     if (!author) missing.push('author');
-    if (!platform) missing.push('platform');
+    if (!finalPlatform) missing.push('platform');
    if (genres.length === 0) missing.push('genre');
     if (!thumbnailUrl) missing.push('thumbnail');
     if (missing.length > 0) { shake(missing); return; }
@@ -96,7 +98,7 @@ export default function AddWebtoon() {
     const res = await fetch('/api/webtoons/add', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, author, platform, genre: genres, status, thumbnailUrl }),
+      body: JSON.stringify({ title, author, platform: finalPlatform, genre: genres, status, thumbnailUrl }),
     });
     if (res.ok) {
       const data = await res.json();
@@ -153,8 +155,16 @@ export default function AddWebtoon() {
             <option value="">플랫폼 선택</option>
             {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
           </select>
-      <svg className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+   <svg className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
+        {platform === '기타' && (
+          <input
+            className="border rounded p-2 text-gray-900 w-full"
+            placeholder="플랫폼 직접 입력 *"
+            value={customPlatform}
+            onChange={e => { setCustomPlatform(e.target.value); setErrors(p => ({ ...p, platform: false })); }}
+          />
+        )}
         <div>
           <p
             className={`text-sm mb-2 ${errors.genre ? 'text-red-400' : 'text-gray-600'}`}
