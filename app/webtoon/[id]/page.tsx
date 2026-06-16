@@ -647,9 +647,9 @@ export default function WebtoonPage() {
                     ) : (
                       <span className="font-bold text-sm">{review.nickname}</span>
                     )}
-                    {review.is_wishlist ? (
+                  {review.is_wishlist ? (
                       <span className="text-xs px-2 py-0.5 rounded-full"
-                        style={{ background: '#EEEDFE', color: '#534AB7' }}>읽고싶다</span>
+                        style={{ background: '#EBF5FF', color: '#185FA5' }}>읽고싶다</span>
                     ) : (
                       <StarDisplay rating={review.rating} size={13} />
                     )}
