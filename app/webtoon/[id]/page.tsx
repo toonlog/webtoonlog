@@ -677,8 +677,8 @@ export default function WebtoonPage() {
                     </div>
                   )}
                 </div>
-                <div className="flex items-start gap-2 mt-3">
-                  <p className="text-sm text-gray-700 mb-1 flex-1">{review.content}</p>
+              <div className="flex items-start gap-2 mt-3">
+                  <p className="text-sm text-gray-700 mb-1 flex-1" style={{ whiteSpace: 'pre-wrap' }}>{review.content}</p>
                   {review.images && (() => {
                     const imgs = review.images.split(',').map((u: string) => u.trim()).filter(Boolean);
                     if (imgs.length === 0) return null;
