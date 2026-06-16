@@ -35,10 +35,11 @@ export async function GET(request, context) {
       platform: record.fields.platform,
       genre: record.fields.genre,
       status: record.fields.status,
-      thumbnail_url: record.fields.thumbnail_url,
+    thumbnail_url: record.fields.thumbnail_url,
       avg_rating: record.fields.avg_rating,
       review_count: record.fields.review_count,
       description: record.fields.description,
+      link: record.fields.link,
     });
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
