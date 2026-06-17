@@ -460,7 +460,7 @@ export default function WebtoonPage() {
               </a>
             )}
           </div>
-          <div className="flex-1 min-w-0 flex flex-col gap-1">
+       <div className="flex-1 min-w-0 flex flex-col gap-0.5">
       <div className="flex items-center gap-2 flex-wrap">
              <h1 className="text-base font-bold text-gray-900 leading-snug" style={{ wordBreak: 'keep-all' }}>{webtoon.title}</h1>
               {auth.token && (
@@ -491,7 +491,7 @@ export default function WebtoonPage() {
                 </div>
               )}
             </div>
-    <p className="text-xs text-gray-400" style={{ marginTop: '1px', marginBottom: '6px' }}>{webtoon.author}</p>
+  <p className="text-xs text-gray-400" style={{ marginTop: 0, marginBottom: '2px' }}>{webtoon.author}</p>
             {avgRating && (
               <div className="flex items-center gap-1">
                 <span className="text-yellow-400 text-xs">★ {avgRating}</span>
