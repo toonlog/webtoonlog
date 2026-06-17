@@ -439,13 +439,25 @@ export default function WebtoonPage() {
       {/* 작품 정보 */}
       <div className="bg-white rounded-xl shadow p-4 mb-4">
         <div className="flex gap-3">
-          <div className="flex-shrink-0 w-24 self-stretch flex items-center">
+      <div className="flex-shrink-0 w-24 flex flex-col gap-2">
             {webtoon.thumbnail_url ? (
               <img src={webtoon.thumbnail_url} alt={webtoon.title}
                 className="w-24 rounded-lg object-cover"
                 style={{ aspectRatio: '8/11' }} />
             ) : (
               <div className="w-24 bg-gray-200 rounded-lg" style={{ aspectRatio: '8/11' }} />
+            )}
+            {webtoon.link && (
+              <a href={webtoon.link} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-1 w-full"
+                style={{ fontSize: 11, lineHeight: 1, padding: '5px 6px', borderRadius: 6, background: '#F1EFE8', border: '0.5px solid #D3D1C7', color: '#5F5E5A' }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                  <polyline points="15 3 21 3 21 9"/>
+                  <line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+                보러가기
+              </a>
             )}
           </div>
           <div className="flex-1 min-w-0 flex flex-col gap-1">
@@ -479,19 +491,7 @@ export default function WebtoonPage() {
                 </div>
               )}
             </div>
-      <p className="text-xs text-gray-400" style={{ marginTop: '1px', marginBottom: '6px' }}>{webtoon.author}</p>
-            {webtoon.link && (
-              <a href={webtoon.link} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 w-fit mb-1.5"
-                style={{ fontSize: 11, lineHeight: 1, padding: '3px 8px', borderRadius: 6, background: '#F1EFE8', border: '0.5px solid #D3D1C7', color: '#5F5E5A' }}>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                  <polyline points="15 3 21 3 21 9"/>
-                  <line x1="10" y1="14" x2="21" y2="3"/>
-                </svg>
-                보러가기
-              </a>
-            )}
+    <p className="text-xs text-gray-400" style={{ marginTop: '1px', marginBottom: '6px' }}>{webtoon.author}</p>
             {avgRating && (
               <div className="flex items-center gap-1">
                 <span className="text-yellow-400 text-xs">★ {avgRating}</span>
