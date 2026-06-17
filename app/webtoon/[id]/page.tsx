@@ -450,19 +450,7 @@ export default function WebtoonPage() {
           </div>
           <div className="flex-1 min-w-0 flex flex-col gap-1">
       <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-base font-bold text-gray-900 leading-snug" style={{ wordBreak: 'keep-all' }}>{webtoon.title}</h1>
-              {webtoon.link && (
-                <a href={webtoon.link} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 flex-shrink-0"
-                  style={{ fontSize: 11, lineHeight: 1, padding: '3px 8px', borderRadius: 6, background: '#F1EFE8', border: '0.5px solid #D3D1C7', color: '#5F5E5A' }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                    <polyline points="15 3 21 3 21 9"/>
-                    <line x1="10" y1="14" x2="21" y2="3"/>
-                  </svg>
-                  보러가기
-                </a>
-              )}
+             <h1 className="text-base font-bold text-gray-900 leading-snug" style={{ wordBreak: 'keep-all' }}>{webtoon.title}</h1>
               {auth.token && (
                 <div className="relative flex-shrink-0 ml-auto">
                   <button onClick={() => setShowCollectionMenu(!showCollectionMenu)}
@@ -491,7 +479,19 @@ export default function WebtoonPage() {
                 </div>
               )}
             </div>
-         <p className="text-xs text-gray-400" style={{ marginTop: '1px', marginBottom: '6px' }}>{webtoon.author}</p>
+      <p className="text-xs text-gray-400" style={{ marginTop: '1px', marginBottom: '6px' }}>{webtoon.author}</p>
+            {webtoon.link && (
+              <a href={webtoon.link} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 w-fit mb-1.5"
+                style={{ fontSize: 11, lineHeight: 1, padding: '3px 8px', borderRadius: 6, background: '#F1EFE8', border: '0.5px solid #D3D1C7', color: '#5F5E5A' }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                  <polyline points="15 3 21 3 21 9"/>
+                  <line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+                보러가기
+              </a>
+            )}
             {avgRating && (
               <div className="flex items-center gap-1">
                 <span className="text-yellow-400 text-xs">★ {avgRating}</span>

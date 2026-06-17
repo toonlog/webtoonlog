@@ -309,13 +309,30 @@ async function handleShare() {
                 <button onClick={() => setEditingNickname(false)} className="text-xs text-gray-400">취소</button>
               </div>
             ) : (
-     <div className="flex items-center gap-2">
+  <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold text-gray-900 truncate">{nickname}</h1>
                 <button onClick={() => { setEditingNickname(true); setNewNickname(nickname || ''); }}
                   className="text-xs text-gray-400 hover:text-blue-500 flex-shrink-0">수정</button>
+                <button onClick={handleShare}
+                  className="flex items-center gap-1 text-xs text-white px-2 py-1 rounded-lg flex-shrink-0 transition-colors"
+                  style={{ background: '#3B82F6' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#9CA3AF')}
+                  onMouseLeave={e => (e.currentTarget.style.background = '#3B82F6')}
+                  onTouchStart={e => (e.currentTarget.style.background = '#9CA3AF')}
+                  onTouchEnd={e => (e.currentTarget.style.background = '#3B82F6')}
+                  title="내 프로필 공유">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="18" cy="5" r="3"/>
+                    <circle cx="6" cy="12" r="3"/>
+                    <circle cx="18" cy="19" r="3"/>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                  </svg>
+                  공유
+                </button>
               </div>
             )}
-<div className="flex gap-4 mt-2 text-sm text-gray-500">
+<div className="flex gap-4 mt-2 text-sm text-gray-500 flex-wrap">
               <button onClick={() => fetchFollowList('followers')} className="hover:text-blue-500 transition">
                 팔로워 <span className="text-gray-400">{followerCount}</span>
               </button>
@@ -330,24 +347,7 @@ async function handleShare() {
               <span>읽고싶다 <strong className="text-gray-800">{statuses.filter(s => s.status === '읽고싶다').length}</strong></span>
             </div>
           </div>
-          <button onClick={handleShare}
-            className="self-start flex items-center gap-1 text-xs text-white px-3 py-1.5 rounded-lg flex-shrink-0 transition-colors"
-            style={{ background: '#3B82F6' }}
-            onMouseEnter={e => (e.currentTarget.style.background = '#9CA3AF')}
-            onMouseLeave={e => (e.currentTarget.style.background = '#3B82F6')}
-            onTouchStart={e => (e.currentTarget.style.background = '#9CA3AF')}
-            onTouchEnd={e => (e.currentTarget.style.background = '#3B82F6')}
-            title="내 프로필 공유">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="18" cy="5" r="3"/>
-              <circle cx="6" cy="12" r="3"/>
-              <circle cx="18" cy="19" r="3"/>
-              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-            </svg>
-            공유
-          </button>
-        </div>
+     </div>
 {editingImage && (
           <div className="flex flex-col gap-2">
           <ImageUpload onUpload={(url) => { setNewImage(url); }} aspect={1} circular={true} />
