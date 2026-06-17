@@ -492,8 +492,8 @@ export default function WebtoonPage() {
               )}
             </div>
  <p className="text-xs text-gray-400" style={{ margin: 0 }}>{webtoon.author}</p>
-    {avgRating && (
-              <div className="flex items-center gap-1 leading-none" style={{ marginTop: '-2px' }}>
+{avgRating && (
+              <div className="flex items-center gap-1 leading-none" style={{ marginTop: '2px' }}>
                 <span className="text-yellow-400 text-xs">★ {avgRating}</span>
                 <span className="text-xs text-gray-400">({reviews.length}개)</span>
               </div>
